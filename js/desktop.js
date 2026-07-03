@@ -2,6 +2,10 @@ let windowZIndex = 100;
 let activeWindows = {};
 let windowIdCounter = 0;
 let dragState = null;
+let selectionState = { isSelecting: false, startX: 0, startY: 0, rect: null };
+let recycleBinItems = [];
+let iconDragState = { isDragging: false, icon: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, hasMoved: false };
+let iconPositions = {};
 
 const wallpapers = [
     'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 30%, #1a4a7a 60%, #0d2137 100%)',
@@ -25,7 +29,9 @@ function saveWebOS() {
             webosInfected: webosInfected,
             webosVirusFiles: webosVirusFiles,
             currentWallpaper: currentWallpaper,
-            downloadedGames: downloadedGames
+            downloadedGames: downloadedGames,
+            recycleBinItems: recycleBinItems,
+            iconPositions: iconPositions
         };
         localStorage.setItem('webos-save', JSON.stringify(data));
     } catch(e) {}
@@ -45,6 +51,8 @@ function loadWebOS() {
                 currentWallpaper = data.currentWallpaper;
             }
             downloadedGames = data.downloadedGames || [];
+            recycleBinItems = data.recycleBinItems || [];
+            iconPositions = data.iconPositions || {};
             restoreDownloadedIcons();
             return true;
         }
@@ -71,12 +79,368 @@ function restoreDownloadedIcons() {
         icon.setAttribute('ondblclick', `openApp('${gameId}')`);
         icon.innerHTML = `<div class="icon-img">${info.icon}</div><span>${info.name}</span>`;
         icon.addEventListener('click', (e) => {
+            if (iconDragState.hasMoved) {
+                iconDragState.hasMoved = false;
+                return;
+            }
             e.stopPropagation();
             document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
             icon.classList.add('selected');
         });
+        icon.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+            icon.classList.add('selected');
+            const appId = icon.getAttribute('data-app');
+            const canDelete = !isBuiltInApp(appId);
+            showIconContextMenu(e.clientX, e.clientY, appId, canDelete);
+        });
+        icon.addEventListener('mousedown', handleIconMouseDown);
         di.appendChild(icon);
     });
+}
+
+const GRID_CELL_WIDTH = 90;
+const GRID_CELL_HEIGHT = 100;
+const GRID_PADDING = 10;
+const TASKBAR_HEIGHT = 48;
+
+function getGridCell(left, top) {
+    const col = Math.floor((left - GRID_PADDING) / GRID_CELL_WIDTH);
+    const row = Math.floor((top - GRID_PADDING) / GRID_CELL_HEIGHT);
+    return { col: Math.max(0, col), row: Math.max(0, row) };
+}
+
+function getCellPosition(col, row) {
+    return {
+        left: GRID_PADDING + col * GRID_CELL_WIDTH,
+        top: GRID_PADDING + row * GRID_CELL_HEIGHT
+    };
+}
+
+function getMaxRows() {
+    const container = document.getElementById('desktop-icons');
+    if (!container) return 10;
+    const containerHeight = container.clientHeight - TASKBAR_HEIGHT;
+    return Math.max(1, Math.floor((containerHeight - GRID_PADDING) / GRID_CELL_HEIGHT));
+}
+
+function getMaxCols() {
+    const container = document.getElementById('desktop-icons');
+    if (!container) return 10;
+    const containerWidth = container.clientWidth;
+    return Math.max(1, Math.floor((containerWidth - GRID_PADDING) / GRID_CELL_WIDTH));
+}
+
+function isWithinBounds(left, top) {
+    const container = document.getElementById('desktop-icons');
+    if (!container) return true;
+    
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight - TASKBAR_HEIGHT;
+    
+    return left >= 0 && 
+           top >= 0 && 
+           left + 80 <= containerWidth && 
+           top + 90 <= containerHeight;
+}
+
+function clampToBounds(left, top) {
+    const container = document.getElementById('desktop-icons');
+    if (!container) return { left, top };
+    
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight - TASKBAR_HEIGHT;
+    
+    const clampedLeft = Math.max(0, Math.min(left, containerWidth - 80));
+    const clampedTop = Math.max(0, Math.min(top, containerHeight - 90));
+    
+    return { left: clampedLeft, top: clampedTop };
+}
+
+function getOccupiedCells() {
+    const occupied = new Set();
+    document.querySelectorAll('.desktop-icon').forEach(icon => {
+        const left = parseInt(icon.style.left) || 0;
+        const top = parseInt(icon.style.top) || 0;
+        const cell = getGridCell(left, top);
+        occupied.add(`${cell.col},${cell.row}`);
+    });
+    return occupied;
+}
+
+function findNearestEmptyCell(targetLeft, targetTop, excludeAppId) {
+    const clamped = clampToBounds(targetLeft, targetTop);
+    const targetCell = getGridCell(clamped.left, clamped.top);
+    const maxRows = getMaxRows();
+    const maxCols = getMaxCols();
+    
+    const occupied = getOccupiedCells();
+    
+    if (excludeAppId) {
+        const excludeIcon = document.querySelector(`.desktop-icon[data-app="${excludeAppId}"]`);
+        if (excludeIcon) {
+            const excludeLeft = parseInt(excludeIcon.style.left) || 0;
+            const excludeTop = parseInt(excludeIcon.style.top) || 0;
+            const excludeCell = getGridCell(excludeLeft, excludeTop);
+            occupied.delete(`${excludeCell.col},${excludeCell.row}`);
+        }
+    }
+    
+    const targetKey = `${targetCell.col},${targetCell.row}`;
+    if (targetCell.col < maxCols && targetCell.row < maxRows && !occupied.has(targetKey)) {
+        return targetCell;
+    }
+    
+    for (let radius = 1; radius < Math.max(maxCols, maxRows); radius++) {
+        const candidates = [];
+        
+        for (let dRow = -radius; dRow <= radius; dRow++) {
+            for (let dCol = -radius; dCol <= radius; dCol++) {
+                if (Math.abs(dRow) !== radius && Math.abs(dCol) !== radius) continue;
+                
+                const checkCol = targetCell.col + dCol;
+                const checkRow = targetCell.row + dRow;
+                
+                if (checkCol < 0 || checkRow < 0 || checkCol >= maxCols || checkRow >= maxRows) continue;
+                
+                const key = `${checkCol},${checkRow}`;
+                if (!occupied.has(key)) {
+                    const distance = Math.abs(dCol) + Math.abs(dRow);
+                    candidates.push({ col: checkCol, row: checkRow, distance });
+                }
+            }
+        }
+        
+        if (candidates.length > 0) {
+            candidates.sort((a, b) => a.distance - b.distance);
+            return { col: candidates[0].col, row: candidates[0].row };
+        }
+    }
+    
+    return { col: Math.min(targetCell.col, maxCols - 1), row: Math.min(targetCell.row, maxRows - 1) };
+}
+
+function snapIconToGrid(icon, excludeAppId) {
+    const currentLeft = parseInt(icon.style.left) || 0;
+    const currentTop = parseInt(icon.style.top) || 0;
+    
+    const cell = findNearestEmptyCell(currentLeft, currentTop, excludeAppId);
+    const pos = getCellPosition(cell.col, cell.row);
+    
+    const clampedPos = clampToBounds(pos.left, pos.top);
+    
+    icon.style.transition = 'left 0.2s ease, top 0.2s ease';
+    icon.style.left = clampedPos.left + 'px';
+    icon.style.top = clampedPos.top + 'px';
+    
+    setTimeout(() => {
+        icon.style.transition = '';
+    }, 200);
+    
+    return clampedPos;
+}
+
+function initIconPositions() {
+    const icons = document.querySelectorAll('.desktop-icon');
+    const container = document.getElementById('desktop-icons');
+    if (!container) return;
+    
+    const maxRows = getMaxRows();
+    
+    icons.forEach((icon, index) => {
+        const appId = icon.getAttribute('data-app');
+        
+        if (iconPositions[appId]) {
+            const clamped = clampToBounds(iconPositions[appId].left, iconPositions[appId].top);
+            
+            const cell = findNearestEmptyCell(clamped.left, clamped.top, appId);
+            const pos = getCellPosition(cell.col, cell.row);
+            const finalPos = clampToBounds(pos.left, pos.top);
+            
+            icon.style.left = finalPos.left + 'px';
+            icon.style.top = finalPos.top + 'px';
+            iconPositions[appId] = finalPos;
+        } else {
+            const col = Math.floor(index / maxRows);
+            const row = index % maxRows;
+            const pos = getCellPosition(col, row);
+            
+            const cell = findNearestEmptyCell(pos.left, pos.top, appId);
+            const finalPos = getCellPosition(cell.col, cell.row);
+            
+            icon.style.left = finalPos.left + 'px';
+            icon.style.top = finalPos.top + 'px';
+            
+            iconPositions[appId] = finalPos;
+        }
+    });
+    
+    saveWebOS();
+}
+
+function setupIconDrag() {
+    document.querySelectorAll('.desktop-icon').forEach(icon => {
+        icon.addEventListener('mousedown', handleIconMouseDown);
+    });
+}
+
+function handleIconMouseDown(e) {
+    if (e.button !== 0) return;
+    
+    const icon = e.currentTarget;
+    const appId = icon.getAttribute('data-app');
+    
+    iconDragState = {
+        isDragging: true,
+        icon: icon,
+        appId: appId,
+        startX: e.clientX,
+        startY: e.clientY,
+        origLeft: parseInt(icon.style.left) || 0,
+        origTop: parseInt(icon.style.top) || 0,
+        hasMoved: false
+    };
+    
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function handleIconMouseMove(e) {
+    if (!iconDragState.isDragging || !iconDragState.icon) return;
+    
+    const dx = e.clientX - iconDragState.startX;
+    const dy = e.clientY - iconDragState.startY;
+    
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        iconDragState.hasMoved = true;
+        iconDragState.icon.classList.add('dragging');
+        
+        const newLeft = iconDragState.origLeft + dx;
+        const newTop = iconDragState.origTop + dy;
+        
+        iconDragState.icon.style.left = newLeft + 'px';
+        iconDragState.icon.style.top = newTop + 'px';
+        
+        let snapCell = findNearestEmptyCell(newLeft, newTop, iconDragState.appId);
+        let snapPos = getCellPosition(snapCell.col, snapCell.row);
+        
+        let ghost = document.getElementById('grid-snap-ghost');
+        if (!ghost) {
+            ghost = document.createElement('div');
+            ghost.id = 'grid-snap-ghost';
+            ghost.style.cssText = `
+                position: absolute;
+                width: 80px;
+                height: 90px;
+                border: 2px dashed rgba(0, 120, 215, 0.6);
+                background: rgba(0, 120, 215, 0.1);
+                border-radius: 4px;
+                pointer-events: none;
+                z-index: 5;
+                transition: left 0.1s ease, top 0.1s ease;
+            `;
+            const container = document.getElementById('desktop-icons');
+            if (container) container.appendChild(ghost);
+        }
+        
+        const isOverTaskbar = newTop + 90 > (document.getElementById('desktop-icons').clientHeight - TASKBAR_HEIGHT);
+        
+        if (isOverTaskbar) {
+            ghost.style.display = 'none';
+        } else {
+            ghost.style.left = snapPos.left + 'px';
+            ghost.style.top = snapPos.top + 'px';
+            ghost.style.display = 'block';
+        }
+        
+        const recycleIcon = document.querySelector('.desktop-icon[data-app="recycle"]');
+        if (recycleIcon && !isBuiltInApp(iconDragState.appId)) {
+            const recycleRect = recycleIcon.getBoundingClientRect();
+            const iconRect = iconDragState.icon.getBoundingClientRect();
+            
+            const isOver = !(iconRect.right < recycleRect.left || 
+                           iconRect.left > recycleRect.right || 
+                           iconRect.bottom < recycleRect.top || 
+                           iconRect.top > recycleRect.bottom);
+            
+            if (isOver) {
+                recycleIcon.classList.add('drag-over-recycle');
+                ghost.style.display = 'none';
+            } else {
+                recycleIcon.classList.remove('drag-over-recycle');
+            }
+        }
+    }
+}
+
+function handleIconMouseUp(e) {
+    if (!iconDragState.isDragging) return;
+    
+    const icon = iconDragState.icon;
+    const appId = iconDragState.appId;
+    
+    const ghost = document.getElementById('grid-snap-ghost');
+    if (ghost) {
+        ghost.style.display = 'none';
+    }
+    
+    if (icon) {
+        icon.classList.remove('dragging');
+        
+        if (iconDragState.hasMoved) {
+            let droppedOnRecycle = false;
+            let droppedOutOfBounds = false;
+            
+            const container = document.getElementById('desktop-icons');
+            if (container) {
+                const iconRect = icon.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                const maxTop = containerRect.bottom - TASKBAR_HEIGHT;
+                
+                if (iconRect.bottom > maxTop) {
+                    droppedOutOfBounds = true;
+                }
+            }
+            
+            if (!isBuiltInApp(appId)) {
+                const recycleIcon = document.querySelector('.desktop-icon[data-app="recycle"]');
+                if (recycleIcon) {
+                    const recycleRect = recycleIcon.getBoundingClientRect();
+                    const iconRect = icon.getBoundingClientRect();
+                    
+                    const isOver = !(iconRect.right < recycleRect.left || 
+                                   iconRect.left > recycleRect.right || 
+                                   iconRect.bottom < recycleRect.top || 
+                                   iconRect.top > recycleRect.bottom);
+                    
+                    if (isOver) {
+                        recycleIcon.classList.remove('drag-over-recycle');
+                        droppedOnRecycle = true;
+                        deleteApp(appId);
+                    }
+                }
+            }
+            
+            if (!droppedOnRecycle) {
+                if (droppedOutOfBounds) {
+                    icon.style.transition = 'left 0.2s ease, top 0.2s ease';
+                    icon.style.left = iconDragState.origLeft + 'px';
+                    icon.style.top = iconDragState.origTop + 'px';
+                    setTimeout(() => {
+                        icon.style.transition = '';
+                    }, 200);
+                } else {
+                    const snappedPos = snapIconToGrid(icon, appId);
+                    iconPositions[appId] = snappedPos;
+                    saveWebOS();
+                }
+            }
+        }
+    }
+    
+    iconDragState = { isDragging: false, icon: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, hasMoved: false };
 }
 
 function resetWebOS() {
@@ -97,6 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadWebOS();
         document.getElementById('desktop').style.background = wallpapers[currentWallpaper];
         document.getElementById('desktop').style.display = 'block';
+        initIconPositions();
+        setupIconDrag();
         if (webosInfected) {
             showHackerOverlay();
             addNotification('🚨 WebOS Defender CRITICAL', 'SYSTEM COMPROMISED! (saved session)');
@@ -122,10 +488,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const sr = document.getElementById('search-results');
         const si = document.getElementById('search-input');
         if (!sr.contains(e.target) && e.target !== si) sr.style.display = 'none';
-    });
+
+        const scm = document.getElementById('start-context-menu');
+        if (!scm.contains(e.target) && !sb.contains(e.target)) scm.style.display = 'none';
+
+        const icm = document.getElementById('icon-context-menu');
+        if (icm && !icm.contains(e.target)) icm.style.display = 'none';
+    }, true);
 
     document.getElementById('desktop').addEventListener('contextmenu', (e) => {
-        if (e.target.closest('.app-window') || e.target.closest('#taskbar')) return;
+        if (e.target.closest('.app-window') || e.target.closest('#taskbar') || e.target.closest('.desktop-icon')) return;
         e.preventDefault();
         const ctx = document.getElementById('context-menu');
         ctx.style.display = 'block';
@@ -136,16 +508,106 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('desktop').addEventListener('mousedown', (e) => {
         if (e.target.closest('.app-window') || e.target.closest('#taskbar') ||
             e.target.closest('#start-menu') || e.target.closest('#context-menu') ||
-            e.target.closest('#notification-center') || e.target.closest('#power-menu')) return;
+            e.target.closest('#notification-center') || e.target.closest('#power-menu') ||
+            e.target.closest('#selection-rect')) return;
 
-        document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+        if (e.target.closest('.desktop-icon')) return;
+
+        if (e.button === 0) {
+            document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+            
+            selectionState.isSelecting = true;
+            selectionState.startX = e.clientX;
+            selectionState.startY = e.clientY;
+            
+            let rect = document.getElementById('selection-rect');
+            if (!rect) {
+                rect = document.createElement('div');
+                rect.id = 'selection-rect';
+                document.body.appendChild(rect);
+            }
+            rect.style.display = 'block';
+            rect.style.left = e.clientX + 'px';
+            rect.style.top = e.clientY + 'px';
+            rect.style.width = '0px';
+            rect.style.height = '0px';
+        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        handleIconMouseMove(e);
+        
+        if (!selectionState.isSelecting) return;
+        
+        const rect = document.getElementById('selection-rect');
+        if (!rect) return;
+        
+        const currentX = e.clientX;
+        const currentY = e.clientY;
+        
+        const left = Math.min(selectionState.startX, currentX);
+        const top = Math.min(selectionState.startY, currentY);
+        const width = Math.abs(currentX - selectionState.startX);
+        const height = Math.abs(currentY - selectionState.startY);
+        
+        rect.style.left = left + 'px';
+        rect.style.top = top + 'px';
+        rect.style.width = width + 'px';
+        rect.style.height = height + 'px';
+        
+        const selRect = { left, top, right: left + width, bottom: top + height };
+        
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            const iconRect = icon.getBoundingClientRect();
+            const intersects = !(iconRect.right < selRect.left || 
+                               iconRect.left > selRect.right || 
+                               iconRect.bottom < selRect.top || 
+                               iconRect.top > selRect.bottom);
+            
+            if (intersects) {
+                icon.classList.add('selected');
+            } else {
+                icon.classList.remove('selected');
+            }
+        });
+    });
+
+    document.addEventListener('mouseup', (e) => {
+        handleIconMouseUp(e);
+        
+        if (selectionState.isSelecting) {
+            selectionState.isSelecting = false;
+            const rect = document.getElementById('selection-rect');
+            if (rect) {
+                rect.style.display = 'none';
+            }
+        }
     });
 
     document.querySelectorAll('.desktop-icon').forEach(icon => {
         icon.addEventListener('click', (e) => {
+            if (iconDragState.hasMoved) {
+                iconDragState.hasMoved = false;
+                return;
+            }
             e.stopPropagation();
+            if (!e.ctrlKey) {
+                document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+            }
+            icon.classList.toggle('selected');
+        });
+        
+        icon.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
             document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
             icon.classList.add('selected');
+            
+            const appId = icon.getAttribute('data-app');
+            const canDelete = !isBuiltInApp(appId);
+            
+            showIconContextMenu(e.clientX, e.clientY, appId, canDelete);
         });
     });
 });
@@ -166,6 +628,175 @@ function updateClock() {
     const ld = document.getElementById('lock-date');
     if (lt) lt.textContent = timeStr;
     if (ld) ld.textContent = `${dayNames[now.getDay()]}, ${monthNames[now.getMonth()]} ${now.getDate()}`;
+}
+
+function isBuiltInApp(appId) {
+    const builtInApps = ['file-explorer', 'browser', 'notepad', 'cmd', 'recycle', 
+                         'tetris', 'fighter', 'solitaire', 'calculator', 'paint'];
+    return builtInApps.includes(appId);
+}
+
+function showIconContextMenu(x, y, appId, canDelete) {
+    let menu = document.getElementById('icon-context-menu');
+    if (!menu) {
+        menu = document.createElement('div');
+        menu.id = 'icon-context-menu';
+        document.body.appendChild(menu);
+    }
+    
+    const appName = getAppName(appId);
+    
+    menu.innerHTML = `
+        <div class="ctx-item" onclick="openApp('${appId}'); hideIconContextMenu();">📂 Open</div>
+        ${canDelete ? `<div class="ctx-sep"></div><div class="ctx-item" onclick="deleteApp('${appId}'); hideIconContextMenu();">🗑️ Delete</div>` : ''}
+    `;
+    
+    menu.style.display = 'block';
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+    
+    setTimeout(() => {
+        document.addEventListener('click', hideIconContextMenu, { once: true });
+    }, 0);
+}
+
+function hideIconContextMenu() {
+    const menu = document.getElementById('icon-context-menu');
+    if (menu) menu.style.display = 'none';
+}
+
+function getAppName(appId) {
+    const names = {
+        'tictactoe': 'Tic Tac Toe Pro',
+        'platformer': 'Super Pixel Mario',
+        'doom2': 'Doom 2: Hell Walker'
+    };
+    return names[appId] || appId;
+}
+
+function deleteApp(appId) {
+    if (isBuiltInApp(appId)) {
+        addNotification('⚠️ Cannot Delete', 'This is a built-in application and cannot be deleted.');
+        return;
+    }
+    
+    const icon = document.querySelector(`.desktop-icon[data-app="${appId}"]`);
+    if (!icon) return;
+    
+    const appName = getAppName(appId);
+    const iconHTML = icon.innerHTML;
+    
+    recycleBinItems.push({
+        appId: appId,
+        name: appName,
+        icon: iconHTML,
+        deletedAt: new Date().toLocaleString()
+    });
+    
+    icon.remove();
+    
+    if (downloadedGames.includes(appId)) {
+        downloadedGames = downloadedGames.filter(g => g !== appId);
+    }
+    
+    saveWebOS();
+    addNotification('🗑️ Deleted', `${appName} has been moved to Recycle Bin.`);
+}
+
+function restoreApp(appId) {
+    const item = recycleBinItems.find(i => i.appId === appId);
+    if (!item) return;
+    
+    const di = document.getElementById('desktop-icons');
+    if (!di) return;
+    
+    const existing = document.querySelector(`.desktop-icon[data-app="${appId}"]`);
+    if (existing) {
+        recycleBinItems = recycleBinItems.filter(i => i.appId !== appId);
+        saveWebOS();
+        return;
+    }
+    
+    const icon = document.createElement('div');
+    icon.className = 'desktop-icon';
+    icon.setAttribute('data-app', appId);
+    icon.setAttribute('ondblclick', `openApp('${appId}')`);
+    icon.innerHTML = item.icon;
+    
+    icon.addEventListener('click', (e) => {
+        if (iconDragState.hasMoved) {
+            iconDragState.hasMoved = false;
+            return;
+        }
+        e.stopPropagation();
+        if (!e.ctrlKey) {
+            document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+        }
+        icon.classList.toggle('selected');
+    });
+    
+    icon.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+        icon.classList.add('selected');
+        const canDelete = !isBuiltInApp(appId);
+        showIconContextMenu(e.clientX, e.clientY, appId, canDelete);
+    });
+    
+    icon.addEventListener('mousedown', handleIconMouseDown);
+    
+    di.appendChild(icon);
+    
+    let targetLeft = 20;
+    let targetTop = 20;
+    
+    if (iconPositions[appId]) {
+        targetLeft = iconPositions[appId].left;
+        targetTop = iconPositions[appId].top;
+    } else {
+        const icons = document.querySelectorAll('.desktop-icon');
+        const lastIcon = icons[icons.length - 2];
+        if (lastIcon) {
+            const lastLeft = parseInt(lastIcon.style.left) || 0;
+            const lastTop = parseInt(lastIcon.style.top) || 0;
+            targetLeft = lastLeft;
+            targetTop = lastTop + 100;
+        }
+    }
+    
+    const cell = findNearestEmptyCell(targetLeft, targetTop, null);
+    const pos = getCellPosition(cell.col, cell.row);
+    const clampedPos = clampToBounds(pos.left, pos.top);
+    
+    icon.style.left = clampedPos.left + 'px';
+    icon.style.top = clampedPos.top + 'px';
+    iconPositions[appId] = clampedPos;
+    
+    if (!downloadedGames.includes(appId)) {
+        downloadedGames.push(appId);
+    }
+    
+    recycleBinItems = recycleBinItems.filter(i => i.appId !== appId);
+    saveWebOS();
+    addNotification('♻️ Restored', `${item.name} has been restored to desktop.`);
+}
+
+function emptyRecycleBin() {
+    if (recycleBinItems.length === 0) {
+        addNotification('🗑️ Recycle Bin', 'Recycle Bin is already empty.');
+        return;
+    }
+    
+    const count = recycleBinItems.length;
+    recycleBinItems = [];
+    saveWebOS();
+    addNotification('🗑️ Recycle Bin Emptied', `${count} item(s) permanently deleted.`);
+    
+    const rbWin = Object.values(activeWindows).find(w => w.appId === 'recycle' && !w.closed);
+    if (rbWin) {
+        renderRecycleBin(rbWin.id);
+    }
 }
 
 function toggleStartMenu() {
@@ -236,9 +867,12 @@ function handleSearch(val) {
         { name: 'File Explorer', icon: '📁', id: 'file-explorer' },
         { name: 'Browser', icon: '🌐', id: 'browser' },
         { name: 'Notepad', icon: '📝', id: 'notepad' },
+        { name: 'Calculator', icon: '🔢', id: 'calculator' },
+        { name: 'Paint', icon: '🎨', id: 'paint' },
         { name: 'Command Prompt', icon: '⌨️', id: 'cmd' },
         { name: 'BlockStack (Tetris)', icon: '🧱', id: 'tetris' },
         { name: 'Street Brawl (Fighter)', icon: '🥊', id: 'fighter' },
+        { name: 'Solitaire', icon: '🃏', id: 'solitaire' },
 
     ];
     const filtered = apps.filter(a => a.name.toLowerCase().includes(val.toLowerCase()));
@@ -266,6 +900,9 @@ function openApp(appId) {
         'file-explorer': { title: 'File Explorer', icon: '📁', width: 800, height: 500, render: renderFileExplorer },
         'browser': { title: 'Browser', icon: '🌐', width: 900, height: 600, render: renderBrowser },
         'notepad': { title: 'Notepad', icon: '📝', width: 650, height: 450, render: renderNotepad },
+        'calculator': { title: 'Calculator', icon: '🔢', width: 320, height: 480, render: renderCalculator },
+        'paint': { title: 'Paint', icon: '🎨', width: 900, height: 620, render: renderPaint },
+        'solitaire': { title: 'Solitaire', icon: '🃏', width: 850, height: 620, render: renderSolitaire },
         'tetris': { title: 'BlockStack', icon: '🧱', width: 420, height: 580, render: renderTetris },
         'fighter': { title: 'Street Brawl', icon: '🥊', width: 700, height: 520, render: renderFighter },
         'tictactoe': { title: 'Tic Tac Toe Pro', icon: '⭕', width: 350, height: 430, render: renderTicTacToe },
@@ -427,6 +1064,22 @@ function restoreWindow(winId) {
 
 function closeWindow(winId) {
     const win = document.getElementById(winId);
+    const winData = activeWindows[winId];
+    if (!win || !winData) return;
+
+    const appId = winData.appId;
+    const needsSave = ['notepad', 'paint', 'tetris', 'fighter', 'solitaire'].includes(appId);
+
+    if (needsSave) {
+        showSaveConfirmModal(winId, appId);
+        return;
+    }
+
+    performCloseWindow(winId);
+}
+
+function performCloseWindow(winId) {
+    const win = document.getElementById(winId);
     if (win) win.remove();
     if (activeWindows[winId]) {
         activeWindows[winId].closed = true;
@@ -437,6 +1090,162 @@ function closeWindow(winId) {
     delete activeWindows[winId];
     const btn = document.getElementById('tb-' + winId);
     if (btn) btn.remove();
+    
+    if (typeof stopFreakyPopups === 'function') {
+        stopFreakyPopups();
+    }
+}
+
+let saveConfirmState = { winId: null, appId: null };
+
+function showSaveConfirmModal(winId, appId) {
+    saveConfirmState = { winId, appId };
+    
+    const messages = {
+        'notepad': 'Save your text to the file system before closing?',
+        'paint': 'Save your painting to the file system before closing?',
+        'tetris': 'Save your BlockStack high score before closing?',
+        'fighter': 'Save your Street Brawl progress before closing?',
+        'solitaire': 'Save your Solitaire game progress before closing?'
+    };
+    
+    const msg = messages[appId] || 'Save your changes before closing?';
+    document.getElementById('save-confirm-message').textContent = msg;
+    document.getElementById('save-confirm-modal').style.display = 'flex';
+}
+
+function saveConfirmAction(action) {
+    const { winId, appId } = saveConfirmState;
+    document.getElementById('save-confirm-modal').style.display = 'none';
+    
+    if (action === 'cancel') {
+        saveConfirmState = { winId: null, appId: null };
+        return;
+    }
+    
+    if (action === 'save') {
+        performSave(winId, appId);
+    }
+    
+    performCloseWindow(winId);
+    saveConfirmState = { winId: null, appId: null };
+}
+
+function performSave(winId, appId) {
+    switch (appId) {
+        case 'notepad':
+            saveNotepadToFile(winId);
+            break;
+        case 'paint':
+            savePaintToFile(winId);
+            break;
+        case 'tetris':
+            saveTetrisProgress(winId);
+            break;
+        case 'fighter':
+            saveFighterProgress(winId);
+            break;
+        case 'solitaire':
+            saveSolitaireProgress(winId);
+            break;
+    }
+}
+
+function saveNotepadToFile(winId) {
+    const textarea = document.getElementById(winId + '-textarea');
+    if (!textarea) return;
+    
+    const content = textarea.value;
+    if (!content.trim()) return;
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `note_${timestamp}.txt`;
+    
+    const folder = navigateToPath(['C:', 'Users', 'User', 'Documents']);
+    if (folder && folder.children) {
+        folder.children[filename] = {
+            type: 'file',
+            ext: 'txt',
+            content: content
+        };
+        saveWebOS();
+        addNotification('💾 Notepad', `Saved as "${filename}" to Documents folder`);
+    }
+}
+
+function savePaintToFile(winId) {
+    const canvas = document.getElementById(winId + '-paint-canvas');
+    if (!canvas) return;
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `painting_${timestamp}.png`;
+    
+    const folder = navigateToPath(['C:', 'Users', 'User', 'Pictures']);
+    if (folder && folder.children) {
+        folder.children[filename] = {
+            type: 'file',
+            ext: 'png',
+            content: `[Painting saved] ${filename}\nDimensions: ${canvas.width}x${canvas.height}\nCreated: ${new Date().toLocaleString()}`
+        };
+        saveWebOS();
+        addNotification('🎨 Paint', `Saved as "${filename}" to Pictures folder`);
+    }
+}
+
+function saveTetrisProgress(winId) {
+    const state = tetrisState[winId];
+    if (!state) return;
+    
+    const saveData = {
+        highScore: state.score,
+        lines: state.lines,
+        level: state.level,
+        savedAt: new Date().toLocaleString()
+    };
+    
+    let gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
+    gameSaves.tetris = saveData;
+    localStorage.setItem('game-saves', JSON.stringify(gameSaves));
+    
+    addNotification('🧱 BlockStack', `High score saved: ${state.score} points`);
+}
+
+function saveFighterProgress(winId) {
+    const state = fighterState[winId];
+    if (!state) return;
+    
+    const saveData = {
+        playerHealth: state.player.health,
+        cpuHealth: state.cpu.health,
+        timer: state.timer,
+        savedAt: new Date().toLocaleString()
+    };
+    
+    let gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
+    gameSaves.fighter = saveData;
+    localStorage.setItem('game-saves', JSON.stringify(gameSaves));
+    
+    addNotification('🥊 Street Brawl', `Progress saved (HP: ${Math.round(state.player.health)}%)`);
+}
+
+function saveSolitaireProgress(winId) {
+    const state = solState[winId];
+    if (!state) return;
+    
+    const saveData = {
+        moves: state.moves,
+        stock: state.stock,
+        waste: state.waste,
+        foundations: state.foundations,
+        tableau: state.tableau,
+        savedAt: new Date().toLocaleString()
+    };
+    
+    let gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
+    gameSaves.solitaire = saveData;
+    localStorage.setItem('game-saves', JSON.stringify(gameSaves));
+    
+    addNotification('🃏 Solitaire', `Game saved (${state.moves} moves)`);
 }
 
 function addTaskbarButton(winId) {
@@ -478,6 +1287,80 @@ function sortIcons() {
 
 function toggleIconSize() {
     document.getElementById('context-menu').style.display = 'none';
+}
+
+function showStartContextMenu(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const menu = document.getElementById('start-context-menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    document.getElementById('start-menu').style.display = 'none';
+}
+
+function showRunDialog() {
+    document.getElementById('start-context-menu').style.display = 'none';
+    document.getElementById('run-dialog').style.display = 'block';
+    const input = document.getElementById('run-input');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+}
+
+function closeRunDialog() {
+    document.getElementById('run-dialog').style.display = 'none';
+}
+
+function runExecute() {
+    const input = document.getElementById('run-input');
+    if (!input) return;
+    const value = input.value.trim().toLowerCase();
+    closeRunDialog();
+    
+    if (!value) return;
+    
+    const appMap = {
+        'cmd': 'cmd',
+        'command': 'cmd',
+        'command prompt': 'cmd',
+        'explorer': 'file-explorer',
+        'file explorer': 'file-explorer',
+        'files': 'file-explorer',
+        'notepad': 'notepad',
+        'note': 'notepad',
+        'browser': 'browser',
+        'chrome': 'browser',
+        'firefox': 'browser',
+        'edge': 'browser',
+        'calculator': 'calculator',
+        'calc': 'calculator',
+        'paint': 'paint',
+        'mspaint': 'paint',
+        'solitaire': 'solitaire',
+        'sol': 'solitaire',
+        'cards': 'solitaire',
+        'tetris': 'tetris',
+        'blockstack': 'tetris',
+        'fighter': 'fighter',
+        'brawl': 'fighter',
+        'street brawl': 'fighter',
+        'recycle': 'recycle',
+        'recycle bin': 'recycle',
+        'tictactoe': 'tictactoe',
+        'platformer': 'platformer',
+        'mario': 'platformer',
+        'doom': 'doom2',
+        'doom2': 'doom2',
+    };
+    
+    if (appMap[value]) {
+        openApp(appMap[value]);
+    } else if (value.includes('.')) {
+        openApp('file-explorer');
+        addNotification('🏃 Run', `Opening: ${value}`);
+    } else {
+        addNotification('❌ Run', `Cannot find '${value}'. Check spelling.`);
+    }
 }
 
 function addNotification(app, text) {

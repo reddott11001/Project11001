@@ -8,20 +8,28 @@ let fighterState = {};
 
 function renderFighter(winId) {
     const body = document.getElementById(winId + '-body');
+    
+    const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
+    const savedFight = gameSaves.fighter || null;
+    
+    const playerHP = savedFight ? Math.round(savedFight.playerHealth) : 100;
+    const cpuHP = savedFight ? Math.round(savedFight.cpuHealth) : 100;
+    const savedTimer = savedFight ? savedFight.timer : 60;
+    
     body.innerHTML = `
         <div class="fighter-app" id="${winId}-fighter-app">
             <div class="fighter-hud">
                 <div class="fighter-health-container">
                     <div class="fighter-name">PLAYER</div>
                     <div class="fighter-health-bar">
-                        <div class="fighter-health-fill" id="${winId}-player-health" style="width:100%"></div>
+                        <div class="fighter-health-fill" id="${winId}-player-health" style="width:${playerHP}%"></div>
                     </div>
                 </div>
-                <div class="fighter-timer" id="${winId}-fighter-timer">60</div>
+                <div class="fighter-timer" id="${winId}-fighter-timer">${savedTimer}</div>
                 <div class="fighter-health-container" style="text-align:right;">
                     <div class="fighter-name">CPU</div>
                     <div class="fighter-health-bar">
-                        <div class="fighter-health-fill" id="${winId}-cpu-health" style="width:100%"></div>
+                        <div class="fighter-health-fill" id="${winId}-cpu-health" style="width:${cpuHP}%"></div>
                     </div>
                 </div>
             </div>
@@ -29,8 +37,11 @@ function renderFighter(winId) {
                 <canvas id="${winId}-fighter-canvas" width="${FIGHTER_CANVAS_WIDTH}" height="${FIGHTER_CANVAS_HEIGHT}"></canvas>
                 <div class="fighter-overlay" id="${winId}-fighter-overlay">
                     <h2>STREET BRAWL</h2>
-                    <div class="subtitle">Fight to the finish!</div>
-                    <button onclick="startFighter('${winId}')">Start Fight</button>
+                    <div class="subtitle">${savedFight ? 'Saved fight loaded! Continue or start new.' : 'Fight to the finish!'}</div>
+                    <div style="display:flex;gap:8px;">
+                        ${savedFight ? '<button onclick="resumeFighter(\'' + winId + '\')">Resume</button>' : ''}
+                        <button onclick="startFighter('${winId}')">${savedFight ? 'New Fight' : 'Start Fight'}</button>
+                    </div>
                 </div>
             </div>
             <div class="fighter-controls-info">
@@ -44,11 +55,16 @@ function renderFighter(winId) {
         cpu: createFighter(500, FIGHTER_GROUND_Y, 'cpu'),
         gameRunning: false,
         gameOver: false,
-        timer: 60,
+        timer: savedTimer,
         timerInterval: null,
         keys: {},
         animFrame: null
     };
+    
+    if (savedFight) {
+        fighterState[winId].player.health = savedFight.playerHealth;
+        fighterState[winId].cpu.health = savedFight.cpuHealth;
+    }
 
     drawFighterScene(winId);
 
@@ -123,6 +139,29 @@ function startFighter(winId) {
     }, 1000);
 
     fighterGameLoop(winId);
+}
+
+function resumeFighter(winId) {
+    const state = fighterState[winId];
+    state.gameRunning = true;
+    state.gameOver = false;
+    state.keys = {};
+
+    document.getElementById(winId + '-fighter-overlay').style.display = 'none';
+
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => {
+        if (state.gameRunning && !state.gameOver) {
+            state.timer--;
+            document.getElementById(winId + '-fighter-timer').textContent = state.timer;
+            if (state.timer <= 0) {
+                endFighterRound(winId);
+            }
+        }
+    }, 1000);
+
+    fighterGameLoop(winId);
+    addNotification('🥊 Street Brawl', 'Fight resumed!');
 }
 
 function fighterGameLoop(winId) {

@@ -35,8 +35,9 @@ const termCommands = {
     matrix: { desc: "Matrix rain effect", usage: "matrix" },
     calc: { desc: "Simple calculator", usage: "calc <expression>" },
     banner: { desc: "Display a colorful banner", usage: "banner <text>" },
-    scan: { desc: "Scan system for virus/threat files", usage: "scan" },
-    del: { desc: "Delete a file (supports wildcard: del * )", usage: "del <filename>" },
+    scan: { desc: "Scan system for virus/threat files (names only)", usage: "scan" },
+    locate: { desc: "Deep scan to reveal virus file hiding locations", usage: "locate" },
+    del: { desc: "Delete a file (must be in correct directory)", usage: "del <filename>" },
     rm: { desc: "Delete a file (alias for del)", usage: "rm <filename>" },
     kill: { desc: "Kill a running process", usage: "kill <PID or name>" },
     clean: { desc: "Clean system after virus removal", usage: "clean" },
@@ -191,6 +192,7 @@ function termProcessCommand(winId, cmd) {
         case 'matrix': termMatrix(winId); break;
         case 'banner': termBanner(winId, args); break;
         case 'scan': termScan(winId); break;
+        case 'locate': termLocate(winId); break;
         case 'del': case 'rm': termDelete(winId, args); break;
         case 'kill': termKill(winId, args); break;
         case 'clean': termClean(winId); break;
@@ -230,7 +232,7 @@ function termHelp(winId, args) {
         'Apps:': ['open', 'notepad', 'explorer', 'tasklist'],
         'OS:': ['shutdown', 'restart', 'lock', 'wallpaper'],
         'Terminal:': ['cls', 'clear', 'color', 'title', 'echo', 'help'],
-        'Hack:': ['scan', 'del', 'rm', 'kill', 'clean', 'system'],
+        'Hack:': ['scan', 'locate', 'del', 'rm', 'kill', 'clean', 'system'],
         'Fun:': ['calc', 'ping', 'matrix', 'banner'],
     };
 
@@ -382,12 +384,12 @@ function termNeofetch(winId) {
 function termOpen(winId, args) {
     if (args.length === 0) {
         termPrint(winId, 'Usage: open <app>', '#ff4444');
-        termPrint(winId, 'Available: file-explorer, browser, notepad, tetris, fighter, cmd', '#888');
+        termPrint(winId, 'Available: file-explorer, browser, notepad, calculator, paint, solitaire, tetris, fighter, cmd', '#888');
         return;
     }
     const appId = args[0].toLowerCase();
-    const valid = ['file-explorer', 'browser', 'notepad', 'tetris', 'fighter', 'cmd', 'recycle'];
-    const alias = { 'explorer': 'file-explorer', 'terminal': 'cmd' };
+    const valid = ['file-explorer', 'browser', 'notepad', 'calculator', 'paint', 'solitaire', 'tetris', 'fighter', 'cmd', 'recycle'];
+    const alias = { 'explorer': 'file-explorer', 'terminal': 'cmd', 'calc': 'calculator' };
     const resolved = alias[appId] || appId;
 
     if (valid.includes(resolved)) {
@@ -669,13 +671,46 @@ function termScan(winId) {
     termPrint(winId, ` [SCAN] Threats found: ${remaining.length}\n`, '#ffcc00');
 
     remaining.forEach((vf, i) => {
-        const fullPath = [...vf.path, vf.name].join('\\');
         termPrint(winId, ` [${i+1}] ⚠️ ${vf.name}`, '#ff4444');
-        termPrint(winId, `      Path: ${fullPath}`, '#ff6666');
+        termPrint(winId, `      Type: .${vf.ext} | Threat Level: CRITICAL`, '#ff6666');
     });
 
-    termPrint(winId, '\n [TIP] Use "cd <path>" to navigate, then "del <filename>" to remove.', '#888');
-    termPrint(winId, ' [TIP] "cd .." goes up. "cd \\System32" from anywhere. "del *" deletes all in folder.\n', '#888');
+    termPrint(winId, '\n [TIP] Files are hidden in deep system paths.', '#888');
+    termPrint(winId, ' [TIP] Use "locate" for deep scan to reveal hiding locations.', '#888');
+    termPrint(winId, ' [TIP] Then "cd" to that folder and "del <filename>" to remove.\n', '#888');
+}
+
+function termLocate(winId) {
+    const st = termState[winId];
+    if (!webosInfected) {
+        termPrint(winId, '\n System is clean. Nothing to locate.', '#00ff00');
+        return;
+    }
+
+    const remaining = webosVirusFiles.filter(vf => {
+        const folder = navigateToPath(vf.path);
+        return folder && folder.children && folder.children[vf.name];
+    });
+
+    termPrint(winId, '\n ╔══════════════════════════════════════╗', '#00d4ff');
+    termPrint(winId, ' ║    DEEP SCAN - PATH REVEALER        ║', '#00d4ff');
+    termPrint(winId, ' ╚══════════════════════════════════════╝\n', '#00d4ff');
+
+    if (remaining.length === 0) {
+        termPrint(winId, ' [LOCATE] No virus files found. Run "clean" to finish.', '#00ff00');
+        return;
+    }
+
+    termPrint(winId, ` [LOCATE] Revealing ${remaining.length} hidden threat locations:\n`, '#ffcc00');
+
+    remaining.forEach((vf, i) => {
+        const fullPath = [...vf.path, vf.name].join('\\');
+        termPrint(winId, ` [${i+1}] ${vf.name}`, '#ff4444');
+        termPrint(winId, `      → ${fullPath}`, '#00d4ff');
+    });
+
+    termPrint(winId, '\n [TIP] Use "cd" to navigate to each path, then "del <filename>".', '#888');
+    termPrint(winId, ' [TIP] Example: cd \\Users\\User\\AppData\\Local\\Temp\n', '#888');
 }
 
 function termDelete(winId, args) {
@@ -698,7 +733,6 @@ function termDelete(winId, args) {
     let deletedCount = 0;
 
     args.forEach(name => {
-        // Case 1: File exists in current directory AND is a known virus → remove from both
         const virusFile = webosVirusFiles.find(vf =>
             vf.name === name && vf.path.join('\\') === st.cwd.join('\\')
         );
@@ -710,7 +744,6 @@ function termDelete(winId, args) {
             return;
         }
 
-        // Case 2: File exists in current dir but not a known virus → just delete
         if (folder.children[name]) {
             delete folder.children[name];
             deletedCount++;
@@ -718,18 +751,14 @@ function termDelete(winId, args) {
             return;
         }
 
-        // Case 3: File not in current dir, but IS a virus somewhere → auto-navigate & delete
         const virusAnywhere = webosVirusFiles.find(vf => vf.name === name);
         if (virusAnywhere) {
-            const targetFolder = navigateToPath(virusAnywhere.path);
-            if (targetFolder && targetFolder.children && targetFolder.children[name]) {
-                delete targetFolder.children[name];
-                webosVirusFiles = webosVirusFiles.filter(vf => vf !== virusAnywhere);
-                deletedCount++;
-                const fullPath = [...virusAnywhere.path, name].join('\\');
-                termPrint(winId, ` ✅ ${fullPath} - Virus found & deleted remotely!`, '#00ff00');
-                return;
-            }
+            const targetPath = virusAnywhere.path.join('\\');
+            const currentPath = st.cwd.join('\\');
+            termPrint(winId, ` ❌ ${name} - Not found in ${currentPath}`, '#ff4444');
+            termPrint(winId, ` 💡 Hint: This threat is hiding in a different directory.`, '#ffcc00');
+            termPrint(winId, ` 💡 Use "locate" to reveal its path, then "cd" there.`, '#ffcc00');
+            return;
         }
 
         termPrint(winId, ` ❌ ${name} - File not found.`, '#ff4444');

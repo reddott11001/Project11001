@@ -25,6 +25,10 @@ let tetrisState = {};
 
 function renderTetris(winId) {
     const body = document.getElementById(winId + '-body');
+    
+    const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
+    const highScore = gameSaves.tetris ? gameSaves.tetris.highScore : 0;
+    
     body.innerHTML = `
         <div class="tetris-app" id="${winId}-tetris-app">
             <div class="tetris-header">
@@ -39,6 +43,10 @@ function renderTetris(winId) {
                 <div class="tetris-stat">
                     <div>Level</div>
                     <div class="tetris-stat-value" id="${winId}-tetris-level">1</div>
+                </div>
+                <div class="tetris-stat">
+                    <div>Best</div>
+                    <div class="tetris-stat-value" id="${winId}-tetris-best" style="color:#ffcc00;">${highScore}</div>
                 </div>
             </div>
             <div class="tetris-game-area">
@@ -384,10 +392,15 @@ function showTetrisGameOver(winId) {
         cancelAnimationFrame(state.dropInterval);
     }
     
+    const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
+    const prevBest = gameSaves.tetris ? gameSaves.tetris.highScore : 0;
+    const isNewBest = state.score > prevBest;
+    
     const overlay = document.getElementById(winId + '-tetris-overlay');
     overlay.innerHTML = `
         <h2>Game Over</h2>
-        <div style="color:#fff;font-size:18px;margin-bottom:16px;">Score: ${state.score}</div>
+        <div style="color:#fff;font-size:18px;margin-bottom:8px;">Score: ${state.score}</div>
+        ${isNewBest ? '<div style="color:#ffcc00;font-size:14px;margin-bottom:8px;">🏆 NEW HIGH SCORE!</div>' : `<div style="color:#888;font-size:13px;margin-bottom:8px;">Best: ${prevBest}</div>`}
         <button onclick="startTetris('${winId}')">Play Again</button>
     `;
     overlay.style.display = 'flex';

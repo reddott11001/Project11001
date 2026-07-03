@@ -54,6 +54,7 @@ const fileSystem = {
                                 children: {
                                     'setup.exe': { type: 'file', ext: 'exe', content: '[Executable]' },
                                     'document.pdf': { type: 'file', ext: 'pdf', content: '[PDF Document]' },
+                                    'antivirus_pro.exe': { type: 'file', ext: 'exe', content: '[Legitimate Software] Antivirus Pro v3.2\nInstalled: 2026-01-15\nStatus: Active' },
                                     'Free Games.url': { type: 'file', ext: 'url', content: 'Download free games at: webos://free-download\nOpen your browser and type this URL!' },
                                     'readme.txt': { type: 'file', ext: 'txt', content: '=== FREE GAMES ===\n\nGet unlimited free games at:\nwebos://free-download\n\nOpen the WebOS Browser and paste this link!\nWorks 100% - No virus!' }
                                 }
@@ -64,10 +65,90 @@ const fileSystem = {
                                     'Local': {
                                         type: 'folder',
                                         children: {
-                                            'Temp': { type: 'folder', children: {} }
+                                            'Temp': { type: 'folder', children: {
+                                                'log_2026.txt': { type: 'file', ext: 'txt', content: '[Log] System temp log file\nLast cleanup: 2026-06-30' },
+                                                'update_cache.tmp': { type: 'file', ext: 'tmp', content: '[Temp] Windows Update cache data' }
+                                            } },
+                                            'CrashDumps': { type: 'folder', children: {
+                                                'dump_20260630.dmp': { type: 'file', ext: 'dmp', content: '[Crash Dump] Application crash dump\nProcess: explorer.exe\nDate: 2026-06-30' }
+                                            } },
+                                            'Microsoft': {
+                                                type: 'folder',
+                                                children: {
+                                                    'Windows': {
+                                                        type: 'folder',
+                                                        children: {
+                                                            'INetCache': { type: 'folder', children: {} },
+                                                            'WER': {
+                                                                type: 'folder',
+                                                                children: {
+                                                                    'Temp': { type: 'folder', children: {} }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     },
-                                    'Roaming': { type: 'folder', children: {} }
+                                    'LocalLow': {
+                                        type: 'folder',
+                                        children: {
+                                            'Sun': {
+                                                type: 'folder',
+                                                children: {
+                                                    'Java': {
+                                                        type: 'folder',
+                                                        children: {
+                                                            'tmp': { type: 'folder', children: {
+                                                                'jre_cache.dat': { type: 'file', ext: 'dat', content: '[Java Runtime] Cache index\nLast updated: 2026-06-29' }
+                                                            } }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    'Roaming': {
+                                        type: 'folder',
+                                        children: {
+                                            'Microsoft': {
+                                                type: 'folder',
+                                                children: {
+                                                    'Windows': {
+                                                        type: 'folder',
+                                                        children: {
+                                                            'Start Menu': { type: 'folder', children: {} }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            'ProgramData': {
+                type: 'folder',
+                children: {
+                    'Microsoft': {
+                        type: 'folder',
+                        children: {
+                            'Windows': {
+                                type: 'folder',
+                                children: {
+                                    'WER': {
+                                        type: 'folder',
+                                        children: {
+                                            'Temp': { type: 'folder', children: {
+                                                'wer_report.dat': { type: 'file', ext: 'dat', content: '[Windows Error Report] Crash dump metadata\nGenerated: 2026-06-28' }
+                                            } }
+                                        }
+                                    },
+                                    'Start Menu': { type: 'folder', children: {} }
                                 }
                             }
                         }
@@ -92,7 +173,12 @@ const fileSystem = {
                     'System32': {
                         type: 'folder',
                         children: {
-                            'kernel.sys': { type: 'file', ext: 'sys', content: '[System File]' }
+                            'kernel.sys': { type: 'file', ext: 'sys', content: '[System File]' },
+                            'svchost.exe': { type: 'file', ext: 'exe', content: '[System Process] Service Host\nDescription: Windows service management\nStatus: Running' },
+                            'winlogon.exe': { type: 'file', ext: 'exe', content: '[System Process] Windows Logon\nDescription: Handles login/logout\nStatus: Running' },
+                            'drivers': { type: 'folder', children: {
+                                'etc': { type: 'folder', children: {} }
+                            } }
                         }
                     }
                 }
@@ -192,7 +278,9 @@ function feOpenItem(winId, name) {
         feCurrentPath.push(name);
         renderFEContent(document.getElementById(winId + '-body'), winId);
     } else if (item.type === 'file') {
-        if (item.ext === 'txt' || item.ext === 'ini') {
+        const filePath = feCurrentPath.join('\\') + '\\' + name;
+        
+        if (item.ext === 'txt' || item.ext === 'ini' || item.ext === 'log' || item.ext === 'cfg') {
             openApp('notepad');
             setTimeout(() => {
                 const notepadWin = Object.values(activeWindows).find(w => w.appId === 'notepad' && !w.closed);
@@ -211,8 +299,23 @@ function feOpenItem(winId, name) {
                     if (titleText) titleText.textContent = name + ' - Notepad';
                 }
             }, 100);
+        } else if (item.ext === 'png' || item.ext === 'jpg' || item.ext === 'jpeg' || item.ext === 'gif' || item.ext === 'bmp') {
+            openImageViewer(name, item);
+        } else if (item.ext === 'url') {
+            openApp('browser');
+            setTimeout(() => {
+                const browserWin = Object.values(activeWindows).find(w => w.appId === 'browser' && !w.closed);
+                if (browserWin) {
+                    const urlMatch = item.content.match(/webos:\/\/[^\s]+/);
+                    if (urlMatch) {
+                        browserNavigate(browserWin.id, urlMatch[0]);
+                    }
+                }
+            }, 100);
+        } else if (item.ext === 'exe' || item.ext === 'dll' || item.ext === 'sys') {
+            openFileViewer(name, item, filePath);
         } else {
-            alert('Cannot open file type: .' + item.ext);
+            openFileViewer(name, item, filePath);
         }
     }
 }
@@ -244,14 +347,45 @@ function feRefresh(winId) {
 
 function renderRecycleBin(winId) {
     const body = document.getElementById(winId + '-body');
-    body.innerHTML = `
-        <div class="recycle-app">
-            <div class="recycle-empty">
-                <div style="text-align:center;">
-                    <div style="font-size:64px;margin-bottom:16px;">🗑️</div>
-                    <div>Recycle Bin is empty</div>
+    
+    if (recycleBinItems.length === 0) {
+        body.innerHTML = `
+            <div class="recycle-app">
+                <div class="recycle-toolbar">
+                    <button class="recycle-btn" onclick="emptyRecycleBin()">🗑️ Empty Recycle Bin</button>
+                </div>
+                <div class="recycle-empty">
+                    <div style="text-align:center;">
+                        <div style="font-size:64px;margin-bottom:16px;">🗑️</div>
+                        <div>Recycle Bin is empty</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    } else {
+        const itemsHTML = recycleBinItems.map(item => `
+            <div class="recycle-item">
+                <div class="recycle-item-icon">${item.icon}</div>
+                <div class="recycle-item-info">
+                    <div class="recycle-item-name">${item.name}</div>
+                    <div class="recycle-item-date">Deleted: ${item.deletedAt}</div>
+                </div>
+                <div class="recycle-item-actions">
+                    <button class="recycle-action-btn restore-btn" onclick="restoreApp('${item.appId}'); renderRecycleBin('${winId}');">♻️ Restore</button>
+                </div>
+            </div>
+        `).join('');
+        
+        body.innerHTML = `
+            <div class="recycle-app">
+                <div class="recycle-toolbar">
+                    <button class="recycle-btn" onclick="emptyRecycleBin()">🗑️ Empty Recycle Bin</button>
+                    <span class="recycle-count">${recycleBinItems.length} item(s)</span>
+                </div>
+                <div class="recycle-list">
+                    ${itemsHTML}
+                </div>
+            </div>
+        `;
+    }
 }

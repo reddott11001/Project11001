@@ -57,10 +57,6 @@
                 <div class="icon-img">🗑️</div>
                 <span>Recycle Bin</span>
             </div>
-            <div class="desktop-icon" data-app="cmd" ondblclick="openApp('cmd')">
-                <div class="icon-img">⌨️</div>
-                <span>Command Prompt</span>
-            </div>
         </div>
 
         <div id="windows-container"></div>
@@ -76,7 +72,7 @@
         </div>
 
         <div id="taskbar">
-            <div id="start-btn" onclick="toggleStartMenu()">
+            <div id="start-btn" onclick="toggleStartMenu()" oncontextmenu="showStartContextMenu(event)">
                 <div class="start-logo">
                     <div class="sq"></div><div class="sq"></div>
                     <div class="sq"></div><div class="sq"></div>
@@ -108,9 +104,12 @@
                 <div class="start-nav-item" onclick="openApp('file-explorer')">📁 File Explorer</div>
                 <div class="start-nav-item" onclick="openApp('browser')">🌐 Browser</div>
                 <div class="start-nav-item" onclick="openApp('notepad')">📝 Notepad</div>
+                <div class="start-nav-item" onclick="openApp('calculator')">🔢 Calculator</div>
+                <div class="start-nav-item" onclick="openApp('paint')">🎨 Paint</div>
                 <div class="start-nav-item" onclick="openApp('cmd')">⌨️ Command Prompt</div>
                 <div class="start-nav-item" onclick="openApp('tetris')">🧱 BlockStack</div>
                 <div class="start-nav-item" onclick="openApp('fighter')">🥊 Street Brawl</div>
+                <div class="start-nav-item" onclick="openApp('solitaire')">🃏 Solitaire</div>
                 <div class="start-bottom-btns">
                     <div class="start-nav-item" onclick="alert('Settings coming soon!')">⚙️ Settings</div>
                     <div class="start-nav-item" onclick="showPowerMenu()">⏻ Power</div>
@@ -135,6 +134,14 @@
                         <div class="tile-icon">⌨️</div>
                         <span>CMD</span>
                     </div>
+                    <div class="start-tile" style="background:#5c2d91;" onclick="openApp('calculator')">
+                        <div class="tile-icon">🔢</div>
+                        <span>Calculator</span>
+                    </div>
+                    <div class="start-tile" style="background:#e81123;" onclick="openApp('paint')">
+                        <div class="tile-icon">🎨</div>
+                        <span>Paint</span>
+                    </div>
                 </div>
                 <div class="tile-group-label">Games</div>
                 <div class="start-tiles">
@@ -145,6 +152,10 @@
                     <div class="start-tile tile-red" onclick="openApp('fighter')">
                         <div class="tile-icon">🥊</div>
                         <span>Brawl</span>
+                    </div>
+                    <div class="start-tile" style="background:#008272;" onclick="openApp('solitaire')">
+                        <div class="tile-icon">🃏</div>
+                        <span>Solitaire</span>
                     </div>
                 </div>
             </div>
@@ -178,15 +189,73 @@
         <div class="shutdown-text">Shutting down...</div>
     </div>
 
+    <div id="save-confirm-modal" style="display:none;">
+        <div class="save-confirm-box">
+            <div class="save-confirm-header">
+                <span class="save-confirm-icon">💾</span>
+                <span>Save Changes?</span>
+            </div>
+            <div class="save-confirm-body">
+                <p id="save-confirm-message">Do you want to save your changes before closing?</p>
+                <div class="save-confirm-buttons">
+                    <button class="save-btn-save" onclick="saveConfirmAction('save')">Save & Quit</button>
+                    <button class="save-btn-quit" onclick="saveConfirmAction('quit')">Just Quit</button>
+                    <button class="save-btn-cancel" onclick="saveConfirmAction('cancel')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="start-context-menu" style="display:none;">
+        <div class="start-ctx-item" onclick="openApp('file-explorer')">📁 File Explorer</div>
+        <div class="start-ctx-item" onclick="openApp('cmd')">⌨️ Command Prompt</div>
+        <div class="start-ctx-item" onclick="openApp('notepad')">📝 Notepad</div>
+        <div class="start-ctx-item" onclick="openApp('calculator')">🔢 Calculator</div>
+        <div class="start-ctx-item" onclick="openApp('paint')">🎨 Paint</div>
+        <div class="start-ctx-sep"></div>
+        <div class="start-ctx-item" onclick="showRunDialog()">🏃 Run...</div>
+        <div class="start-ctx-sep"></div>
+        <div class="start-ctx-item" onclick="openApp('browser')">🌐 Browser</div>
+        <div class="start-ctx-item" onclick="openApp('tetris')">🧱 BlockStack</div>
+        <div class="start-ctx-item" onclick="openApp('fighter')">🥊 Street Brawl</div>
+        <div class="start-ctx-item" onclick="openApp('solitaire')">🃏 Solitaire</div>
+    </div>
+
+    <div id="run-dialog" style="display:none;">
+        <div class="run-dialog-box">
+            <div class="run-dialog-header">
+                <span class="run-dialog-icon">🏃</span>
+                <span>Run</span>
+                <button class="run-dialog-close" onclick="closeRunDialog()">✕</button>
+            </div>
+            <div class="run-dialog-body">
+                <div class="run-dialog-desc">Type the name of a program, folder, or resource to open it.</div>
+                <div class="run-dialog-input-row">
+                    <label>Open:</label>
+                    <input type="text" id="run-input" placeholder="cmd, notepad, explorer..." onkeydown="if(event.key==='Enter')runExecute()">
+                </div>
+                <div class="run-dialog-buttons">
+                    <button onclick="runExecute()">OK</button>
+                    <button onclick="closeRunDialog()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/desktop.js"></script>
     <script src="js/apps/file-explorer.js"></script>
     <script src="js/apps/browser.js"></script>
     <script src="js/apps/notepad.js"></script>
+    <script src="js/apps/calculator.js"></script>
+    <script src="js/apps/paint.js"></script>
+    <script src="js/apps/image-viewer.js"></script>
+    <script src="js/apps/file-viewer.js"></script>
     <script src="js/games/tetris.js"></script>
     <script src="js/games/fighter.js"></script>
     <script src="js/games/tictactoe.js"></script>
     <script src="js/games/platformer.js"></script>
     <script src="js/games/doom2.js"></script>
+    <script src="js/games/solitaire.js"></script>
     <script src="js/apps/terminal.js"></script>
     <script src="js/apps/phishing.js"></script>
 </body>

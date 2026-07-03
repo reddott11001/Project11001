@@ -1,9 +1,16 @@
 function renderNotepad(winId) {
     const body = document.getElementById(winId + '-body');
+    
+    const docsFolder = navigateToPath(['C:', 'Users', 'User', 'Documents']);
+    const savedNotes = docsFolder && docsFolder.children 
+        ? Object.keys(docsFolder.children).filter(k => docsFolder.children[k].ext === 'txt' && k.startsWith('note_')).length 
+        : 0;
+    
     body.innerHTML = `
         <div class="notepad-app">
             <div class="notepad-menu">
                 <div class="notepad-menu-item" onclick="notepadNew('${winId}')">File</div>
+                <div class="notepad-menu-item" onclick="notepadSave('${winId}')">Save</div>
                 <div class="notepad-menu-item" onclick="notepadEdit('${winId}')">Edit</div>
                 <div class="notepad-menu-item" onclick="notepadFormat('${winId}')">Format</div>
                 <div class="notepad-menu-item" onclick="notepadHelp('${winId}')">Help</div>
@@ -15,7 +22,7 @@ function renderNotepad(winId) {
                 onclick="notepadUpdateCursor('${winId}')"></textarea>
             <div class="notepad-statusbar">
                 <span id="${winId}-cursor">Ln 1, Col 1</span>
-                <span id="${winId}-stats">0 lines, 0 chars</span>
+                <span id="${winId}-stats">0 lines, 0 chars${savedNotes > 0 ? ' | ' + savedNotes + ' saved note(s)' : ''}</span>
             </div>
         </div>
     `;
@@ -62,6 +69,42 @@ function notepadEdit(winId) {
     if (!textarea) return;
     textarea.select();
     document.execCommand('copy');
+}
+
+function notepadSave(winId) {
+    const textarea = document.getElementById(winId + '-textarea');
+    if (!textarea) return;
+    
+    const content = textarea.value;
+    if (!content.trim()) {
+        addNotification('💾 Notepad', 'Nothing to save - document is empty');
+        return;
+    }
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `note_${timestamp}.txt`;
+    
+    const folder = navigateToPath(['C:', 'Users', 'User', 'Documents']);
+    if (folder && folder.children) {
+        folder.children[filename] = {
+            type: 'file',
+            ext: 'txt',
+            content: content
+        };
+        saveWebOS();
+        addNotification('💾 Notepad', `Saved as "${filename}" to Documents folder`);
+        
+        const stats = document.getElementById(winId + '-stats');
+        if (stats) {
+            const lines = content.split('\n').length;
+            const chars = content.length;
+            const docsFolder = navigateToPath(['C:', 'Users', 'User', 'Documents']);
+            const savedNotes = docsFolder && docsFolder.children 
+                ? Object.keys(docsFolder.children).filter(k => docsFolder.children[k].ext === 'txt' && k.startsWith('note_')).length 
+                : 0;
+            stats.textContent = `${lines} lines, ${chars} chars | ${savedNotes} saved note(s)`;
+        }
+    }
 }
 
 function notepadFormat(winId) {

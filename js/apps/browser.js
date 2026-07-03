@@ -56,6 +56,8 @@ function browserCloseTab(winId, tabId) {
 }
 
 function browserSwitchTab(winId, tabId) {
+    stopFreakyPopups();
+    
     const state = browserStates[winId];
     if (!state) return;
     const tab = state.tabs.find(t => t.id === tabId);
@@ -156,6 +158,8 @@ function normalizeUrl(url) {
 }
 
 function browserNavigate(winId, rawUrl) {
+    stopFreakyPopups();
+    
     const tab = getActiveTab(winId);
     if (!tab) return;
     if (!rawUrl || rawUrl === 'home') { browserHome(winId); return; }
@@ -321,6 +325,8 @@ function browserSearch(winId, query) {
 }
 
 function browserBack(winId) {
+    stopFreakyPopups();
+    
     const tab = getActiveTab(winId);
     if (!tab || tab.historyIndex <= 0) return;
     tab.historyIndex--;
@@ -340,6 +346,8 @@ function browserBack(winId) {
 }
 
 function browserForward(winId) {
+    stopFreakyPopups();
+    
     const tab = getActiveTab(winId);
     if (!tab || tab.historyIndex >= tab.history.length - 1) return;
     tab.historyIndex++;
@@ -357,6 +365,8 @@ function browserForward(winId) {
 }
 
 function browserHome(winId) {
+    stopFreakyPopups();
+    
     const tab = getActiveTab(winId);
     if (!tab) return;
     tab.history = tab.history.slice(0, tab.historyIndex + 1);
@@ -409,11 +419,11 @@ function triggerVirus() {
 function infectSystem() {
     webosInfected = true;
     const baseVirusFiles = [
-        { path: ['C:', 'Windows', 'System32'], name: 'svchost.exe', type: 'file', ext: 'exe', content: '[VIRUS] Win32/Spyware.Gen - Remote Access Trojan\nConnected to: 185.234.xx.xx:4444' },
-        { path: ['C:', 'Windows', 'System32'], name: 'winlogon.dll', type: 'file', ext: 'dll', content: '[VIRUS] Trojan.Downloader - Downloads additional malware\nTarget: C:\\Users\\User\\AppData\\Local\\Temp\\' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'keylogger.sys', type: 'file', ext: 'sys', content: '[VIRUS] Keylogger - Captures keystrokes\nStolen data being sent to: 45.67.xxx.xxx' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming'], name: 'Microsoft.Updater.dll', type: 'file', ext: 'dll', content: '[VIRUS] Fake Windows Update - Backdoor access\nPersistence mechanism: Registry Run Key' },
-        { path: ['C:', 'Users', 'User', 'Downloads'], name: 'free_hack.exe', type: 'file', ext: 'exe', content: '[VIRUS] Trojan Horse - Original infection vector\nSHA256: a3f5b8c1d2e4f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'svchost.exe', type: 'file', ext: 'exe', content: '[VIRUS] Win32/Spyware.Gen - Remote Access Trojan\nConnected to: 185.234.xx.xx:4444' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'winlogon.dll', type: 'file', ext: 'dll', content: '[VIRUS] Trojan.Downloader - Downloads additional malware\nTarget: C:\\Users\\User\\AppData\\Local\\Temp\\' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'LocalLow', 'Sun', 'Java', 'tmp'], name: 'keylogger.sys', type: 'file', ext: 'sys', content: '[VIRUS] Keylogger - Captures keystrokes\nStolen data being sent to: 45.67.xxx.xxx' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'Microsoft.Updater.dll', type: 'file', ext: 'dll', content: '[VIRUS] Fake Windows Update - Backdoor access\nPersistence mechanism: Registry Run Key' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu'], name: 'free_hack.exe', type: 'file', ext: 'exe', content: '[VIRUS] Trojan Horse - Original infection vector\nSHA256: a3f5b8c1d2e4f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0' },
     ];
     baseVirusFiles.forEach(vf => {
         if (!webosVirusFiles.find(v => v.name === vf.name && v.path.join('\\') === vf.path.join('\\'))) {
@@ -463,11 +473,11 @@ function showHackerOverlay() {
                 <div style="color:#ffcc00;font-weight:bold;margin-bottom:8px;">🎯 MISSION: Neutralize Threat</div>
                 <div style="color:#00ff00;font-size:12px;line-height:1.8;">
                     1️⃣ Open <span style="color:#ffcc00;">Command Prompt</span> (double click icon ⌨️ on desktop)<br>
-                    2️⃣ Type <span style="color:#00d4ff;">scan</span> to detect virus files<br>
-                    3️⃣ Navigate to virus folder with <span style="color:#00d4ff;">cd \Windows\System32</span><br>
-                    4️⃣ Delete file with <span style="color:#00d4ff;">del &lt;file_name&gt;</span><br>
-                    5️⃣ Type <span style="color:#00d4ff;">clean</span> to clean the system<br>
-                    6️⃣ Type <span style="color:#00d4ff;">system</span> to verify
+                    2️⃣ Type <span style="color:#00d4ff;">scan</span> to detect virus file names<br>
+                    3️⃣ Type <span style="color:#00d4ff;">locate</span> to reveal hiding locations<br>
+                    4️⃣ Navigate to virus folder with <span style="color:#00d4ff;">cd &lt;path&gt;</span><br>
+                    5️⃣ Delete file with <span style="color:#00d4ff;">del &lt;file_name&gt;</span><br>
+                    6️⃣ Type <span style="color:#00d4ff;">clean</span> to clean the system
                 </div>
             </div>
             <button onclick="document.getElementById('hacker-mission-overlay').style.display='none'" class="hacker-btn">MINIMIZE</button>
@@ -489,7 +499,7 @@ function showHackerOverlay() {
 function animateHackerScan() {
     const el = document.getElementById('hacker-scan-text');
     if (!el) return;
-    const lines = ['[SCAN] Initializing WebOS Defender v10.0...','[SCAN] Scanning system memory...','[SCAN] Checking startup entries...','[SCAN] Analyzing process list...','','[ALERT] Threats detected: svchost.exe, winlogon.dll, keylogger.sys, Microsoft.Updater.dll, free_hack.exe','','[STATUS] Remote connection active! IP: 185.234.xx.xx:4444','[STATUS] Data exfiltration in progress...','[STATUS] Quarantine: FAILED - Access denied','','[RECOMMENDATION] Manual removal required.','[RECOMMENDATION] Use Command Prompt to delete infected files.','','   ╔══════════════════════════════════╗','   ║      USE CMD TO CLEAN SYSTEM     ║','   ╚══════════════════════════════════╝','','   Type:  scan   - to view the virus list','   Type:  del    - to delete virus files','   Type:  clean  - to clean the system','   Type:  system - to verify'];
+    const lines = ['[SCAN] Initializing WebOS Defender v10.0...','[SCAN] Scanning system memory...','[SCAN] Checking startup entries...','[SCAN] Analyzing process list...','','[ALERT] Threats detected: svchost.exe, winlogon.dll, keylogger.sys, Microsoft.Updater.dll, free_hack.exe','','[STATUS] Remote connection active! IP: 185.234.xx.xx:4444','[STATUS] Data exfiltration in progress...','[STATUS] Quarantine: FAILED - Access denied','','[WARNING] Virus files are hidden in deep system paths!','','[RECOMMENDATION] Manual removal required.','[RECOMMENDATION] Use Command Prompt to locate and delete infected files.','','   ╔══════════════════════════════════╗','   ║      USE CMD TO CLEAN SYSTEM     ║','   ╚══════════════════════════════════╝','','   Type:  scan   - to view the virus names','   Type:  locate - to reveal hiding paths','   Type:  cd     - to navigate to folder','   Type:  del    - to delete virus files','   Type:  clean  - to clean the system'];
     let i = 0;
     const ival = setInterval(() => { if (i < lines.length) { el.innerHTML += lines[i] + '<br>'; i++; } else { clearInterval(ival); } }, 120);
 }
@@ -511,7 +521,7 @@ function checkInfectionCleared() {
         addNotification('🎉 Mission Complete', 'Threat successfully neutralized via CMD.');
     } else if (over) {
         const sd = over.querySelector('.hacker-mission');
-        if (sd) sd.innerHTML = `<div style="color:#ffcc00;font-weight:bold;margin-bottom:8px;">📋 REMAINING VIRUS FILES: ${remaining.length}</div><div style="color:#ff4444;font-size:12px;line-height:1.6;text-align:left;">${remaining.map(vf => '⚠️ ' + [...vf.path, vf.name].join('\\\\')).join('<br>')}</div><div style="color:#00ff00;font-size:12px;margin-top:8px;">Use CMD: <b>del &lt;file_name&gt;</b> to delete</div>`;
+        if (sd) sd.innerHTML = `<div style="color:#ffcc00;font-weight:bold;margin-bottom:8px;">📋 REMAINING VIRUS FILES: ${remaining.length}</div><div style="color:#ff4444;font-size:12px;line-height:1.6;text-align:left;">${remaining.map(vf => '⚠️ ' + vf.name).join('<br>')}</div><div style="color:#00ff00;font-size:12px;margin-top:8px;">Use CMD: <b>locate</b> to find paths, then <b>cd</b> + <b>del</b></div>`;
     }
 }
 
@@ -522,44 +532,173 @@ function getGameDownloadPage() {
         }
         return `<button onclick="downloadGame('${id}')" style="margin-top:12px;padding:10px 28px;background:linear-gradient(to right,${color1},${color2});color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">⬇️ Download to System</button>`;
     }
+    
+    const leftAds = `
+        <div style="display:flex;flex-direction:column;gap:12px;width:160px;">
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ff0066,#ff6600);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0066;box-shadow:0 0 20px rgba(255,0,102,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">💰</div>
+                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">WIN $10,000 NOW!</div>
+                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">CLICK HERE →</div>
+            </div>
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#00ff00,#00cc66);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff00;box-shadow:0 0 20px rgba(0,255,0,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">🔞</div>
+                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">HOT SINGLES NEAR YOU</div>
+                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">MEET NOW →</div>
+            </div>
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ffcc00,#ff9900);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ffcc00;box-shadow:0 0 20px rgba(255,204,0,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">💊</div>
+                <div style="color:#000;font-size:11px;font-weight:bold;line-height:1.3;">LAST 3 HOURS GUARANTEED!</div>
+                <div style="color:#cc0000;font-size:9px;margin-top:4px;">BUY NOW →</div>
+            </div>
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#9900ff,#6600cc);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #9900ff;box-shadow:0 0 20px rgba(153,0,255,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">🎰</div>
+                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">CASINO 500% BONUS</div>
+                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">PLAY NOW →</div>
+            </div>
+        </div>
+    `;
+    
+    const rightAds = `
+        <div style="display:flex;flex-direction:column;gap:12px;width:160px;">
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0000;box-shadow:0 0 20px rgba(255,0,0,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">🎮</div>
+                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">FREE ROBUX GENERATOR</div>
+                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">GET FREE →</div>
+            </div>
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#00ccff,#0066ff);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ccff;box-shadow:0 0 20px rgba(0,204,255,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">💎</div>
+                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">CRYPTO x1000 PROFIT</div>
+                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">INVEST NOW →</div>
+            </div>
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff6600;box-shadow:0 0 20px rgba(255,102,0,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">📱</div>
+                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">FREE IPHONE 15 PRO</div>
+                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">CLAIM NOW →</div>
+            </div>
+            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#00ff99,#00cc77);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff99;box-shadow:0 0 20px rgba(0,255,153,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;">💸</div>
+                <div style="color:#000;font-size:11px;font-weight:bold;line-height:1.3;">MAKE $5000/DAY</div>
+                <div style="color:#cc0000;font-size:9px;margin-top:4px;">START NOW →</div>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => startFreakyPopups(), 100);
+    
     return `
-        <div class="browser-page" style="background:#0d0d1a;min-height:100%;padding:20px 30px;">
-            <div style="text-align:center;margin-bottom:20px;">
-                <div style="font-size:42px;display:inline-block;background:linear-gradient(135deg,#ff6600,#ffcc00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;font-size:32px;">🎮 GAME DOWNLOAD CENTER</div>
-                <div style="color:#888;font-size:12px;margin-top:4px;">Download classic games directly to your system!</div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:960px;margin:0 auto;">
-                <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:20px;border:1px solid #0f3460;text-align:center;">
-                    <div style="font-size:56px;margin-bottom:8px;">🏃</div>
-                    <h3 style="color:#fff;margin:4px 0;">Super Pixel Mario</h3>
-                    <div style="color:#aaa;font-size:11px;margin:8px 0;">Classic platformer adventure! Jump through 8 levels, collect coins, and save the princess!</div>
-                    <div style="color:#666;font-size:10px;">Size: ~4.2 MB | Genre: Platformer</div>
-                    ${gameBtn('platformer', '#00d4ff', '#0088cc')}
+        <div class="browser-page" style="background:#0d0d1a;min-height:100%;height:100%;overflow-y:auto;padding:20px;">
+            <div style="display:flex;gap:20px;max-width:1200px;margin:0 auto;">
+                ${leftAds}
+                <div style="flex:1;">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="font-size:42px;display:inline-block;background:linear-gradient(135deg,#ff6600,#ffcc00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;font-size:32px;">🎮 GAME DOWNLOAD CENTER</div>
+                        <div style="color:#888;font-size:12px;margin-top:4px;">Download classic games directly to your system!</div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+                        <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:20px;border:1px solid #0f3460;text-align:center;">
+                            <div style="font-size:56px;margin-bottom:8px;">🏃</div>
+                            <h3 style="color:#fff;margin:4px 0;">Super Pixel Mario</h3>
+                            <div style="color:#aaa;font-size:11px;margin:8px 0;">Classic platformer adventure! Jump through 8 levels, collect coins, and save the princess!</div>
+                            <div style="color:#666;font-size:10px;">Size: ~4.2 MB | Genre: Platformer</div>
+                            ${gameBtn('platformer', '#00d4ff', '#0088cc')}
+                        </div>
+                        <div style="background:linear-gradient(135deg,#2d1b00,#4a2a00);border-radius:12px;padding:20px;border:1px solid #ff8800;text-align:center;">
+                            <div style="font-size:56px;margin-bottom:8px;">⭕</div>
+                            <h3 style="color:#fff;margin:4px 0;">Tic Tac Toe Pro</h3>
+                            <div style="color:#aaa;font-size:11px;margin:8px 0;">The classic strategy game! Play against a friend or the CPU. Three in a row wins!</div>
+                            <div style="color:#666;font-size:10px;">Size: ~1.1 MB | Genre: Puzzle</div>
+                            ${gameBtn('tictactoe', '#ffaa00', '#cc8800')}
+                        </div>
+                        <div style="background:linear-gradient(135deg,#1a0000,#330000);border-radius:12px;padding:20px;border:1px solid #ff4444;text-align:center;">
+                            <div style="font-size:56px;margin-bottom:8px;">🔫</div>
+                            <h3 style="color:#fff;margin:4px 0;">Doom 2: Hell Walker</h3>
+                            <div style="color:#aaa;font-size:11px;margin:8px 0;">First-person shooter! Fight through demon-infested levels with your arsenal!</div>
+                            <div style="color:#666;font-size:10px;">Size: ~8.7 MB | Genre: FPS</div>
+                            ${gameBtn('doom2', '#ff4444', '#cc0000')}
+                        </div>
+                    </div>
+                    <div style="margin-top:16px;padding:12px 16px;background:#0a0a15;border:1px solid #222;border-radius:8px;text-align:center;">
+                        <span style="color:#666;font-size:11px;">💰 SPONSORED: </span>
+                        <span onclick="triggerAdware2()" style="padding:4px 10px;background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🎰 CASINO</span>
+                        <span onclick="triggerAdware2()" style="padding:4px 10px;background:linear-gradient(135deg,#9900cc,#660099);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🔞 HOT SINGLES</span>
+                        <span onclick="triggerAdware2()" style="padding:4px 10px;background:linear-gradient(135deg,#006600,#009900);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">💰 GET RICH</span>
+                    </div>
+                    <div style="margin-top:12px;text-align:center;color:#555;font-size:10px;">⚠️ Downloaded games persist across restarts. Use CMD to manage downloaded files.</div>
                 </div>
-                <div style="background:linear-gradient(135deg,#2d1b00,#4a2a00);border-radius:12px;padding:20px;border:1px solid #ff8800;text-align:center;">
-                    <div style="font-size:56px;margin-bottom:8px;">⭕</div>
-                    <h3 style="color:#fff;margin:4px 0;">Tic Tac Toe Pro</h3>
-                    <div style="color:#aaa;font-size:11px;margin:8px 0;">The classic strategy game! Play against a friend or the CPU. Three in a row wins!</div>
-                    <div style="color:#666;font-size:10px;">Size: ~1.1 MB | Genre: Puzzle</div>
-                    ${gameBtn('tictactoe', '#ffaa00', '#cc8800')}
-                </div>
-                <div style="background:linear-gradient(135deg,#1a0000,#330000);border-radius:12px;padding:20px;border:1px solid #ff4444;text-align:center;">
-                    <div style="font-size:56px;margin-bottom:8px;">🔫</div>
-                    <h3 style="color:#fff;margin:4px 0;">Doom 2: Hell Walker</h3>
-                    <div style="color:#aaa;font-size:11px;margin:8px 0;">First-person shooter! Fight through demon-infested levels with your arsenal!</div>
-                    <div style="color:#666;font-size:10px;">Size: ~8.7 MB | Genre: FPS</div>
-                    ${gameBtn('doom2', '#ff4444', '#cc0000')}
-                </div>
+                ${rightAds}
             </div>
-            <div style="max-width:960px;margin:16px auto 0;padding:12px 16px;background:#0a0a15;border:1px solid #222;border-radius:8px;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;">
-                <span style="color:#666;font-size:11px;align-self:center;">💰 SPONSORED:</span>
-                <div onclick="triggerAdware2()" style="padding:6px 14px;background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;">🎰 CASINO - 500% BONUS! Spin & Win!</div>
-                <div onclick="triggerAdware2()" style="padding:6px 14px;background:linear-gradient(135deg,#9900cc,#660099);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;">🔞 HOT Singles in Your Area!</div>
-                <div onclick="triggerAdware2()" style="padding:6px 14px;background:linear-gradient(135deg,#006600,#009900);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;">💰 Make RICH in 7 Days!</div>
-                <div onclick="triggerAdware2()" style="padding:6px 14px;background:linear-gradient(135deg,#cc0000,#880000);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;">🎮 FREE ROBUX GENERATOR!</div>
-            </div>
-            <div style="max-width:960px;margin:12px auto 0;text-align:center;color:#555;font-size:10px;">⚠️ Downloaded games persist across restarts. Use CMD to manage downloaded files.</div>
         </div>`;
+}
+
+let freakyPopupInterval = null;
+
+function startFreakyPopups() {
+    if (freakyPopupInterval) clearInterval(freakyPopupInterval);
+    
+    const freakyAds = [
+        { title: '🔞 ADULT CONTENT', desc: 'SINGLES IN YOUR AREA WANT TO MEET!', color: '#ff0066', icon: '💋' },
+        { title: '💰 WIN $10,000', desc: 'CLICK HERE TO CLAIM YOUR PRIZE NOW!', color: '#ffcc00', icon: '💵' },
+        { title: '🎰 CASINO BONUS', desc: '500% DEPOSIT BONUS - PLAY NOW!', color: '#ff6600', icon: '🎲' },
+        { title: '💊 MALE ENHANCEMENT', desc: 'LAST 3 HOURS GUARANTEED - DOCTORS HATE THIS!', color: '#00ff00', icon: '🍆' },
+        { title: '🎮 FREE ROBUX', desc: 'UNLIMITED ROBUX GENERATOR - NO SURVEY!', color: '#00ccff', icon: '🎁' },
+        { title: '💎 CRYPTO PUMP', desc: 'INVEST $100 GET $10,000 IN 24 HOURS!', color: '#9900ff', icon: '📈' },
+        { title: '📱 FREE IPHONE', desc: 'YOU WON! CLICK TO CLAIM YOUR PRIZE!', color: '#ff0000', icon: '🎊' },
+        { title: '💸 WORK FROM HOME', desc: 'MAKE $5000/DAY - NO EXPERIENCE NEEDED!', color: '#00ff99', icon: '💼' },
+        { title: '🔥 HOT DEALS', desc: '99% OFF EVERYTHING - ONLY TODAY!', color: '#ff3300', icon: '🛍️' },
+        { title: '⚡ ENERGY BOOST', desc: 'SECRET TRICK TO STAY AWAKE FOR 48 HOURS!', color: '#ffff00', icon: '⚡' }
+    ];
+    
+    freakyPopupInterval = setInterval(() => {
+        const ad = freakyAds[Math.floor(Math.random() * freakyAds.length)];
+        const x = Math.random() * 60 + 10;
+        const y = Math.random() * 60 + 10;
+        
+        const popup = document.createElement('div');
+        popup.style.cssText = `
+            position: fixed;
+            top: ${y}%;
+            left: ${x}%;
+            background: linear-gradient(135deg, ${ad.color}, ${ad.color}dd);
+            border: 3px solid ${ad.color};
+            border-radius: 12px;
+            padding: 20px 24px;
+            z-index: 99999;
+            box-shadow: 0 0 40px ${ad.color}88, 0 8px 32px rgba(0,0,0,0.5);
+            max-width: 280px;
+            text-align: center;
+            animation: popupShake 0.15s infinite, adSlide 0.3s;
+            cursor: pointer;
+        `;
+        
+        popup.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+                <span style="font-size:32px;">${ad.icon}</span>
+                <span onclick="event.stopPropagation();this.parentElement.parentElement.remove();" style="cursor:pointer;color:#fff;font-size:20px;font-weight:bold;background:rgba(0,0,0,0.3);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;">✕</span>
+            </div>
+            <div style="font-size:16px;color:#fff;font-weight:bold;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.5);">${ad.title}</div>
+            <div style="font-size:12px;color:#fff;margin-bottom:12px;line-height:1.4;">${ad.desc}</div>
+            <button onclick="event.stopPropagation();triggerAdware2();this.parentElement.remove();" style="padding:8px 20px;background:#fff;color:${ad.color};border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;width:100%;">CLICK HERE →</button>
+        `;
+        
+        popup.onclick = () => {
+            triggerAdware2();
+            popup.remove();
+        };
+        
+        document.body.appendChild(popup);
+        
+        setTimeout(() => {
+            if (popup.parentElement) popup.remove();
+        }, 8000);
+        
+    }, 15000);
+}
+
+function stopFreakyPopups() {
+    if (freakyPopupInterval) {
+        clearInterval(freakyPopupInterval);
+        freakyPopupInterval = null;
+    }
 }
 
 function downloadGame(gameId) {
@@ -626,11 +765,54 @@ function downloadGame(gameId) {
                     icon.setAttribute('ondblclick', `openApp('${gameId}')`);
                     icon.innerHTML = `<div class="icon-img">${info.icon}</div><span>${info.name}</span>`;
                     icon.addEventListener('click', (e) => {
+                        if (typeof iconDragState !== 'undefined' && iconDragState.hasMoved) {
+                            iconDragState.hasMoved = false;
+                            return;
+                        }
                         e.stopPropagation();
                         document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
                         icon.classList.add('selected');
                     });
+                    icon.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+                        icon.classList.add('selected');
+                        const canDelete = typeof isBuiltInApp !== 'undefined' ? !isBuiltInApp(gameId) : true;
+                        if (typeof showIconContextMenu !== 'undefined') showIconContextMenu(e.clientX, e.clientY, gameId, canDelete);
+                    });
+                    if (typeof handleIconMouseDown !== 'undefined') {
+                        icon.addEventListener('mousedown', handleIconMouseDown);
+                    }
                     di.appendChild(icon);
+                    
+                    let targetLeft = 20;
+                    let targetTop = 20;
+                    const icons = document.querySelectorAll('.desktop-icon');
+                    const lastIcon = icons[icons.length - 2];
+                    if (lastIcon) {
+                        const lastLeft = parseInt(lastIcon.style.left) || 0;
+                        const lastTop = parseInt(lastIcon.style.top) || 0;
+                        targetLeft = lastLeft;
+                        targetTop = lastTop + 100;
+                    }
+                    
+                    if (typeof findNearestEmptyCell !== 'undefined' && typeof getCellPosition !== 'undefined' && typeof clampToBounds !== 'undefined') {
+                        const cell = findNearestEmptyCell(targetLeft, targetTop, null);
+                        const pos = getCellPosition(cell.col, cell.row);
+                        const clampedPos = clampToBounds(pos.left, pos.top);
+                        icon.style.left = clampedPos.left + 'px';
+                        icon.style.top = clampedPos.top + 'px';
+                        if (typeof iconPositions !== 'undefined') {
+                            iconPositions[gameId] = clampedPos;
+                        }
+                    } else {
+                        icon.style.left = targetLeft + 'px';
+                        icon.style.top = targetTop + 'px';
+                        if (typeof iconPositions !== 'undefined') {
+                            iconPositions[gameId] = { left: targetLeft, top: targetTop };
+                        }
+                    }
                 }
             }
             saveWebOS();

@@ -113,11 +113,11 @@ function showVirusPopups(files, label, color, icon, count) {
 function triggerPhishingTrojan() {
     webosInfected = true;
     const files = [
-        { path: ['C:', 'Windows', 'System32'], name: 'svchost.exe', type: 'file', ext: 'exe', content: '[TROJAN] Win32/Spyware.Gen - Remote Access Trojan\nConnected to: 185.234.xx.xx:4444' },
-        { path: ['C:', 'Windows', 'System32'], name: 'winlogon.dll', type: 'file', ext: 'dll', content: '[TROJAN] Trojan.Downloader - Downloads additional malware' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'keylogger.sys', type: 'file', ext: 'sys', content: '[TROJAN] Keylogger - Captures keystrokes\nData sent to: 45.67.xxx.xxx' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming'], name: 'Microsoft.Updater.dll', type: 'file', ext: 'dll', content: '[TROJAN] Fake Windows Update - Backdoor access' },
-        { path: ['C:', 'Users', 'User', 'Downloads'], name: 'free_hack.exe', type: 'file', ext: 'exe', content: '[TROJAN] Trojan Horse - Original infection vector' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'svchost.exe', type: 'file', ext: 'exe', content: '[TROJAN] Win32/Spyware.Gen - Remote Access Trojan\nConnected to: 185.234.xx.xx:4444' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'winlogon.dll', type: 'file', ext: 'dll', content: '[TROJAN] Trojan.Downloader - Downloads additional malware' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'LocalLow', 'Sun', 'Java', 'tmp'], name: 'keylogger.sys', type: 'file', ext: 'sys', content: '[TROJAN] Keylogger - Captures keystrokes\nData sent to: 45.67.xxx.xxx' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'Microsoft.Updater.dll', type: 'file', ext: 'dll', content: '[TROJAN] Fake Windows Update - Backdoor access' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu'], name: 'free_hack.exe', type: 'file', ext: 'exe', content: '[TROJAN] Trojan Horse - Original infection vector' },
     ];
     addVirusFiles(files);
     showVirusPopups(files, '🦠 TROJAN HORSE', '#ff4444', '🛡️', 6);
@@ -127,14 +127,14 @@ function triggerPhishingTrojan() {
 
 const wormNames = ['svchost.exe', 'winupdate.exe', 'explorer_bk.exe', 'service_host.dll', 'msconfig.exe', 'runtime_broker.sys', 'security_health.exe', 'windows_defender.exe', 'system_guard.dll', 'ntoskrnl_bk.exe', 'taskhost.exe', 'csrss_bk.exe', 'lsass_bk.dll', 'services_bk.exe', 'spoolsv_bk.exe'];
 const wormDirs = [
-    ['C:', 'Windows', 'System32'],
-    ['C:', 'Windows'],
-    ['C:', 'Users', 'User'],
     ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'],
-    ['C:', 'Users', 'User', 'AppData', 'Roaming'],
-    ['C:', 'Users', 'User', 'Downloads'],
-    ['C:', 'Users', 'User', 'Documents'],
-    ['C:', 'Program Files', 'WebOS'],
+    ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'],
+    ['C:', 'Users', 'User', 'AppData', 'LocalLow'],
+    ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'],
+    ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'],
+    ['C:', 'ProgramData', 'Microsoft', 'Windows', 'Start Menu'],
+    ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows', 'INetCache'],
+    ['C:', 'Users', 'User', 'AppData', 'Local', 'CrashDumps'],
 ];
 
 function triggerPhishingWorm() {
@@ -143,10 +143,10 @@ function triggerPhishingWorm() {
     if (wormIntervals['main']) return;
 
     const files = [
-        { path: ['C:', 'Windows', 'System32'], name: 'worm_agent.exe', type: 'file', ext: 'exe', content: '[WORM] Self-replicating malware - Process: svchost.exe' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'svchost_bk.exe', type: 'file', ext: 'exe', content: '[WORM] Worm copy - Spawned by worm_agent.exe' },
-        { path: ['C:', 'Windows'], name: 'updater_worm.dll', type: 'file', ext: 'dll', content: '[WORM] Worm module - Network propagation' },
-        { path: ['C:', 'Users', 'User', 'Downloads'], name: 'installer.exe', type: 'file', ext: 'exe', content: '[WORM] Worm installer - USB autorun' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'worm_agent.exe', type: 'file', ext: 'exe', content: '[WORM] Self-replicating malware - Process: svchost.exe' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'svchost_bk.exe', type: 'file', ext: 'exe', content: '[WORM] Worm copy - Spawned by worm_agent.exe' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'updater_worm.dll', type: 'file', ext: 'dll', content: '[WORM] Worm module - Network propagation' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'installer.exe', type: 'file', ext: 'exe', content: '[WORM] Worm installer - USB autorun' },
     ];
     addVirusFiles(files);
     showVirusPopups(files, '🔁 WORM', '#bb66ff', '🧬', 4);
@@ -157,10 +157,10 @@ function triggerPhishingWorm() {
     const wormAds = ['🔞 FREE XXX VIDEO! Click here!', '💰 You won Rp 50,000,000! Claim now!', '💊 Male enhancement pills 100% effective!', '🎰 Online casino - 200% deposit bonus!', '👧 Local girls want to meet you! Chat now!', '🤑 100% profit investment every day!', '🔓 Free Netflix VIP account!', '💎 Free 0.1 BTC Bitcoin for you!'];
     wormIntervals['main'] = setInterval(() => {
         const mainFiles = [
-            { path: ['C:', 'Windows', 'System32'], name: 'worm_agent.exe' },
-            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'svchost_bk.exe' },
-            { path: ['C:', 'Windows'], name: 'updater_worm.dll' },
-            { path: ['C:', 'Users', 'User', 'Downloads'], name: 'installer.exe' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'worm_agent.exe' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'svchost_bk.exe' },
+            { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'updater_worm.dll' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'installer.exe' },
         ];
         const anyAlive = mainFiles.some(mf => {
             const f = navigateToPath(mf.path);
@@ -207,9 +207,9 @@ function triggerPhishingSpyware() {
     webosInfected = true;
     const files = [
         { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'data_miner.exe', type: 'file', ext: 'exe', content: '[SPYWARE] Data mining agent - Scanning browser history' },
-        { path: ['C:', 'Windows', 'System32', 'drivers'], name: 'spy_capture.sys', type: 'file', ext: 'sys', content: '[SPYWARE] Screen capture driver - Recording user activity' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming'], name: 'credential_stealer.dll', type: 'file', ext: 'dll', content: '[SPYWARE] Credential stealer - Extracting saved passwords' },
-        { path: ['C:', 'Program Files', 'WebOS'], name: 'webos_logger.exe', type: 'file', ext: 'exe', content: '[SPYWARE] Keylogger - Logging all keystrokes' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'spy_capture.sys', type: 'file', ext: 'sys', content: '[SPYWARE] Screen capture driver - Recording user activity' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu'], name: 'credential_stealer.dll', type: 'file', ext: 'dll', content: '[SPYWARE] Credential stealer - Extracting saved passwords' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'webos_logger.exe', type: 'file', ext: 'exe', content: '[SPYWARE] Keylogger - Logging all keystrokes' },
     ];
     addVirusFiles(files);
     showVirusPopups(files, '👁️ SPYWARE', '#4488ff', '🔍', 4);
@@ -241,10 +241,10 @@ function triggerPhishingSpyware() {
 function triggerPhishingAdware() {
     webosInfected = true;
     const files = [
-        { path: ['C:', 'Users', 'User', 'AppData', 'Local'], name: 'ad_injector.exe', type: 'file', ext: 'exe', content: '[ADWARE] Ad injector - Injecting ads into browser' },
-        { path: ['C:', 'Windows', 'System32'], name: 'popup_factory.dll', type: 'file', ext: 'dll', content: '[ADWARE] Popup generator - Spawning ad popups' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming'], name: 'browser_hijack.sys', type: 'file', ext: 'sys', content: '[ADWARE] Browser hijacker - Redirecting search results' },
-        { path: ['C:', 'Program Files', 'WebOS'], name: 'ad_redirector.exe', type: 'file', ext: 'exe', content: '[ADWARE] Ad redirector - Traffic redirection module' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'ad_injector.exe', type: 'file', ext: 'exe', content: '[ADWARE] Ad injector - Injecting ads into browser' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'popup_factory.dll', type: 'file', ext: 'dll', content: '[ADWARE] Popup generator - Spawning ad popups' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'browser_hijack.sys', type: 'file', ext: 'sys', content: '[ADWARE] Browser hijacker - Redirecting search results' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu'], name: 'ad_redirector.exe', type: 'file', ext: 'exe', content: '[ADWARE] Ad redirector - Traffic redirection module' },
     ];
     addVirusFiles(files);
     showVirusPopups(files, '📢 ADWARE', '#ffaa00', '💀', 3);
@@ -275,10 +275,10 @@ function triggerPhishingAdware() {
 function triggerAdware2() {
     webosInfected = true;
     const files = [
-        { path: ['C:', 'Windows', 'System32'], name: 'adcore_engine.exe', type: 'file', ext: 'exe', content: '[ADWARE2] Core ad engine - Generates center popups' },
-        { path: ['C:', 'Windows', 'System32', 'drivers'], name: 'popup_driver.sys', type: 'file', ext: 'sys', content: '[ADWARE2] Popup driver - Kernel-level ad injection' },
-        { path: ['C:', 'Windows'], name: 'ad_loader.dll', type: 'file', ext: 'dll', content: '[ADWARE2] Ad loader module - Communication server' },
-        { path: ['C:', 'Program Files', 'WebOS'], name: 'ad_agent.exe', type: 'file', ext: 'exe', content: '[ADWARE2] Ad agent - Persistence service' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'adcore_engine.exe', type: 'file', ext: 'exe', content: '[ADWARE2] Core ad engine - Generates center popups' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'popup_driver.sys', type: 'file', ext: 'sys', content: '[ADWARE2] Popup driver - Kernel-level ad injection' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'ad_loader.dll', type: 'file', ext: 'dll', content: '[ADWARE2] Ad loader module - Communication server' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'ad_agent.exe', type: 'file', ext: 'exe', content: '[ADWARE2] Ad agent - Persistence service' },
     ];
     addVirusFiles(files);
     showVirusPopups(files, '💥 ADWARE 2.0', '#ff6600', '💀', 3);
@@ -286,10 +286,10 @@ function triggerAdware2() {
     let ad2Count = 0;
     const ad2Interval = setInterval(() => {
         const coreFiles = [
-            { path: ['C:', 'Windows', 'System32'], name: 'adcore_engine.exe' },
-            { path: ['C:', 'Windows', 'System32', 'drivers'], name: 'popup_driver.sys' },
-            { path: ['C:', 'Windows'], name: 'ad_loader.dll' },
-            { path: ['C:', 'Program Files', 'WebOS'], name: 'ad_agent.exe' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'adcore_engine.exe' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'popup_driver.sys' },
+            { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'ad_loader.dll' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'ad_agent.exe' },
         ];
         const anyAlive = coreFiles.some(f => {
             const folder = navigateToPath(f.path);
