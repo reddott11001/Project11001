@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebOS 10</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" onerror="showBootFallback()">
+    <style>
+        body { margin:0; padding:0; background:#000; overflow:hidden; width:100vw; height:100vh; }
+        #boot-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100000; }
+        #lock-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg,#1e3a5f,#0d2137); z-index:99999; display:none; flex-direction:column; align-items:center; justify-content:center; }
+        #desktop { display:none; width:100%; height:100%; position:relative; }
+    </style>
+    <script>function showBootFallback(){var el=document.getElementById('boot-fallback');if(el)el.style.display='block';}setTimeout(showBootFallback,3000);</script>
 </head>
-<body>
+<body style="margin:0;padding:0;background:#000;overflow:hidden;width:100vw;height:100vh;">
     <div id="watermark" style="position:fixed;top:2px;right:6px;z-index:99998;color:rgba(255,255,255,0.15);font-size:10px;font-family:Segoe UI,sans-serif;pointer-events:none;user-select:none;">© Reddott11001</div>
-    <div id="boot-screen">
+    <div id="boot-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100000;">
+        <div id="boot-fallback" style="color:#555;font-family:Segoe UI,sans-serif;font-size:14px;display:none;">Loading WebOS 10...</div>
         <div class="boot-logo">
             <div class="win-logo">
                 <div class="win-quad"></div>
@@ -26,7 +34,7 @@
         </div>
     </div>
 
-    <div id="lock-screen" style="display:none;">
+    <div id="lock-screen">
         <div class="lock-time" id="lock-time">12:00</div>
         <div class="lock-date" id="lock-date">Monday, January 1</div>
         <div class="lock-hint">Click anywhere to unlock</div>
