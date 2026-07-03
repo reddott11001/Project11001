@@ -976,7 +976,7 @@ function openReadme() {
         if (notepadWin) {
             const textarea = document.querySelector(`#${notepadWin.id}-body .notepad-textarea`);
             if (textarea) {
-                const content = (navigateToPath(['C:', 'Users', 'User', 'Desktop']).children['README.txt'] || {}).content || 'File not found.';
+                const content = 'Hello User! This is a internet IT Simulator sandbox! You can test and learn how to avoid online malware from spreading to your PC!\n\nHave Fun!\n\nBy: Reddott11001';
                 textarea.value = content;
                 const statusbar = document.querySelector(`#${notepadWin.id}-body .notepad-statusbar`);
                 if (statusbar) {
