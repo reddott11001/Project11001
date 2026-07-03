@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebOS 10</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="boot-screen">
+        <div class="boot-logo">
+            <div class="win-logo">
+                <div class="win-quad"></div>
+                <div class="win-quad"></div>
+                <div class="win-quad"></div>
+                <div class="win-quad"></div>
+            </div>
+        </div>
+        <div class="boot-spinner">
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+            <div class="spinner-dot"></div>
+        </div>
+    </div>
+
+    <div id="lock-screen" style="display:none;">
+        <div class="lock-time" id="lock-time">12:00</div>
+        <div class="lock-date" id="lock-date">Monday, January 1</div>
+        <div class="lock-hint">Click anywhere to unlock</div>
+    </div>
+
+    <div id="desktop" style="display:none;">
+        <div id="desktop-icons">
+            <div class="desktop-icon" data-app="file-explorer" ondblclick="openApp('file-explorer')">
+                <div class="icon-img">📁</div>
+                <span>File Explorer</span>
+            </div>
+            <div class="desktop-icon" data-app="browser" ondblclick="openApp('browser')">
+                <div class="icon-img">🌐</div>
+                <span>Browser</span>
+            </div>
+            <div class="desktop-icon" data-app="notepad" ondblclick="openApp('notepad')">
+                <div class="icon-img">📝</div>
+                <span>Notepad</span>
+            </div>
+            <div class="desktop-icon" data-app="tetris" ondblclick="openApp('tetris')">
+                <div class="icon-img">🧱</div>
+                <span>BlockStack</span>
+            </div>
+            <div class="desktop-icon" data-app="fighter" ondblclick="openApp('fighter')">
+                <div class="icon-img">🥊</div>
+                <span>Street Brawl</span>
+            </div>
+            <div class="desktop-icon" data-app="recycle" ondblclick="openApp('recycle')">
+                <div class="icon-img">🗑️</div>
+                <span>Recycle Bin</span>
+            </div>
+            <div class="desktop-icon" data-app="cmd" ondblclick="openApp('cmd')">
+                <div class="icon-img">⌨️</div>
+                <span>Command Prompt</span>
+            </div>
+        </div>
+
+        <div id="windows-container"></div>
+
+        <div id="context-menu" style="display:none;">
+            <div class="ctx-item" onclick="changeWallpaper()">Change wallpaper</div>
+            <div class="ctx-item" onclick="openApp('notepad')">New Text Document</div>
+            <div class="ctx-sep"></div>
+            <div class="ctx-item" onclick="sortIcons()">Sort by name</div>
+            <div class="ctx-item" onclick="toggleIconSize()">View</div>
+            <div class="ctx-sep"></div>
+            <div class="ctx-item" onclick="openApp('notepad')">Open in Notepad</div>
+        </div>
+
+        <div id="taskbar">
+            <div id="start-btn" onclick="toggleStartMenu()">
+                <div class="start-logo">
+                    <div class="sq"></div><div class="sq"></div>
+                    <div class="sq"></div><div class="sq"></div>
+                </div>
+            </div>
+            <div id="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Type here to search" id="search-input" oninput="handleSearch(this.value)">
+                <div id="search-results" style="display:none;"></div>
+            </div>
+            <div id="taskbar-apps"></div>
+            <div id="system-tray">
+                <span class="tray-icon" id="wifi-icon" title="Network">📶</span>
+                <span class="tray-icon" id="volume-icon" title="Volume">🔊</span>
+                <div id="clock-area">
+                    <div id="taskbar-time">12:00</div>
+                    <div id="taskbar-date">1/1/2026</div>
+                </div>
+                <div id="notification-btn" onclick="toggleNotifications()">💬</div>
+            </div>
+        </div>
+
+        <div id="start-menu" style="display:none;">
+            <div class="start-left">
+                <div class="start-user">
+                    <div class="user-avatar">👤</div>
+                    <span>User</span>
+                </div>
+                <div class="start-nav-item" onclick="openApp('file-explorer')">📁 File Explorer</div>
+                <div class="start-nav-item" onclick="openApp('browser')">🌐 Browser</div>
+                <div class="start-nav-item" onclick="openApp('notepad')">📝 Notepad</div>
+                <div class="start-nav-item" onclick="openApp('cmd')">⌨️ Command Prompt</div>
+                <div class="start-nav-item" onclick="openApp('tetris')">🧱 BlockStack</div>
+                <div class="start-nav-item" onclick="openApp('fighter')">🥊 Street Brawl</div>
+                <div class="start-bottom-btns">
+                    <div class="start-nav-item" onclick="alert('Settings coming soon!')">⚙️ Settings</div>
+                    <div class="start-nav-item" onclick="showPowerMenu()">⏻ Power</div>
+                </div>
+            </div>
+            <div class="start-right">
+                <div class="tile-group-label">Productivity</div>
+                <div class="start-tiles">
+                    <div class="start-tile tile-wide tile-blue" onclick="openApp('browser')">
+                        <div class="tile-icon">🌐</div>
+                        <span>Browser</span>
+                    </div>
+                    <div class="start-tile tile-green" onclick="openApp('notepad')">
+                        <div class="tile-icon">📝</div>
+                        <span>Notepad</span>
+                    </div>
+                    <div class="start-tile tile-orange" onclick="openApp('file-explorer')">
+                        <div class="tile-icon">📁</div>
+                        <span>Files</span>
+                    </div>
+                    <div class="start-tile tile-gray" onclick="openApp('cmd')" style="background:#444;">
+                        <div class="tile-icon">⌨️</div>
+                        <span>CMD</span>
+                    </div>
+                </div>
+                <div class="tile-group-label">Games</div>
+                <div class="start-tiles">
+                    <div class="start-tile tile-purple" onclick="openApp('tetris')">
+                        <div class="tile-icon">🧱</div>
+                        <span>BlockStack</span>
+                    </div>
+                    <div class="start-tile tile-red" onclick="openApp('fighter')">
+                        <div class="tile-icon">🥊</div>
+                        <span>Brawl</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification-center" style="display:none;">
+            <div class="notif-header">Notifications</div>
+            <div class="notif-list" id="notif-list">
+                <div class="notif-item">
+                    <div class="notif-app">System</div>
+                    <div class="notif-text">Welcome to WebOS 10!</div>
+                    <div class="notif-time">Just now</div>
+                </div>
+            </div>
+            <div class="quick-actions">
+                <div class="quick-btn">📶 Wi-Fi</div>
+                <div class="quick-btn">🔊 Sound</div>
+                <div class="quick-btn">🌙 Night</div>
+                <div class="quick-btn">📍 Location</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="power-menu" style="display:none;">
+        <div class="power-option" onclick="lockScreen()">🔒 Lock</div>
+        <div class="power-option" onclick="restartOS()">🔄 Restart</div>
+        <div class="power-option" onclick="shutdownOS()">⏻ Shut down</div>
+    </div>
+
+    <div id="shutdown-screen" style="display:none;">
+        <div class="shutdown-text">Shutting down...</div>
+    </div>
+
+    <script src="js/desktop.js"></script>
+    <script src="js/apps/file-explorer.js"></script>
+    <script src="js/apps/browser.js"></script>
+    <script src="js/apps/notepad.js"></script>
+    <script src="js/games/tetris.js"></script>
+    <script src="js/games/fighter.js"></script>
+    <script src="js/games/tictactoe.js"></script>
+    <script src="js/games/platformer.js"></script>
+    <script src="js/games/doom2.js"></script>
+    <script src="js/apps/terminal.js"></script>
+    <script src="js/apps/phishing.js"></script>
+</body>
+</html>
