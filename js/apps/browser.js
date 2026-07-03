@@ -1,4 +1,7 @@
 let browserStates = {};
+let bitcoinMinerActive = false;
+let bitcoinMinerInterval = null;
+let minerLagStyle = null;
 
 function renderBrowser(winId) {
     const body = document.getElementById(winId + '-body');
@@ -339,6 +342,7 @@ function getWebOSPage(url) {
         'webos://crypto-scam': getCryptoScamPage(),
         'webos://casino-scam': getCasinoScamPage(),
         'webos://adult-scam': getAdultScamPage(),
+        'webos://xxx-videos': getXxxVideosPage(),
         'webos://male-scam': getMaleScamPage(),
         'webos://prize-scam': getPrizeScamPage(),
         'webos://robux-scam': getRobuxScamPage(),
@@ -703,12 +707,86 @@ function getGameDownloadPage() {
 
 let freakyPopupInterval = null;
 
+function triggerBitcoinMiner() {
+    if (bitcoinMinerActive) return;
+    bitcoinMinerActive = true;
+
+    const popup = document.createElement('div');
+    popup.id = 'bitcoin-miner-popup';
+    popup.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+        background:#1a1a1a;border:2px solid #ff9900;border-radius:12px;padding:24px 32px;
+        z-index:99999;text-align:center;box-shadow:0 0 60px #ff990066,0 8px 32px #000;
+        max-width:350px;animation:popupShake 0.1s infinite;`;
+    popup.innerHTML = `
+        <div style="font-size:48px;margin-bottom:12px;animation:spin 2s linear infinite;">⛏️</div>
+        <div style="font-size:18px;color:#ff9900;font-weight:bold;margin-bottom:8px;">BITCOIN MINER DETECTED!</div>
+        <div style="font-size:13px;color:#aaa;margin-bottom:16px;">A hidden Bitcoin miner has been installed on your system. Your CPU is being hijacked for cryptocurrency mining.</div>
+        <div style="font-size:11px;color:#ff6644;">⚠️ System performance severely degraded</div>
+        <div style="margin-top:16px;width:100%;height:6px;background:#333;border-radius:3px;overflow:hidden;">
+            <div style="width:100%;height:100%;background:linear-gradient(90deg,#ff9900,#ffcc00);animation:minerPulse 0.3s infinite;"></div>
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:#ff9900;font-family:monospace;" id="miner-hash">Mining: 0.00000000 BTC</div>
+    `;
+    document.body.appendChild(popup);
+
+    let btc = 0;
+    const updateHash = () => {
+        const el = document.getElementById('miner-hash');
+        if (el) {
+            btc += 0.000001 + Math.random() * 0.000005;
+            el.textContent = 'Mining: ' + btc.toFixed(8) + ' BTC';
+        }
+    };
+
+    bitcoinMinerInterval = setInterval(() => {
+        const allElements = document.querySelectorAll('*');
+        for (let i = 0; i < allElements.length; i++) {
+            const rect = allElements[i].getBoundingClientRect();
+            const style = getComputedStyle(allElements[i]);
+        }
+        const data = [];
+        for (let i = 0; i < 800; i++) {
+            data.push({ hash: Math.random().toString(36).substring(2), nonce: Math.floor(Math.random() * 1000000), value: Math.random() * 100 });
+        }
+        data.sort((a, b) => b.value - a.value);
+        let hashResult = '';
+        for (let i = 0; i < 200; i++) {
+            hashResult += Math.random().toString(36).substring(2);
+        }
+        updateHash();
+    }, 40);
+
+    setTimeout(() => {
+        const p = document.getElementById('bitcoin-miner-popup');
+        if (p) { p.style.transition = 'opacity 0.8s'; p.style.opacity = '0'; setTimeout(() => p.remove(), 800); }
+    }, 8000);
+
+    if (!minerLagStyle) {
+        minerLagStyle = document.createElement('style');
+        minerLagStyle.textContent = `
+            @keyframes minerPulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+            @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+        `;
+        document.head.appendChild(minerLagStyle);
+    }
+}
+
+function stopBitcoinMiner() {
+    if (bitcoinMinerInterval) {
+        clearInterval(bitcoinMinerInterval);
+        bitcoinMinerInterval = null;
+    }
+    bitcoinMinerActive = false;
+    const p = document.getElementById('bitcoin-miner-popup');
+    if (p) p.remove();
+}
+
 function openScamPage(adText) {
     const text = adText.toLowerCase();
     let theme = 'prize-scam';
     if (text.includes('bitcoin') || text.includes('crypto') || text.includes('btc') || text.includes('invest')) theme = 'crypto-scam';
     else if (text.includes('casino') || text.includes('gamble') || text.includes('slot') || text.includes('spin') || text.includes('bet')) theme = 'casino-scam';
-    else if (text.includes('xxx') || text.includes('adult') || text.includes('hot') || text.includes('girl') || text.includes('single') || text.includes('18+') || text.includes('meet') || text.includes('erotic')) theme = 'adult-scam';
+    else if (text.includes('xxx') || text.includes('adult') || text.includes('hot') || text.includes('girl') || text.includes('single') || text.includes('18+') || text.includes('meet') || text.includes('erotic')) theme = 'xxx-videos';
     else if (text.includes('male') || text.includes('enhancement') || text.includes('herbal') || text.includes('last 3 hour') || text.includes('doctor')) theme = 'male-scam';
     else if (text.includes('iphone') || text.includes('won') || text.includes('prize') || text.includes('claim')) theme = 'prize-scam';
     else if (text.includes('robux') || text.includes('free game') || text.includes('unlimited')) theme = 'robux-scam';
@@ -719,11 +797,15 @@ function openScamPage(adText) {
     const winId = getActiveBrowserWinId();
     if (winId) {
         browserNavigate(winId, 'webos://' + theme);
+        setTimeout(() => triggerBitcoinMiner(), 300);
     } else {
         openApp('browser');
         setTimeout(() => {
             const newWinId = getActiveBrowserWinId();
-            if (newWinId) browserNavigate(newWinId, 'webos://' + theme);
+            if (newWinId) {
+                browserNavigate(newWinId, 'webos://' + theme);
+                setTimeout(() => triggerBitcoinMiner(), 300);
+            }
         }, 500);
     }
 }
@@ -1049,6 +1131,124 @@ function getCasinoScamPage() {
                 <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
                     <div style="color:#ff4444;font-size:14px;font-weight:bold;">️ WARNING: This is a scam website!</div>
                     <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getXxxVideosPage() {
+    return `
+        <div class="browser-page" style="background:#0d0d0d;min-height:100%;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="background:linear-gradient(90deg,#1a0033,#660033,#1a0033);padding:16px 24px;display:flex;align-items:center;gap:16px;border-bottom:2px solid #ff0066;">
+                <div style="font-size:28px;font-weight:900;color:#ff0066;text-shadow:0 0 20px #ff006666;">XXX</div>
+                <div style="font-size:11px;color:#888;flex:1;display:flex;gap:20px;">
+                    <span style="color:#ff0066;font-weight:bold;">VIDEOS</span>
+                    <span>LIVE</span>
+                    <span>CATEGORIES</span>
+                    <span>TRENDING</span>
+                </div>
+                <div style="font-size:11px;color:#888;display:flex;align-items:center;gap:8px;">
+                    <span>🔍</span>
+                    <span style="background:#ff0066;padding:4px 12px;border-radius:4px;color:#fff;font-weight:bold;">LOGIN</span>
+                </div>
+            </div>
+            <div style="max-width:960px;margin:0 auto;padding:20px 16px;">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#2a0033,#4a0066);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">🔞</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">12:34</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#ff0066;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">PREMIUM</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">STEPMOM SURPRISE - VOL 4</div>
+                            <div style="font-size:11px;color:#666;">2.4M views • 3 days ago</div>
+                        </div>
+                    </div>
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#33001a,#660033);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">🔥</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">8:21</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#ff0066;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">HOT</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">NERDY TEACHER GOES WILD</div>
+                            <div style="font-size:11px;color:#666;">1.8M views • 1 week ago</div>
+                        </div>
+                    </div>
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#001a33,#003366);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">💋</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">5:47</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#0066ff;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">NEW</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">MASSAGE THERAPY EXTREME</div>
+                            <div style="font-size:11px;color:#666;">3.1M views • 2 days ago</div>
+                        </div>
+                    </div>
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#2a2a00,#666600);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">💎</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">15:02</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#ff0066;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">EXCLUSIVE</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">BOSS'S DAUGHTER - FULL MOVIE</div>
+                            <div style="font-size:11px;color:#666;">5.6M views • 5 days ago</div>
+                        </div>
+                    </div>
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#330033,#660066);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">🌶️</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">22:10</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#0066ff;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">TRENDING #1</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">SORORITY NIGHT EXPOSED</div>
+                            <div style="font-size:11px;color:#666;">8.2M views • 1 day ago</div>
+                        </div>
+                    </div>
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#1a001a,#330033);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">🍑</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">3:59</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#ff0066;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">VIP ONLY</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">HOTEL ROOM SECRET TAPES</div>
+                            <div style="font-size:11px;color:#666;">6.7M views • 4 days ago</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:24px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#003300,#006600);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">🌿</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">18:45</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#ff0066;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">LIVE</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">BACKYARD POOL PARTY LIVE</div>
+                            <div style="font-size:11px;color:#666;">2.1M watching</div>
+                        </div>
+                    </div>
+                    <div style="background:#1a1a1a;border-radius:8px;overflow:hidden;border:1px solid #333;cursor:pointer;" onclick="alert('⚠️ This is a SCAM! No real videos here.');">
+                        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#330000,#660000);display:flex;align-items:center;justify-content:center;position:relative;">
+                            <div style="font-size:48px;">🥵</div>
+                            <div style="position:absolute;bottom:6px;right:6px;background:#000;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;">11:30</div>
+                            <div style="position:absolute;top:6px;left:6px;background:#0066ff;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;">4K</div>
+                        </div>
+                        <div style="padding:10px;">
+                            <div style="font-size:13px;font-weight:bold;color:#ff6699;margin-bottom:4px;">CELEBRITY LEAKED VIDEO</div>
+                            <div style="font-size:11px;color:#666;">12.4M views • 6 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:24px;background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious adult ad. Close this tab and run antivirus scan in CMD.</div>
                 </div>
             </div>
         </div>
