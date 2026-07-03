@@ -1532,7 +1532,7 @@ function getNoInternetPage(winId) {
     return `
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#f7f7f7;font-family:Arial,sans-serif;">
             <div style="text-align:center;margin-bottom:20px;">
-                <div style="font-size:48px;margin-bottom:12px;">📵</div>
+                <div style="font-size:48px;margin-bottom:12px;"></div>
                 <h2 style="color:#535353;margin:0 0 8px 0;font-size:20px;font-weight:normal;">No internet</h2>
                 <p style="color:#777;font-size:13px;margin:0;">Play the Chrome Dino game while offline!</p>
             </div>
@@ -1540,4 +1540,121 @@ function getNoInternetPage(winId) {
             <div style="margin-top:12px;color:#535353;font-size:12px;">Press SPACE or UP arrow to jump</div>
         </div>
     `;
+}
+
+let calendarDate = new Date();
+
+function toggleCalendarPanel() {
+    const panel = document.getElementById('calendar-panel');
+    if (!panel) {
+        createCalendarPanel();
+        return;
+    }
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function createCalendarPanel() {
+    const existing = document.getElementById('calendar-panel');
+    if (existing) existing.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'calendar-panel';
+    panel.style.cssText = `
+        position: fixed;
+        bottom: 48px;
+        right: 10px;
+        width: 320px;
+        background: #2b2b2b;
+        border: 1px solid #404040;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        z-index: 9999;
+        font-family: 'Segoe UI', sans-serif;
+        color: #fff;
+        overflow: hidden;
+    `;
+
+    renderCalendarContent(panel);
+    document.body.appendChild(panel);
+
+    setTimeout(() => {
+        document.addEventListener('click', closeCalendarOnClickOutside);
+    }, 10);
+}
+
+function renderCalendarContent(panel) {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const today = new Date();
+    
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    let calendarHTML = `
+        <div style="padding: 16px 20px; border-bottom: 1px solid #404040;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <button onclick="prevMonth()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; padding: 4px 8px;">‹</button>
+                <span style="font-size: 14px; font-weight: 500;">${monthNames[month]} ${year}</span>
+                <button onclick="nextMonth()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; padding: 4px 8px;">›</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center;">
+    `;
+    
+    // Day headers
+    dayNames.forEach(day => {
+        calendarHTML += `<div style="font-size: 11px; color: #888; padding: 4px;">${day}</div>`;
+    });
+    
+    // Empty cells for days before 1st
+    for (let i = 0; i < firstDay; i++) {
+        calendarHTML += `<div></div>`;
+    }
+    
+    // Days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+        const bgColor = isToday ? '#0078d4' : 'transparent';
+        const textColor = isToday ? '#fff' : '#fff';
+        calendarHTML += `
+            <div style="font-size: 12px; padding: 6px; background: ${bgColor}; color: ${textColor}; border-radius: 50%; cursor: default; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;">
+                ${day}
+            </div>
+        `;
+    }
+    
+    calendarHTML += `
+            </div>
+        </div>
+        <div style="padding: 12px 20px;">
+            <div style="font-size: 12px; color: #888; margin-bottom: 8px;">Time</div>
+            <div style="font-size: 24px; font-weight: 300;">${today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            <div style="font-size: 12px; color: #888; margin-top: 4px;">${today.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        </div>
+    `;
+    
+    panel.innerHTML = calendarHTML;
+}
+
+function prevMonth() {
+    calendarDate.setMonth(calendarDate.getMonth() - 1);
+    const panel = document.getElementById('calendar-panel');
+    if (panel) renderCalendarContent(panel);
+}
+
+function nextMonth() {
+    calendarDate.setMonth(calendarDate.getMonth() + 1);
+    const panel = document.getElementById('calendar-panel');
+    if (panel) renderCalendarContent(panel);
+}
+
+function closeCalendarOnClickOutside(e) {
+    const panel = document.getElementById('calendar-panel');
+    const clockArea = document.getElementById('clock-area');
+    if (panel && !panel.contains(e.target) && !clockArea.contains(e.target)) {
+        panel.style.display = 'none';
+        document.removeEventListener('click', closeCalendarOnClickOutside);
+    }
 }
