@@ -33,6 +33,10 @@
 
     <div id="desktop" style="display:none;">
         <div id="desktop-icons">
+            <div class="desktop-icon" data-app="recycle" ondblclick="openApp('recycle')">
+                <div class="icon-img">🗑️</div>
+                <span>Recycle Bin</span>
+            </div>
             <div class="desktop-icon" data-app="file-explorer" ondblclick="openApp('file-explorer')">
                 <div class="icon-img">📁</div>
                 <span>File Explorer</span>
@@ -41,6 +45,10 @@
                 <div class="icon-img">🌐</div>
                 <span>Browser</span>
             </div>
+            <div class="desktop-icon" data-app="fighter" ondblclick="openApp('fighter')">
+                <div class="icon-img"></div>
+                <span>Street Brawl</span>
+            </div>
             <div class="desktop-icon" data-app="notepad" ondblclick="openApp('notepad')">
                 <div class="icon-img">📝</div>
                 <span>Notepad</span>
@@ -48,14 +56,6 @@
             <div class="desktop-icon" data-app="tetris" ondblclick="openApp('tetris')">
                 <div class="icon-img">🧱</div>
                 <span>BlockStack</span>
-            </div>
-            <div class="desktop-icon" data-app="fighter" ondblclick="openApp('fighter')">
-                <div class="icon-img">🥊</div>
-                <span>Street Brawl</span>
-            </div>
-            <div class="desktop-icon" data-app="recycle" ondblclick="openApp('recycle')">
-                <div class="icon-img">🗑️</div>
-                <span>Recycle Bin</span>
             </div>
         </div>
 
@@ -85,7 +85,7 @@
             </div>
             <div id="taskbar-apps"></div>
             <div id="system-tray">
-                <span class="tray-icon" id="wifi-icon" title="Network">📶</span>
+                <span class="tray-icon" id="wifi-icon" title="Network" onclick="toggleWifiPanel()">📶</span>
                 <span class="tray-icon" id="volume-icon" title="Volume">🔊</span>
                 <div id="clock-area">
                     <div id="taskbar-time">12:00</div>

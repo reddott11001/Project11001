@@ -21,6 +21,7 @@ let webosInfected = false;
 let webosVirusFiles = [];
 let webosQuarantineFiles = [];
 let downloadedGames = [];
+let wifiConnected = true;
 
 function saveWebOS() {
     try {
@@ -98,6 +99,17 @@ function restoreDownloadedIcons() {
         });
         icon.addEventListener('mousedown', handleIconMouseDown);
         di.appendChild(icon);
+        
+        // Position downloaded games after the built-in icons
+        const builtInCount = 6; // recycle, file-explorer, browser, fighter, notepad, tetris
+        const maxRows = getMaxRows();
+        const gameIndex = builtInCount + downloadedGames.indexOf(gameId);
+        const col = Math.floor(gameIndex / maxRows);
+        const row = gameIndex % maxRows;
+        const pos = getCellPosition(col, row);
+        icon.style.left = pos.left + 'px';
+        icon.style.top = pos.top + 'px';
+        iconPositions[gameId] = pos;
     });
 }
 
@@ -178,15 +190,14 @@ function findNearestEmptyCell(targetLeft, targetTop, excludeAppId) {
     
     const occupied = getOccupiedCells();
     
-    if (excludeAppId) {
-        const excludeIcon = document.querySelector(`.desktop-icon[data-app="${excludeAppId}"]`);
-        if (excludeIcon) {
-            const excludeLeft = parseInt(excludeIcon.style.left) || 0;
-            const excludeTop = parseInt(excludeIcon.style.top) || 0;
-            const excludeCell = getGridCell(excludeLeft, excludeTop);
-            occupied.delete(`${excludeCell.col},${excludeCell.row}`);
-        }
+    if (excludeAppId && iconDragState.isDragging && iconDragState.appId === excludeAppId) {
+        // During drag: exclude the dragged icon's ORIGINAL position (before drag)
+        const origLeft = iconDragState.origLeft;
+        const origTop = iconDragState.origTop;
+        const excludeCell = getGridCell(origLeft, origTop);
+        occupied.delete(`${excludeCell.col},${excludeCell.row}`);
     }
+    // During init or other times: don't exclude, let the algorithm find truly empty cells
     
     const targetKey = `${targetCell.col},${targetCell.row}`;
     if (targetCell.col < maxCols && targetCell.row < maxRows && !occupied.has(targetKey)) {
@@ -249,32 +260,46 @@ function initIconPositions() {
     
     const maxRows = getMaxRows();
     
+    // Define the desired layout order (matching the screenshot)
+    const layoutOrder = ['recycle', 'file-explorer', 'browser', 'fighter', 'notepad', 'tetris'];
+    
     icons.forEach((icon, index) => {
         const appId = icon.getAttribute('data-app');
         
+        // Temporarily move icon off-screen so it's not counted in occupied cells
+        const origLeft = icon.style.left;
+        const origTop = icon.style.top;
+        icon.style.left = '-1000px';
+        icon.style.top = '-1000px';
+        
+        let finalPos;
         if (iconPositions[appId]) {
             const clamped = clampToBounds(iconPositions[appId].left, iconPositions[appId].top);
-            
-            const cell = findNearestEmptyCell(clamped.left, clamped.top, appId);
+            const cell = findNearestEmptyCell(clamped.left, clamped.top, null);
             const pos = getCellPosition(cell.col, cell.row);
-            const finalPos = clampToBounds(pos.left, pos.top);
-            
-            icon.style.left = finalPos.left + 'px';
-            icon.style.top = finalPos.top + 'px';
-            iconPositions[appId] = finalPos;
+            finalPos = clampToBounds(pos.left, pos.top);
         } else {
-            const col = Math.floor(index / maxRows);
-            const row = index % maxRows;
-            const pos = getCellPosition(col, row);
-            
-            const cell = findNearestEmptyCell(pos.left, pos.top, appId);
-            const finalPos = getCellPosition(cell.col, cell.row);
-            
-            icon.style.left = finalPos.left + 'px';
-            icon.style.top = finalPos.top + 'px';
-            
-            iconPositions[appId] = finalPos;
+            // Use the layout order to determine position
+            const layoutIndex = layoutOrder.indexOf(appId);
+            if (layoutIndex !== -1) {
+                const col = Math.floor(layoutIndex / maxRows);
+                const row = layoutIndex % maxRows;
+                const pos = getCellPosition(col, row);
+                const cell = findNearestEmptyCell(pos.left, pos.top, null);
+                finalPos = getCellPosition(cell.col, cell.row);
+            } else {
+                // For icons not in the layout order, place them after
+                const col = Math.floor(index / maxRows);
+                const row = index % maxRows;
+                const pos = getCellPosition(col, row);
+                const cell = findNearestEmptyCell(pos.left, pos.top, null);
+                finalPos = getCellPosition(cell.col, cell.row);
+            }
         }
+        
+        icon.style.left = finalPos.left + 'px';
+        icon.style.top = finalPos.top + 'px';
+        iconPositions[appId] = finalPos;
     });
     
     saveWebOS();
@@ -748,6 +773,10 @@ function restoreApp(appId) {
     
     di.appendChild(icon);
     
+    // Temporarily move icon off-screen so it's not counted in occupied cells
+    icon.style.left = '-1000px';
+    icon.style.top = '-1000px';
+    
     let targetLeft = 20;
     let targetTop = 20;
     
@@ -755,14 +784,15 @@ function restoreApp(appId) {
         targetLeft = iconPositions[appId].left;
         targetTop = iconPositions[appId].top;
     } else {
-        const icons = document.querySelectorAll('.desktop-icon');
-        const lastIcon = icons[icons.length - 2];
-        if (lastIcon) {
-            const lastLeft = parseInt(lastIcon.style.left) || 0;
-            const lastTop = parseInt(lastIcon.style.top) || 0;
-            targetLeft = lastLeft;
-            targetTop = lastTop + 100;
-        }
+        // Position after built-in icons (6 built-in apps)
+        const builtInCount = 6;
+        const maxRows = getMaxRows();
+        const gameIndex = builtInCount + downloadedGames.indexOf(appId);
+        const col = Math.floor(gameIndex / maxRows);
+        const row = gameIndex % maxRows;
+        const pos = getCellPosition(col, row);
+        targetLeft = pos.left;
+        targetTop = pos.top;
     }
     
     const cell = findNearestEmptyCell(targetLeft, targetTop, null);
@@ -1373,4 +1403,165 @@ function addNotification(app, text) {
         <div class="notif-time">Just now</div>
     `;
     list.insertBefore(item, list.firstChild);
+}
+
+function toggleWifiPanel() {
+    const panel = document.getElementById('wifi-panel');
+    if (!panel) {
+        createWifiPanel();
+        return;
+    }
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function createWifiPanel() {
+    const existing = document.getElementById('wifi-panel');
+    if (existing) existing.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'wifi-panel';
+    panel.style.cssText = `
+        position: fixed;
+        bottom: 48px;
+        right: 10px;
+        width: 320px;
+        background: #2b2b2b;
+        border: 1px solid #404040;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        z-index: 9999;
+        font-family: 'Segoe UI', sans-serif;
+        color: #fff;
+        overflow: hidden;
+    `;
+
+    panel.innerHTML = `
+        <div style="padding: 16px 20px; border-bottom: 1px solid #404040;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-size: 14px; font-weight: 500;">Network & Internet</span>
+                <span style="font-size: 12px; color: #888;">${wifiConnected ? 'Connected' : 'Disconnected'}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: ${wifiConnected ? '#1a3a5c' : '#333'}; border-radius: 6px; cursor: pointer;" onclick="toggleWifiConnection()">
+                <div style="font-size: 24px;">${wifiConnected ? '📶' : '📵'}</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 13px; font-weight: 500;">Home Wifi 1</div>
+                    <div style="font-size: 11px; color: #888;">${wifiConnected ? 'Connected, secured' : 'Not connected'}</div>
+                </div>
+                <div style="width: 40px; height: 20px; background: ${wifiConnected ? '#0078d4' : '#555'}; border-radius: 10px; position: relative; transition: background 0.2s;">
+                    <div style="width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; top: 2px; ${wifiConnected ? 'right: 2px' : 'left: 2px'}; transition: all 0.2s;"></div>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid #404040;">
+            <div style="font-size: 12px; color: #888; margin-bottom: 8px;">Available networks</div>
+            <div style="padding: 8px; background: #333; border-radius: 4px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">📶</span>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px;">Home Wifi 1</div>
+                    <div style="font-size: 10px; color: #888;">Secured</div>
+                </div>
+                <span style="font-size: 10px; color: #0078d4;">${wifiConnected ? 'Connected' : ''}</span>
+            </div>
+            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; opacity: 0.6;">
+                <span style="font-size: 18px;">📶</span>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px;">Neighbor_WiFi_5G</div>
+                    <div style="font-size: 10px; color: #888;">Secured</div>
+                </div>
+            </div>
+            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; opacity: 0.6;">
+                <span style="font-size: 18px;">📶</span>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px;">CoffeeShop_Free</div>
+                    <div style="font-size: 10px; color: #888;">Open</div>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 12px 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
+                <span style="font-size: 12px;">Airplane mode</span>
+                <div style="width: 36px; height: 18px; background: #555; border-radius: 9px; position: relative;">
+                    <div style="width: 14px; height: 14px; background: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px;"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(panel);
+
+    setTimeout(() => {
+        document.addEventListener('click', closeWifiPanelOnClickOutside);
+    }, 10);
+}
+
+function closeWifiPanelOnClickOutside(e) {
+    const panel = document.getElementById('wifi-panel');
+    const wifiIcon = document.getElementById('wifi-icon');
+    if (panel && !panel.contains(e.target) && !wifiIcon.contains(e.target)) {
+        panel.style.display = 'none';
+        document.removeEventListener('click', closeWifiPanelOnClickOutside);
+    }
+}
+
+function toggleWifiConnection() {
+    wifiConnected = !wifiConnected;
+    
+    const wifiIcon = document.getElementById('wifi-icon');
+    if (wifiIcon) {
+        wifiIcon.textContent = wifiConnected ? '📶' : '📵';
+        wifiIcon.title = wifiConnected ? 'Network - Connected' : 'Network - Disconnected';
+    }
+    
+    createWifiPanel();
+    
+    if (wifiConnected) {
+        addNotification('🌐 Network', 'Connected to Home Wifi 1');
+    } else {
+        addNotification('🌐 Network', 'Disconnected from Home Wifi 1');
+    }
+    
+    const browserWin = Object.values(activeWindows).find(w => w.appId === 'browser' && !w.closed);
+    if (browserWin) {
+        updateBrowserForWifiState();
+    }
+}
+
+function updateBrowserForWifiState() {
+    const browserWin = Object.values(activeWindows).find(w => w.appId === 'browser' && !w.closed);
+    if (!browserWin) return;
+    
+    const winId = browserWin.id;
+    const content = document.getElementById(winId + '-browser-content');
+    if (!content) return;
+    
+    const tab = getActiveTab(winId);
+    if (!tab) return;
+    
+    if (!wifiConnected) {
+        content.innerHTML = getNoInternetPage(winId);
+    } else if (tab.url === 'home') {
+        content.innerHTML = getBrowserHomePage(winId);
+    } else if (tab.url.startsWith('webos://')) {
+        content.innerHTML = getWebOSPage(tab.url);
+    }
+}
+
+function getNoInternetPage(winId) {
+    return `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #1a1a2e; color: #fff; text-align: center; padding: 40px;">
+            <div style="font-size: 80px; margin-bottom: 20px; opacity: 0.5;">📵</div>
+            <h2 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 400;">No internet</h2>
+            <p style="color: #888; font-size: 14px; margin: 0 0 24px 0; max-width: 400px;">
+                Your device is not connected to the internet. Connect to WiFi to browse the web and access online content.
+            </p>
+            <button onclick="toggleWifiPanel()" style="padding: 10px 24px; background: #0078d4; color: #fff; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;">
+                Connect to WiFi
+            </button>
+            <div style="margin-top: 32px; color: #666; font-size: 12px;">
+                <p style="margin: 4px 0;">• Check your WiFi connection</p>
+                <p style="margin: 4px 0;">• Make sure airplane mode is off</p>
+                <p style="margin: 4px 0;">• Try reconnecting to your network</p>
+            </div>
+        </div>
+    `;
 }

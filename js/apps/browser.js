@@ -97,8 +97,20 @@ function getActiveTab(winId) {
 }
 
 function getBrowserHomePage(winId) {
+    const noWifiBanner = (typeof wifiConnected !== 'undefined' && !wifiConnected) ? `
+        <div style="background:#3a1a1a;border:1px solid #ff4444;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:24px;">📵</span>
+            <div style="flex:1;">
+                <div style="color:#ff6666;font-size:13px;font-weight:500;">No internet connection</div>
+                <div style="color:#aa6666;font-size:11px;">Connect to WiFi to browse the web</div>
+            </div>
+            <button onclick="toggleWifiPanel()" style="padding:6px 14px;background:#0078d4;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">Connect</button>
+        </div>
+    ` : '';
+    
     return `
         <div class="browser-home">
+            ${noWifiBanner}
             <h2>🌐 WebOS Browser</h2>
             <input class="browser-search-box" placeholder="Search the web or enter URL..."
                 onkeydown="if(event.key==='Enter')browserSearch('${winId}', this.value)">
@@ -135,6 +147,10 @@ function getBrowserHomePage(winId) {
                     <div class="browser-shortcut-icon">📰</div>
                     <span>News</span>
                 </div>
+                <div class="browser-shortcut" onclick="browserNavigate('${winId}', 'webos://malware-guide')" style="border-color:#ff6600;background:#1a0a00;">
+                    <div class="browser-shortcut-icon">🛡️</div>
+                    <span style="color:#ff8800;">Malware Guide</span>
+                </div>
                 <div class="browser-shortcut" onclick="browserNavigate('${winId}', 'webos://game-download')" style="border-color:#ff6600;background:#1a0a00;">
                     <div class="browser-shortcut-icon">🎮</div>
                     <span style="color:#ff8800;">Game Download</span>
@@ -165,6 +181,21 @@ function browserNavigate(winId, rawUrl) {
     if (!rawUrl || rawUrl === 'home') { browserHome(winId); return; }
 
     const url = normalizeUrl(rawUrl);
+    
+    if (!url.startsWith('webos://') && typeof wifiConnected !== 'undefined' && !wifiConnected) {
+        tab.history = tab.history.slice(0, tab.historyIndex + 1);
+        tab.history.push(url);
+        tab.historyIndex = tab.history.length - 1;
+        tab.url = url;
+        tab.title = url;
+        updateTabBar(winId);
+        const urlBar = document.getElementById(winId + '-url-bar');
+        if (urlBar) urlBar.value = url;
+        const content = document.getElementById(winId + '-browser-content');
+        if (content) content.innerHTML = getNoInternetPage(winId);
+        return;
+    }
+    
     tab.history = tab.history.slice(0, tab.historyIndex + 1);
     tab.history.push(url);
     tab.historyIndex = tab.history.length - 1;
@@ -296,7 +327,8 @@ function getWebOSPage(url) {
             </div>
         `,
         'webos://gmail': `<div id="${getActiveBrowserWinId()}-gmail-container" style="height:100%;overflow:hidden;"></div>`,
-        'webos://game-download': getGameDownloadPage()
+        'webos://game-download': getGameDownloadPage(),
+        'webos://malware-guide': getMalwareGuidePage()
     };
     const winId = getActiveBrowserWinId();
     if (url === 'webos://gmail' && winId) {
@@ -307,6 +339,13 @@ function getWebOSPage(url) {
 
 function browserSearch(winId, query) {
     if (!query.trim()) return;
+    
+    if (typeof wifiConnected !== 'undefined' && !wifiConnected) {
+        const content = document.getElementById(winId + '-browser-content');
+        if (content) content.innerHTML = getNoInternetPage(winId);
+        return;
+    }
+    
     const url = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(query);
     const tab = getActiveTab(winId);
     if (tab) {
@@ -701,6 +740,201 @@ function stopFreakyPopups() {
     }
 }
 
+function getMalwareGuidePage() {
+    return `
+        <div class="browser-page" style="background:#0d0d1a;min-height:100%;padding:30px 40px;color:#e0e0e0;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:48px;margin-bottom:12px;">🛡️</div>
+                <h1 style="color:#00d4ff;margin:0 0 8px 0;font-size:28px;">Malware Protection Guide</h1>
+                <p style="color:#888;font-size:13px;margin:0;">Learn about different types of malware and how to protect yourself</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;max-width:1100px;margin:0 auto;">
+                
+                <div style="background:linear-gradient(135deg,#1a0000,#330000);border-radius:12px;padding:20px;border:1px solid #ff4444;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">🛡️</span>
+                        <h3 style="color:#ff4444;margin:0;font-size:18px;">Trojan Horse</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>What it does:</strong> Disguises itself as legitimate software but contains malicious code. Once installed, it can steal data, create backdoors, or download additional malware.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Signs of infection:</strong> Slow performance, unexpected pop-ups, new toolbars, browser redirects, disabled antivirus.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Prevention:</strong><br>
+                        • Never download software from untrusted sources<br>
+                        • Keep your OS and antivirus updated<br>
+                        • Be cautious with email attachments<br>
+                        <br>
+                        <strong style="color:#00ff00;">Removal:</strong><br>
+                        • Run full system scan with antivirus<br>
+                        • Use CMD: <code style="background:#000;padding:2px 6px;border-radius:3px;">scan</code> to detect, <code style="background:#000;padding:2px 6px;border-radius:3px;">del</code> to remove
+                    </div>
+                </div>
+
+                <div style="background:linear-gradient(135deg,#1a0030,#330066);border-radius:12px;padding:20px;border:1px solid #bb66ff;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">🧬</span>
+                        <h3 style="color:#bb66ff;margin:0;font-size:18px;">Worm</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>What it does:</strong> Self-replicating malware that spreads across networks without user interaction. It consumes bandwidth and system resources, and can carry payloads.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Signs of infection:</strong> Network slowdown, missing files, multiple copies of strange files, high CPU usage.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Prevention:</strong><br>
+                        • Enable firewall on all devices<br>
+                        • Disable auto-run for USB drives<br>
+                        • Keep systems patched and updated<br>
+                        <br>
+                        <strong style="color:#00ff00;">Removal:</strong><br>
+                        • Disconnect from network immediately<br>
+                        • Delete all worm files via CMD<br>
+                        • Scan all connected devices
+                    </div>
+                </div>
+
+                <div style="background:linear-gradient(135deg,#001a33,#003366);border-radius:12px;padding:20px;border:1px solid #4488ff;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">🔍</span>
+                        <h3 style="color:#4488ff;margin:0;font-size:18px;">Spyware</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>What it does:</strong> Secretly monitors user activity, collects personal information, browsing habits, keystrokes, and credentials. Sends data to remote servers.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Signs of infection:</strong> Unusual network activity, changed browser settings, new toolbars, slow internet, unexpected pop-ups.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Prevention:</strong><br>
+                        • Read software agreements carefully<br>
+                        • Use anti-spyware tools regularly<br>
+                        • Avoid clicking suspicious links<br>
+                        <br>
+                        <strong style="color:#00ff00;">Removal:</strong><br>
+                        • Run anti-spyware scan<br>
+                        • Reset browser settings<br>
+                        • Change all passwords after removal
+                    </div>
+                </div>
+
+                <div style="background:linear-gradient(135deg,#1a1a00,#333300);border-radius:12px;padding:20px;border:1px solid #ffaa00;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">💀</span>
+                        <h3 style="color:#ffaa00;margin:0;font-size:18px;">Adware</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>What it does:</strong> Displays unwanted advertisements, often bundled with free software. Can track browsing habits and redirect searches to ad-filled pages.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Signs of infection:</strong> Excessive pop-up ads, browser homepage changed, slow browser, new toolbars, redirected searches.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Prevention:</strong><br>
+                        • Choose "Custom" install for free software<br>
+                        • Uncheck bundled offers during installation<br>
+                        • Use ad-blocker extensions<br>
+                        <br>
+                        <strong style="color:#00ff00;">Removal:</strong><br>
+                        • Remove suspicious browser extensions<br>
+                        • Reset browser settings<br>
+                        • Run anti-malware scan
+                    </div>
+                </div>
+
+                <div style="background:linear-gradient(135deg,#1a0000,#4d0000);border-radius:12px;padding:20px;border:1px solid #ff0000;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">🔒</span>
+                        <h3 style="color:#ff0000;margin:0;font-size:18px;">Ransomware</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>What it does:</strong> Encrypts user files and demands payment for decryption key. Can spread through networks and lock entire systems.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Signs of infection:</strong> Files renamed with strange extensions, ransom note appears, inability to open files, desktop wallpaper changed.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Prevention:</strong><br>
+                        • Backup files regularly (3-2-1 rule)<br>
+                        • Never pay the ransom<br>
+                        • Keep offline backups<br>
+                        <br>
+                        <strong style="color:#00ff00;">Removal:</strong><br>
+                        • Disconnect from network immediately<br>
+                        • Use decryption tools if available<br>
+                        • Restore from backup
+                    </div>
+                </div>
+
+                <div style="background:linear-gradient(135deg,#001a00,#003300);border-radius:12px;padding:20px;border:1px solid #00cc00;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">🎣</span>
+                        <h3 style="color:#00cc00;margin:0;font-size:18px;">Phishing</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>What it does:</strong> Deceptive attempts to steal sensitive information by masquerading as trustworthy entities in emails, websites, or messages.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Signs of infection:</strong> Urgent requests for personal info, suspicious email addresses, poor grammar, mismatched URLs, unexpected attachments.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Prevention:</strong><br>
+                        • Verify sender email addresses<br>
+                        • Never click suspicious links<br>
+                        • Enable two-factor authentication<br>
+                        • Check URLs before entering credentials<br>
+                        <br>
+                        <strong style="color:#00ff00;">Response:</strong><br>
+                        • Report phishing emails<br>
+                        • Change passwords if compromised<br>
+                        • Monitor accounts for suspicious activity
+                    </div>
+                </div>
+
+            </div>
+
+            <div style="max-width:1100px;margin:30px auto 0;background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:24px;border:1px solid #0f3460;">
+                <h3 style="color:#00d4ff;margin:0 0 16px 0;font-size:18px;">🔧 General Protection Tips</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;">
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;">
+                        <strong style="color:#fff;">1. Keep Software Updated</strong><br>
+                        Enable automatic updates for OS, browser, and antivirus.
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;">
+                        <strong style="color:#fff;">2. Use Strong Passwords</strong><br>
+                        Unique passwords for each account, use password managers.
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;">
+                        <strong style="color:#fff;">3. Backup Regularly</strong><br>
+                        Follow 3-2-1 rule: 3 copies, 2 different media, 1 offsite.
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;">
+                        <strong style="color:#fff;">4. Be Skeptical</strong><br>
+                        If it sounds too good to be true, it probably is.
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;">
+                        <strong style="color:#fff;">5. Use Firewall</strong><br>
+                        Enable firewall and configure it properly.
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;">
+                        <strong style="color:#fff;">6. Educate Yourself</strong><br>
+                        Stay informed about latest threats and attack methods.
+                    </div>
+                </div>
+            </div>
+
+            <div style="max-width:1100px;margin:20px auto 0;text-align:center;color:#666;font-size:11px;">
+                <p>⚠️ This guide is for educational purposes. Always use reputable antivirus software and keep your systems updated.</p>
+                <p style="margin-top:8px;">Need help? Open Command Prompt and type <code style="background:#1a1a2e;padding:2px 8px;border-radius:3px;color:#00d4ff;">scan</code> to check your system.</p>
+            </div>
+        </div>
+    `;
+}
+
 function downloadGame(gameId) {
     const gameInfo = {
         tictactoe: { name: 'Tic Tac Toe Pro', icon: '⭕', file: 'tictactoe_game.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
@@ -786,31 +1020,32 @@ function downloadGame(gameId) {
                     }
                     di.appendChild(icon);
                     
-                    let targetLeft = 20;
-                    let targetTop = 20;
-                    const icons = document.querySelectorAll('.desktop-icon');
-                    const lastIcon = icons[icons.length - 2];
-                    if (lastIcon) {
-                        const lastLeft = parseInt(lastIcon.style.left) || 0;
-                        const lastTop = parseInt(lastIcon.style.top) || 0;
-                        targetLeft = lastLeft;
-                        targetTop = lastTop + 100;
-                    }
+                    // Temporarily move icon off-screen so it's not counted in occupied cells
+                    icon.style.left = '-1000px';
+                    icon.style.top = '-1000px';
+                    
+                    // Position after built-in icons (6 built-in apps)
+                    const builtInCount = 6;
+                    const maxRows = typeof getMaxRows !== 'undefined' ? getMaxRows() : 5;
+                    const gameIndex = builtInCount + (typeof downloadedGames !== 'undefined' ? downloadedGames.indexOf(gameId) : 0);
+                    const col = Math.floor(gameIndex / maxRows);
+                    const row = gameIndex % maxRows;
+                    const pos = typeof getCellPosition !== 'undefined' ? getCellPosition(col, row) : { left: 20 + col * 90, top: 10 + row * 100 };
                     
                     if (typeof findNearestEmptyCell !== 'undefined' && typeof getCellPosition !== 'undefined' && typeof clampToBounds !== 'undefined') {
-                        const cell = findNearestEmptyCell(targetLeft, targetTop, null);
-                        const pos = getCellPosition(cell.col, cell.row);
-                        const clampedPos = clampToBounds(pos.left, pos.top);
+                        const cell = findNearestEmptyCell(pos.left, pos.top, null);
+                        const finalPos = getCellPosition(cell.col, cell.row);
+                        const clampedPos = clampToBounds(finalPos.left, finalPos.top);
                         icon.style.left = clampedPos.left + 'px';
                         icon.style.top = clampedPos.top + 'px';
                         if (typeof iconPositions !== 'undefined') {
                             iconPositions[gameId] = clampedPos;
                         }
                     } else {
-                        icon.style.left = targetLeft + 'px';
-                        icon.style.top = targetTop + 'px';
+                        icon.style.left = pos.left + 'px';
+                        icon.style.top = pos.top + 'px';
                         if (typeof iconPositions !== 'undefined') {
-                            iconPositions[gameId] = { left: targetLeft, top: targetTop };
+                            iconPositions[gameId] = pos;
                         }
                     }
                 }
