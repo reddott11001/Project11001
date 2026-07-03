@@ -916,6 +916,7 @@ function openApp(appId) {
         'doom2': { title: 'Doom 2: Hell Walker', icon: '🔫', width: 700, height: 520, render: renderDoom2 },
         'recycle': { title: 'Recycle Bin', icon: '🗑️', width: 600, height: 400, render: renderRecycleBin },
         'cmd': { title: 'Command Prompt', icon: '⌨️', width: 750, height: 450, render: renderTerminal },
+        'taskmgr': { title: 'Task Manager', icon: '📊', width: 700, height: 480, render: renderTaskManager },
     };
 
     const config = configs[appId];
@@ -1357,6 +1358,9 @@ function runExecute() {
         'mario': 'platformer',
         'doom': 'doom2',
         'doom2': 'doom2',
+        'taskmgr': 'taskmgr',
+        'task manager': 'taskmgr',
+        'taskman': 'taskmgr',
     };
     
     if (appMap[value]) {

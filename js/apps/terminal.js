@@ -14,7 +14,7 @@ const termCommands = {
     date: { desc: "Show current date and time", usage: "date" },
     time: { desc: "Show current time", usage: "time" },
     neofetch: { desc: "Display system info in style", usage: "neofetch" },
-    open: { desc: "Open an application", usage: "open <app>  (file-explorer, browser, notepad, tetris, fighter, cmd)" },
+    open: { desc: "Open an application", usage: "open <app>  (file-explorer, browser, notepad, calc, paint, cmd, taskmgr)" },
     shutdown: { desc: "Shut down the OS", usage: "shutdown" },
     restart: { desc: "Restart the OS", usage: "restart" },
     lock: { desc: "Lock the screen", usage: "lock" },
@@ -31,9 +31,9 @@ const termCommands = {
     tasklist: { desc: "Show running applications", usage: "tasklist" },
     notepad: { desc: "Shortcut to open Notepad", usage: "notepad" },
     explorer: { desc: "Shortcut to open File Explorer", usage: "explorer" },
+    taskmgr: { desc: "Open Task Manager", usage: "taskmgr" },
     ping: { desc: "Send network ping (simulated)", usage: "ping <hostname>" },
     matrix: { desc: "Matrix rain effect", usage: "matrix" },
-    calc: { desc: "Simple calculator", usage: "calc <expression>" },
     banner: { desc: "Display a colorful banner", usage: "banner <text>" },
     scan: { desc: "Scan system for virus/threat files (names only)", usage: "scan" },
     locate: { desc: "Deep scan to reveal virus file hiding locations", usage: "locate" },
@@ -188,6 +188,7 @@ function termProcessCommand(winId, cmd) {
         case 'tasklist': termTasklist(winId); break;
         case 'notepad': termPrint(winId, 'Opening Notepad...', st.color); openApp('notepad'); break;
         case 'explorer': termPrint(winId, 'Opening File Explorer...', st.color); openApp('file-explorer'); break;
+        case 'taskmgr': termPrint(winId, 'Opening Task Manager...', st.color); openApp('taskmgr'); break;
         case 'ping': termPing(winId, args); break;
         case 'matrix': termMatrix(winId); break;
         case 'banner': termBanner(winId, args); break;
@@ -229,7 +230,7 @@ function termHelp(winId, args) {
     const categories = {
         'System:': ['systeminfo', 'ver', 'whoami', 'hostname', 'date', 'time', 'neofetch'],
         'Files:': ['dir', 'ls', 'cd', 'pwd', 'type', 'mkdir', 'md'],
-        'Apps:': ['open', 'notepad', 'explorer', 'tasklist'],
+        'Apps:':      ['open', 'notepad', 'explorer', 'tasklist', 'taskmgr'],
         'OS:': ['shutdown', 'restart', 'lock', 'wallpaper'],
         'Terminal:': ['cls', 'clear', 'color', 'title', 'echo', 'help'],
         'Hack:': ['scan', 'locate', 'del', 'rm', 'kill', 'clean', 'system'],
@@ -388,8 +389,8 @@ function termOpen(winId, args) {
         return;
     }
     const appId = args[0].toLowerCase();
-    const valid = ['file-explorer', 'browser', 'notepad', 'calculator', 'paint', 'solitaire', 'tetris', 'fighter', 'cmd', 'recycle'];
-    const alias = { 'explorer': 'file-explorer', 'terminal': 'cmd', 'calc': 'calculator' };
+    const valid = ['file-explorer', 'browser', 'notepad', 'calculator', 'paint', 'solitaire', 'tetris', 'fighter', 'cmd', 'recycle', 'taskmgr'];
+    const alias = { 'explorer': 'file-explorer', 'terminal': 'cmd', 'calc': 'calculator', 'taskman': 'taskmgr' };
     const resolved = alias[appId] || appId;
 
     if (valid.includes(resolved)) {
