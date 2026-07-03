@@ -100,12 +100,11 @@ function restoreDownloadedIcons() {
         icon.addEventListener('mousedown', handleIconMouseDown);
         di.appendChild(icon);
         
-        // Position downloaded games after the built-in icons
-        const builtInCount = 6; // recycle, file-explorer, browser, fighter, notepad, tetris
-        const maxRows = getMaxRows();
-        const gameIndex = builtInCount + downloadedGames.indexOf(gameId);
-        const col = Math.floor(gameIndex / maxRows);
-        const row = gameIndex % maxRows;
+        // Position downloaded games after the built-in icons in single column
+        const builtInCount = 6; // recycle, file-explorer, notepad, browser, fighter, tetris
+        const gameIndex = downloadedGames.indexOf(gameId);
+        const col = 0;
+        const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
         const pos = getCellPosition(col, row);
         icon.style.left = pos.left + 'px';
         icon.style.top = pos.top + 'px';
@@ -260,8 +259,8 @@ function initIconPositions() {
     
     const maxRows = getMaxRows();
     
-    // Define the desired layout order (matching the screenshot)
-    const builtInApps = ['recycle', 'file-explorer', 'browser', 'fighter', 'notepad', 'tetris'];
+    // Define the desired layout order (single column)
+    const builtInApps = ['recycle', 'file-explorer', 'notepad', 'browser', 'fighter', 'tetris'];
     
     icons.forEach((icon, index) => {
         const appId = icon.getAttribute('data-app');
@@ -282,19 +281,19 @@ function initIconPositions() {
             // Check if it's a built-in app
             const builtInIndex = builtInApps.indexOf(appId);
             if (builtInIndex !== -1) {
-                // Position built-in apps according to the layout order
-                const col = Math.floor(builtInIndex / maxRows);
-                const row = builtInIndex % maxRows;
+                // Position built-in apps in single column (col 0)
+                const col = 0;
+                const row = builtInIndex;
                 const pos = getCellPosition(col, row);
                 const cell = findNearestEmptyCell(pos.left, pos.top, null);
                 finalPos = getCellPosition(cell.col, cell.row);
             } else {
-                // For downloaded games, position them after built-in apps
+                // For downloaded games, position them after built-in apps in same column
                 const builtInCount = builtInApps.length;
                 const gameIndex = downloadedGames.indexOf(appId);
-                const totalIndex = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
-                const col = Math.floor(totalIndex / maxRows);
-                const row = totalIndex % maxRows;
+                const totalRow = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+                const col = 0;
+                const row = totalRow;
                 const pos = getCellPosition(col, row);
                 const cell = findNearestEmptyCell(pos.left, pos.top, null);
                 finalPos = getCellPosition(cell.col, cell.row);
@@ -788,12 +787,11 @@ function restoreApp(appId) {
         targetLeft = iconPositions[appId].left;
         targetTop = iconPositions[appId].top;
     } else {
-        // Position after built-in icons (6 built-in apps)
+        // Position after built-in icons in single column (col 0)
         const builtInCount = 6;
-        const maxRows = getMaxRows();
-        const gameIndex = builtInCount + downloadedGames.indexOf(appId);
-        const col = Math.floor(gameIndex / maxRows);
-        const row = gameIndex % maxRows;
+        const gameIndex = downloadedGames.indexOf(appId);
+        const col = 0;
+        const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
         const pos = getCellPosition(col, row);
         targetLeft = pos.left;
         targetTop = pos.top;

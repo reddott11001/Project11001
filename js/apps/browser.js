@@ -1024,13 +1024,12 @@ function downloadGame(gameId) {
                     icon.style.left = '-1000px';
                     icon.style.top = '-1000px';
                     
-                    // Position after built-in icons (6 built-in apps)
+                    // Position after built-in icons in single column (col 0)
                     const builtInCount = 6;
-                    const maxRows = typeof getMaxRows !== 'undefined' ? getMaxRows() : 5;
-                    const gameIndex = builtInCount + (typeof downloadedGames !== 'undefined' ? downloadedGames.indexOf(gameId) : 0);
-                    const col = Math.floor(gameIndex / maxRows);
-                    const row = gameIndex % maxRows;
-                    const pos = typeof getCellPosition !== 'undefined' ? getCellPosition(col, row) : { left: 20 + col * 90, top: 10 + row * 100 };
+                    const gameIndex = typeof downloadedGames !== 'undefined' ? downloadedGames.indexOf(gameId) : 0;
+                    const col = 0;
+                    const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+                    const pos = typeof getCellPosition !== 'undefined' ? getCellPosition(col, row) : { left: 10, top: 10 + row * 100 };
                     
                     if (typeof findNearestEmptyCell !== 'undefined' && typeof getCellPosition !== 'undefined' && typeof clampToBounds !== 'undefined') {
                         const cell = findNearestEmptyCell(pos.left, pos.top, null);
