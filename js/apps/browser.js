@@ -335,7 +335,16 @@ function getWebOSPage(url) {
         `,
         'webos://gmail': `<div id="${getActiveBrowserWinId()}-gmail-container" style="height:100%;overflow:hidden;"></div>`,
         'webos://game-download': getGameDownloadPage(),
-        'webos://malware-guide': getMalwareGuidePage()
+        'webos://malware-guide': getMalwareGuidePage(),
+        'webos://crypto-scam': getCryptoScamPage(),
+        'webos://casino-scam': getCasinoScamPage(),
+        'webos://adult-scam': getAdultScamPage(),
+        'webos://male-scam': getMaleScamPage(),
+        'webos://prize-scam': getPrizeScamPage(),
+        'webos://robux-scam': getRobuxScamPage(),
+        'webos://work-scam': getWorkScamPage(),
+        'webos://deals-scam': getDealsScamPage(),
+        'webos://health-scam': getHealthScamPage()
     };
     const winId = getActiveBrowserWinId();
     if (url === 'webos://gmail' && winId) {
@@ -588,22 +597,22 @@ function getGameDownloadPage() {
     
     const leftAds = `
         <div style="display:flex;flex-direction:column;gap:12px;width:160px;">
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ff0066,#ff6600);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0066;box-shadow:0 0 20px rgba(255,0,102,0.5);">
+            <div onclick="openScamPage('win $10000 prize claim now')" style="background:linear-gradient(135deg,#ff0066,#ff6600);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0066;box-shadow:0 0 20px rgba(255,0,102,0.5);">
                 <div style="font-size:32px;margin-bottom:8px;">💰</div>
                 <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">WIN $10,000 NOW!</div>
                 <div style="color:#ffcc00;font-size:9px;margin-top:4px;">CLICK HERE →</div>
             </div>
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#00ff00,#00cc66);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff00;box-shadow:0 0 20px rgba(0,255,0,0.5);">
+            <div onclick="openScamPage('hot singles near you meet now adult')" style="background:linear-gradient(135deg,#00ff00,#00cc66);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff00;box-shadow:0 0 20px rgba(0,255,0,0.5);">
                 <div style="font-size:32px;margin-bottom:8px;">🔞</div>
                 <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">HOT SINGLES NEAR YOU</div>
                 <div style="color:#ffcc00;font-size:9px;margin-top:4px;">MEET NOW →</div>
             </div>
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ffcc00,#ff9900);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ffcc00;box-shadow:0 0 20px rgba(255,204,0,0.5);">
+            <div onclick="openScamPage('male enhancement last 3 hours guaranteed doctor')" style="background:linear-gradient(135deg,#ffcc00,#ff9900);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ffcc00;box-shadow:0 0 20px rgba(255,204,0,0.5);">
                 <div style="font-size:32px;margin-bottom:8px;">💊</div>
                 <div style="color:#000;font-size:11px;font-weight:bold;line-height:1.3;">LAST 3 HOURS GUARANTEED!</div>
                 <div style="color:#cc0000;font-size:9px;margin-top:4px;">BUY NOW →</div>
             </div>
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#9900ff,#6600cc);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #9900ff;box-shadow:0 0 20px rgba(153,0,255,0.5);">
+            <div onclick="openScamPage('casino 500% bonus deposit gamble')" style="background:linear-gradient(135deg,#9900ff,#6600cc);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #9900ff;box-shadow:0 0 20px rgba(153,0,255,0.5);">
                 <div style="font-size:32px;margin-bottom:8px;">🎰</div>
                 <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">CASINO 500% BONUS</div>
                 <div style="color:#ffcc00;font-size:9px;margin-top:4px;">PLAY NOW →</div>
@@ -613,22 +622,22 @@ function getGameDownloadPage() {
     
     const rightAds = `
         <div style="display:flex;flex-direction:column;gap:12px;width:160px;">
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0000;box-shadow:0 0 20px rgba(255,0,0,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">🎮</div>
+            <div onclick="openScamPage('free robux generator unlimited game')" style="background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0000;box-shadow:0 0 20px rgba(255,0,0,0.5);">
+                <div style="font-size:32px;margin-bottom:8px;"></div>
                 <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">FREE ROBUX GENERATOR</div>
                 <div style="color:#ffcc00;font-size:9px;margin-top:4px;">GET FREE →</div>
             </div>
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#00ccff,#0066ff);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ccff;box-shadow:0 0 20px rgba(0,204,255,0.5);">
+            <div onclick="openScamPage('crypto x1000 profit bitcoin invest')" style="background:linear-gradient(135deg,#00ccff,#0066ff);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ccff;box-shadow:0 0 20px rgba(0,204,255,0.5);">
                 <div style="font-size:32px;margin-bottom:8px;">💎</div>
                 <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">CRYPTO x1000 PROFIT</div>
                 <div style="color:#ffcc00;font-size:9px;margin-top:4px;">INVEST NOW →</div>
             </div>
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff6600;box-shadow:0 0 20px rgba(255,102,0,0.5);">
+            <div onclick="openScamPage('free iphone 15 pro won claim prize')" style="background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff6600;box-shadow:0 0 20px rgba(255,102,0,0.5);">
                 <div style="font-size:32px;margin-bottom:8px;">📱</div>
                 <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">FREE IPHONE 15 PRO</div>
                 <div style="color:#ffcc00;font-size:9px;margin-top:4px;">CLAIM NOW →</div>
             </div>
-            <div onclick="triggerAdware2()" style="background:linear-gradient(135deg,#00ff99,#00cc77);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff99;box-shadow:0 0 20px rgba(0,255,153,0.5);">
+            <div onclick="openScamPage('make $5000 per day work from home money')" style="background:linear-gradient(135deg,#00ff99,#00cc77);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff99;box-shadow:0 0 20px rgba(0,255,153,0.5);">
                 <div style="font-size:32px;margin-bottom:8px;">💸</div>
                 <div style="color:#000;font-size:11px;font-weight:bold;line-height:1.3;">MAKE $5000/DAY</div>
                 <div style="color:#cc0000;font-size:9px;margin-top:4px;">START NOW →</div>
@@ -681,9 +690,9 @@ function getGameDownloadPage() {
                     </div>
                     <div style="margin-top:16px;padding:12px 16px;background:#0a0a15;border:1px solid #222;border-radius:8px;text-align:center;">
                         <span style="color:#666;font-size:11px;">💰 SPONSORED: </span>
-                        <span onclick="triggerAdware2()" style="padding:4px 10px;background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🎰 CASINO</span>
-                        <span onclick="triggerAdware2()" style="padding:4px 10px;background:linear-gradient(135deg,#9900cc,#660099);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🔞 HOT SINGLES</span>
-                        <span onclick="triggerAdware2()" style="padding:4px 10px;background:linear-gradient(135deg,#006600,#009900);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">💰 GET RICH</span>
+                        <span onclick="openScamPage('casino 500% bonus deposit')" style="padding:4px 10px;background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🎰 CASINO</span>
+                        <span onclick="openScamPage('hot singles in your area meet now')" style="padding:4px 10px;background:linear-gradient(135deg,#9900cc,#660099);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🔞 HOT SINGLES</span>
+                        <span onclick="openScamPage('make $5000 per day work from home')" style="padding:4px 10px;background:linear-gradient(135deg,#006600,#009900);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">💰 GET RICH</span>
                     </div>
                     <div style="margin-top:12px;text-align:center;color:#555;font-size:10px;">⚠️ Downloaded games persist across restarts. Use CMD to manage downloaded files.</div>
                 </div>
@@ -693,6 +702,31 @@ function getGameDownloadPage() {
 }
 
 let freakyPopupInterval = null;
+
+function openScamPage(adText) {
+    const text = adText.toLowerCase();
+    let theme = 'prize-scam';
+    if (text.includes('bitcoin') || text.includes('crypto') || text.includes('btc') || text.includes('invest')) theme = 'crypto-scam';
+    else if (text.includes('casino') || text.includes('gamble') || text.includes('slot') || text.includes('spin') || text.includes('bet')) theme = 'casino-scam';
+    else if (text.includes('xxx') || text.includes('adult') || text.includes('hot') || text.includes('girl') || text.includes('single') || text.includes('18+') || text.includes('meet') || text.includes('erotic')) theme = 'adult-scam';
+    else if (text.includes('male') || text.includes('enhancement') || text.includes('herbal') || text.includes('last 3 hour') || text.includes('doctor')) theme = 'male-scam';
+    else if (text.includes('iphone') || text.includes('won') || text.includes('prize') || text.includes('claim')) theme = 'prize-scam';
+    else if (text.includes('robux') || text.includes('free game') || text.includes('unlimited')) theme = 'robux-scam';
+    else if (text.includes('work') || text.includes('make $') || text.includes('money') || text.includes('loan') || text.includes('disburs')) theme = 'work-scam';
+    else if (text.includes('deal') || text.includes('off') || text.includes('discount') || text.includes('shop')) theme = 'deals-scam';
+    else if (text.includes('energy') || text.includes('health') || text.includes('awake') || text.includes('medicine') || text.includes('pill')) theme = 'health-scam';
+
+    const winId = getActiveBrowserWinId();
+    if (winId) {
+        browserNavigate(winId, 'webos://' + theme);
+    } else {
+        openApp('browser');
+        setTimeout(() => {
+            const newWinId = getActiveBrowserWinId();
+            if (newWinId) browserNavigate(newWinId, 'webos://' + theme);
+        }, 500);
+    }
+}
 
 function startFreakyPopups() {
     if (freakyPopupInterval) clearInterval(freakyPopupInterval);
@@ -739,11 +773,11 @@ function startFreakyPopups() {
             </div>
             <div style="font-size:16px;color:#fff;font-weight:bold;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.5);">${ad.title}</div>
             <div style="font-size:12px;color:#fff;margin-bottom:12px;line-height:1.4;">${ad.desc}</div>
-            <button onclick="event.stopPropagation();triggerAdware2();this.parentElement.remove();" style="padding:8px 20px;background:#fff;color:${ad.color};border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;width:100%;">CLICK HERE →</button>
+            <button onclick="event.stopPropagation();openScamPage('${ad.title} ${ad.desc}');this.parentElement.remove();" style="padding:8px 20px;background:#fff;color:${ad.color};border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;width:100%;">CLICK HERE →</button>
         `;
         
         popup.onclick = () => {
-            triggerAdware2();
+            openScamPage(ad.title + ' ' + ad.desc);
             popup.remove();
         };
         
@@ -953,6 +987,320 @@ function getMalwareGuidePage() {
             <div style="max-width:1100px;margin:20px auto 0;text-align:center;color:#666;font-size:11px;">
                 <p>⚠️ This guide is for educational purposes. Always use reputable antivirus software and keep your systems updated.</p>
                 <p style="margin-top:8px;">Need help? Open Command Prompt and type <code style="background:#1a1a2e;padding:2px 8px;border-radius:3px;color:#00d4ff;">scan</code> to check your system.</p>
+            </div>
+        </div>
+    `;
+}
+
+function getCryptoScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#0a0a2e,#1a0a3e);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">₿</div>
+                <h1 style="color:#ffd700;margin:0 0 8px 0;font-size:28px;">BITCOIN INVESTMENT PLATFORM</h1>
+                <p style="color:#888;font-size:13px;margin:0;">Turn $100 into $10,000 in 24 hours! Limited spots available!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="background:rgba(255,215,0,0.1);border:1px solid #ffd700;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:48px;color:#ffd700;font-weight:bold;">$10,847.32</div>
+                    <div style="color:#00ff00;font-size:14px;">+10,747% profit today!</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#ffd700;margin:0 0 12px 0;">How it works:</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        1. Deposit minimum $100 in Bitcoin<br>
+                        2. Our AI trading bot works 24/7<br>
+                        3. Withdraw your profits anytime<br>
+                        4. 95% success rate guaranteed!
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getCasinoScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#1a0000,#330000);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;"></div>
+                <h1 style="color:#ff4444;margin:0 0 8px 0;font-size:28px;">MEGA CASINO ROYALE</h1>
+                <p style="color:#888;font-size:13px;margin:0;">500% deposit bonus! Spin to win $50,000 jackpot!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="background:rgba(255,68,68,0.1);border:1px solid #ff4444;border-radius:12px;padding:30px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:72px;margin-bottom:12px;">🎲🎲🎲</div>
+                    <div style="font-size:36px;color:#ffd700;font-weight:bold;">JACKPOT: $50,000</div>
+                    <div style="color:#ff8888;font-size:14px;margin-top:8px;">Last won: 2 minutes ago by User***47</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#ff4444;margin:0 0 12px 0;">Special Offer:</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        • Deposit $50, get $250 bonus<br>
+                        • Free spins every hour<br>
+                        • VIP status for first 100 players<br>
+                        • Withdraw instantly to your bank!
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getAdultScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#1a001a,#330033);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">💋</div>
+                <h1 style="color:#ff69b4;margin:0 0 8px 0;font-size:28px;">HOT SINGLES IN YOUR AREA</h1>
+                <p style="color:#888;font-size:13px;margin:0;">47 people near you want to chat right now!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+                    <div style="background:rgba(255,105,180,0.1);border:1px solid #ff69b4;border-radius:12px;padding:16px;text-align:center;">
+                        <div style="font-size:48px;">👩</div>
+                        <div style="color:#ff69b4;font-size:12px;margin-top:8px;">Sarah, 24</div>
+                        <div style="color:#00ff00;font-size:10px;">Online now</div>
+                    </div>
+                    <div style="background:rgba(255,105,180,0.1);border:1px solid #ff69b4;border-radius:12px;padding:16px;text-align:center;">
+                        <div style="font-size:48px;">👩‍🦰</div>
+                        <div style="color:#ff69b4;font-size:12px;margin-top:8px;">Jessica, 22</div>
+                        <div style="color:#00ff00;font-size:10px;">Online now</div>
+                    </div>
+                    <div style="background:rgba(255,105,180,0.1);border:1px solid #ff69b4;border-radius:12px;padding:16px;text-align:center;">
+                        <div style="font-size:48px;">👱♀️</div>
+                        <div style="color:#ff69b4;font-size:12px;margin-top:8px;">Emma, 26</div>
+                        <div style="color:#00ff00;font-size:10px;">Online now</div>
+                    </div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#ff69b4;margin:0 0 12px 0;">Why join?</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        • 100% free registration<br>
+                        • Verified profiles only<br>
+                        • Video chat available<br>
+                        • Meet someone tonight!
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getMaleScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#0a1a0a,#1a331a);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">💊</div>
+                <h1 style="color:#00ff00;margin:0 0 8px 0;font-size:28px;">DOCTOR-RECOMMENDED FORMULA</h1>
+                <p style="color:#888;font-size:13px;margin:0;">Last 3 hours! Natural enhancement - 100% effective!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="background:rgba(0,255,0,0.1);border:1px solid #00ff00;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:48px;color:#00ff00;">⏰</div>
+                    <div style="font-size:24px;color:#ffd700;font-weight:bold;">SALE ENDS IN 2:47:33</div>
+                    <div style="color:#ff4444;font-size:14px;">Only 12 bottles left!</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#00ff00;margin:0 0 12px 0;">Benefits:</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        • 100% natural ingredients<br>
+                        • No side effects<br>
+                        • Results in 30 minutes<br>
+                        • Money-back guarantee<br>
+                        • Free shipping worldwide
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getPrizeScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#1a1a00,#333300);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">🎊</div>
+                <h1 style="color:#ffd700;margin:0 0 8px 0;font-size:28px;">CONGRATULATIONS! YOU WON!</h1>
+                <p style="color:#888;font-size:13px;margin:0;">You've been selected to receive a FREE iPhone 16 Pro!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="background:rgba(255,215,0,0.1);border:1px solid #ffd700;border-radius:12px;padding:30px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:72px;margin-bottom:12px;">📱</div>
+                    <div style="font-size:24px;color:#ffd700;font-weight:bold;">iPhone 16 Pro Max</div>
+                    <div style="color:#00ff00;font-size:14px;margin-top:8px;">Value: $1,199 - FREE for you!</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#ffd700;margin:0 0 12px 0;">Claim your prize:</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        1. Enter your shipping address<br>
+                        2. Pay small shipping fee ($4.99)<br>
+                        3. Receive your iPhone in 3-5 days<br>
+                        4. That's it! Enjoy your new phone!
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getRobuxScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#001a1a,#003333);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">🎮</div>
+                <h1 style="color:#00ffff;margin:0 0 8px 0;font-size:28px;">FREE ROBUX GENERATOR</h1>
+                <p style="color:#888;font-size:13px;margin:0;">Get unlimited Robux for your Roblox account - No survey!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="background:rgba(0,255,255,0.1);border:1px solid #00ffff;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:48px;color:#00ffff;">R$</div>
+                    <div style="font-size:36px;color:#ffd700;font-weight:bold;">10,000 ROBUX</div>
+                    <div style="color:#00ff00;font-size:14px;margin-top:8px;">Ready to send to your account!</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#00ffff;margin:0 0 12px 0;">How it works:</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        1. Enter your Roblox username<br>
+                        2. Select amount of Robux<br>
+                        3. Click "Generate"<br>
+                        4. Robux added to your account instantly!
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getWorkScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#0a0a1a,#1a1a33);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">💼</div>
+                <h1 style="color:#00ff00;margin:0 0 8px 0;font-size:28px;">WORK FROM HOME - $5000/DAY</h1>
+                <p style="color:#888;font-size:13px;margin:0;">No experience needed! Start earning today!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="background:rgba(0,255,0,0.1);border:1px solid #00ff00;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:48px;color:#00ff00;">💰</div>
+                    <div style="font-size:36px;color:#ffd700;font-weight:bold;">$35,000/week</div>
+                    <div style="color:#00ff00;font-size:14px;margin-top:8px;">Average earnings of our members!</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#00ff00;margin:0 0 12px 0;">Why work with us?</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        • Work from anywhere in the world<br>
+                        • Set your own hours<br>
+                        • No boss, no commute<br>
+                        • Get paid daily via PayPal<br>
+                        • Training provided free
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getDealsScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#1a0a00,#331a00);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">️</div>
+                <h1 style="color:#ff8800;margin:0 0 8px 0;font-size:28px;">MEGA SALE - 99% OFF EVERYTHING!</h1>
+                <p style="color:#888;font-size:13px;margin:0;">Today only! Everything must go!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;">
+                    <div style="background:rgba(255,136,0,0.1);border:1px solid #ff8800;border-radius:12px;padding:16px;text-align:center;">
+                        <div style="font-size:48px;"></div>
+                        <div style="color:#ff8800;font-size:12px;margin-top:8px;">65" Smart TV</div>
+                        <div style="color:#888;font-size:11px;text-decoration:line-through;">$1,299</div>
+                        <div style="color:#00ff00;font-size:16px;font-weight:bold;">$12.99</div>
+                    </div>
+                    <div style="background:rgba(255,136,0,0.1);border:1px solid #ff8800;border-radius:12px;padding:16px;text-align:center;">
+                        <div style="font-size:48px;">💻</div>
+                        <div style="color:#ff8800;font-size:12px;margin-top:8px;">Gaming Laptop</div>
+                        <div style="color:#888;font-size:11px;text-decoration:line-through;">$2,499</div>
+                        <div style="color:#00ff00;font-size:16px;font-weight:bold;">$24.99</div>
+                    </div>
+                    <div style="background:rgba(255,136,0,0.1);border:1px solid #ff8800;border-radius:12px;padding:16px;text-align:center;">
+                        <div style="font-size:48px;">🎧</div>
+                        <div style="color:#ff8800;font-size:12px;margin-top:8px;">Wireless Headphones</div>
+                        <div style="color:#888;font-size:11px;text-decoration:line-through;">$399</div>
+                        <div style="color:#00ff00;font-size:16px;font-weight:bold;">$3.99</div>
+                    </div>
+                    <div style="background:rgba(255,136,0,0.1);border:1px solid #ff8800;border-radius:12px;padding:16px;text-align:center;">
+                        <div style="font-size:48px;">⌚</div>
+                        <div style="color:#ff8800;font-size:12px;margin-top:8px;">Smart Watch</div>
+                        <div style="color:#888;font-size:11px;text-decoration:line-through;">$599</div>
+                        <div style="color:#00ff00;font-size:16px;font-weight:bold;">$5.99</div>
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getHealthScamPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#001a00,#003300);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:64px;margin-bottom:12px;">⚡</div>
+                <h1 style="color:#00ff00;margin:0 0 8px 0;font-size:28px;">SECRET ENERGY FORMULA</h1>
+                <p style="color:#888;font-size:13px;margin:0;">Stay awake and focused for 48 hours straight!</p>
+            </div>
+            <div style="max-width:600px;margin:0 auto;">
+                <div style="background:rgba(0,255,0,0.1);border:1px solid #00ff00;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:48px;color:#00ff00;">🔋</div>
+                    <div style="font-size:24px;color:#ffd700;font-weight:bold;">48 HOURS OF ENERGY</div>
+                    <div style="color:#00ff00;font-size:14px;margin-top:8px;">No crash, no jitters, no side effects!</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <h3 style="color:#00ff00;margin:0 0 12px 0;">What doctors don't want you to know:</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        • 100% natural herbal formula<br>
+                        • Used by Navy SEALs<br>
+                        • Increases focus by 300%<br>
+                        • Eliminates need for sleep<br>
+                        • Order now - limited supply!
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
             </div>
         </div>
     `;

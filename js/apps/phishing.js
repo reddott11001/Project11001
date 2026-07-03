@@ -1,4 +1,4 @@
-let gmailState = {};
+﻿let gmailState = {};
 
 const mailTemplates = [
     { from: 'security@webos-defender.com', subject: '⚠️ Security Warning: Your Account Has Been Hacked!', preview: 'Click this link to secure your account within 24 hours or your account will be deleted.', type: 'phishing', malware: 'trojan', detail: 'webos://free-download' },
@@ -88,7 +88,7 @@ function triggerPhishingMalware(winId, type) {
 
 function addVirusFiles(files) {
     files.forEach(vf => {
-        if (!webosVirusFiles.find(v => v.name === vf.name && v.path.join('\\') === vf.path.join('\\'))) {
+        if (!webosVirusFiles.find(v => v.name === vf.name && v.path.join('$ad') === vf.path.join('$ad'))) {
             webosVirusFiles.push(vf);
         }
         const folder = navigateToPath(vf.path);
@@ -103,7 +103,7 @@ function showVirusPopups(files, label, color, icon, count) {
             const popup = document.createElement('div');
             popup.className = 'virus-popup';
             popup.style.cssText = `position:fixed;top:${Math.random() * 60 + 10}%;left:${Math.random() * 60 + 10}%;background:#1a0000;border:3px solid ${color};border-radius:8px;padding:16px 24px;z-index:99999;box-shadow:0 0 30px ${color}80;animation:popupShake 0.1s infinite;max-width:320px;`;
-            popup.innerHTML = `<div style="font-size:20px;margin-bottom:8px;color:${color};font-weight:bold;display:flex;align-items:center;gap:8px;"><span>${icon}</span><span>${label} DETECTED</span></div><div style="color:${color}aa;font-size:12px;margin-bottom:6px;text-align:left;">⚠️ File: ${files[i % files.length].name}<br>⚠️ Path: ${files[i % files.length].path.join('\\\\')}<br>⚠️ Threat: Critical!</div><button onclick="this.parentElement.remove()" style="padding:6px 16px;background:${color};color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ Ignore</button>`;
+            popup.innerHTML = `<div style="font-size:20px;margin-bottom:8px;color:${color};font-weight:bold;display:flex;align-items:center;gap:8px;"><span>${icon}</span><span>${label} DETECTED</span></div><div style="color:${color}aa;font-size:12px;margin-bottom:6px;text-align:left;">⚠️ File: ${files[i % files.length].name}<br>⚠️ Path: ${files[i % files.length].path.join('$ad$ad')}<br>⚠️ Threat: Critical!</div><button onclick="this.parentElement.remove()" style="padding:6px 16px;background:${color};color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ Ignore</button>`;
             document.body.appendChild(popup);
             setTimeout(() => { if (popup.parentNode) popup.remove(); }, 6000 + i * 500);
         }, i * 400);
@@ -113,9 +113,9 @@ function showVirusPopups(files, label, color, icon, count) {
 function triggerPhishingTrojan() {
     webosInfected = true;
     const files = [
-        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'svchost.exe', type: 'file', ext: 'exe', content: '[TROJAN] Win32/Spyware.Gen - Remote Access Trojan\nConnected to: 185.234.xx.xx:4444' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'svchost.exe', type: 'file', ext: 'exe', content: '[TROJAN] Win32/Spyware.Gen - Remote Access Trojan$adnConnected to: 185.234.xx.xx:4444' },
         { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'winlogon.dll', type: 'file', ext: 'dll', content: '[TROJAN] Trojan.Downloader - Downloads additional malware' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'LocalLow', 'Sun', 'Java', 'tmp'], name: 'keylogger.sys', type: 'file', ext: 'sys', content: '[TROJAN] Keylogger - Captures keystrokes\nData sent to: 45.67.xxx.xxx' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'LocalLow', 'Sun', 'Java', 'tmp'], name: 'keylogger.sys', type: 'file', ext: 'sys', content: '[TROJAN] Keylogger - Captures keystrokes$adnData sent to: 45.67.xxx.xxx' },
         { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'Microsoft.Updater.dll', type: 'file', ext: 'dll', content: '[TROJAN] Fake Windows Update - Backdoor access' },
         { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu'], name: 'free_hack.exe', type: 'file', ext: 'exe', content: '[TROJAN] Trojan Horse - Original infection vector' },
     ];
@@ -192,7 +192,7 @@ function triggerPhishingWorm() {
                 <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#bb66ff;font-size:12px;">✕</span>
             </div>
             <div style="font-size:11px;color:#e0b0ff;margin:4px 0;">${ad}</div>
-            <button onclick="this.closest('.worm-ad-popup').remove();addNotification('🔁 WORM: Ad clicked','Worm infecting other users!')" style="padding:4px 12px;background:#bb66ff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:10px;width:100%;">☠️ OPEN</button>
+            <button onclick="this.closest('.worm-ad-popup').remove();openScamPage('$ad')" style="padding:4px 12px;background:#bb66ff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:10px;width:100%;">☠️ OPEN</button>
         `;
         document.body.appendChild(popup);
         setTimeout(() => { if (popup.parentNode) popup.remove(); }, 6000);
@@ -263,7 +263,7 @@ function triggerPhishingAdware() {
                 <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#999;font-size:14px;">✕</span>
             </div>
             <div style="font-size:12px;color:#333;margin:6px 0;">${ad}</div>
-            <button onclick="this.closest('.adware-popup').remove();addNotification('📢 ADWARE: Ad clicked','User clicked a malicious ad!')" style="padding:4px 12px;background:#ffaa00;border:none;border-radius:4px;cursor:pointer;font-size:11px;width:100%;">Click here!</button>
+            <button onclick="this.closest('.adware-popup').remove();openScamPage('$ad')" style="padding:4px 12px;background:#ffaa00;border:none;border-radius:4px;cursor:pointer;font-size:11px;width:100%;">Click here!</button>
         `;
         document.body.appendChild(popup);
         aCount++;
@@ -320,7 +320,7 @@ function triggerAdware2() {
             </div>
             <div style="font-size:16px;color:#ffcc00;margin:12px 0;line-height:1.4;">${bigAds[ad2Count % bigAds.length]}</div>
             <div style="font-size:11px;color:#ff880088;margin:8px 0;">sponsored by ad2.network</div>
-            <button onclick="this.closest('.adware2-popup').remove();addNotification('💥 ADWARE 2.0: Ad clicked','User clicked a center popup ad!')" style="padding:10px 32px;background:linear-gradient(to right,#ff6600,#ff3300);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold;margin-top:8px;">🔗 CLAIM NOW</button>
+            <button onclick="this.closest('.adware2-popup').remove();openScamPage('$bigAds[$ad2Count % $bigAds.length]')" style="padding:10px 32px;background:linear-gradient(to right,#ff6600,#ff3300);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold;margin-top:8px;">🔗 CLAIM NOW</button>
             <div style="color:#666;font-size:10px;margin-top:10px;">Ad 2.0 v${ad2Count} | Close this popup to dismiss</div>
         `;
         document.body.appendChild(popup);
