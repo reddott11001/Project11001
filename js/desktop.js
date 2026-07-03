@@ -257,8 +257,6 @@ function initIconPositions() {
     const container = document.getElementById('desktop-icons');
     if (!container) return;
     
-    const maxRows = getMaxRows();
-    
     // Define the desired layout order (single column)
     const builtInApps = ['recycle', 'file-explorer', 'notepad', 'browser', 'fighter', 'tetris'];
     
@@ -266,38 +264,27 @@ function initIconPositions() {
         const appId = icon.getAttribute('data-app');
         
         // Temporarily move icon off-screen so it's not counted in occupied cells
-        const origLeft = icon.style.left;
-        const origTop = icon.style.top;
         icon.style.left = '-1000px';
         icon.style.top = '-1000px';
         
         let finalPos;
-        if (iconPositions[appId]) {
-            const clamped = clampToBounds(iconPositions[appId].left, iconPositions[appId].top);
-            const cell = findNearestEmptyCell(clamped.left, clamped.top, null);
-            const pos = getCellPosition(cell.col, cell.row);
-            finalPos = clampToBounds(pos.left, pos.top);
+        // Always use the correct layout order, ignore saved positions
+        const builtInIndex = builtInApps.indexOf(appId);
+        if (builtInIndex !== -1) {
+            // Position built-in apps in single column (col 0)
+            const col = 0;
+            const row = builtInIndex;
+            const pos = getCellPosition(col, row);
+            finalPos = { left: pos.left, top: pos.top };
         } else {
-            // Check if it's a built-in app
-            const builtInIndex = builtInApps.indexOf(appId);
-            if (builtInIndex !== -1) {
-                // Position built-in apps in single column (col 0)
-                const col = 0;
-                const row = builtInIndex;
-                const pos = getCellPosition(col, row);
-                const cell = findNearestEmptyCell(pos.left, pos.top, null);
-                finalPos = getCellPosition(cell.col, cell.row);
-            } else {
-                // For downloaded games, position them after built-in apps in same column
-                const builtInCount = builtInApps.length;
-                const gameIndex = downloadedGames.indexOf(appId);
-                const totalRow = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
-                const col = 0;
-                const row = totalRow;
-                const pos = getCellPosition(col, row);
-                const cell = findNearestEmptyCell(pos.left, pos.top, null);
-                finalPos = getCellPosition(cell.col, cell.row);
-            }
+            // For downloaded games, position them after built-in apps in same column
+            const builtInCount = builtInApps.length;
+            const gameIndex = downloadedGames.indexOf(appId);
+            const totalRow = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+            const col = 0;
+            const row = totalRow;
+            const pos = getCellPosition(col, row);
+            finalPos = { left: pos.left, top: pos.top };
         }
         
         icon.style.left = finalPos.left + 'px';
@@ -780,25 +767,12 @@ function restoreApp(appId) {
     icon.style.left = '-1000px';
     icon.style.top = '-1000px';
     
-    let targetLeft = 20;
-    let targetTop = 20;
-    
-    if (iconPositions[appId]) {
-        targetLeft = iconPositions[appId].left;
-        targetTop = iconPositions[appId].top;
-    } else {
-        // Position after built-in icons in single column (col 0)
-        const builtInCount = 6;
-        const gameIndex = downloadedGames.indexOf(appId);
-        const col = 0;
-        const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
-        const pos = getCellPosition(col, row);
-        targetLeft = pos.left;
-        targetTop = pos.top;
-    }
-    
-    const cell = findNearestEmptyCell(targetLeft, targetTop, null);
-    const pos = getCellPosition(cell.col, cell.row);
+    // Always position in single column after built-in icons
+    const builtInCount = 6;
+    const gameIndex = downloadedGames.indexOf(appId);
+    const col = 0;
+    const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+    const pos = getCellPosition(col, row);
     const clampedPos = clampToBounds(pos.left, pos.top);
     
     icon.style.left = clampedPos.left + 'px';
