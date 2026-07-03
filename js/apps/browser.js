@@ -985,6 +985,31 @@ function getMalwareGuidePage() {
                     </div>
                 </div>
 
+                <div style="background:linear-gradient(135deg,#1a1a00,#333300);border-radius:12px;padding:20px;border:1px solid #ff9900;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">⛏️</span>
+                        <h3 style="color:#ff9900;margin:0;font-size:18px;">Bitcoin Miner (Cryptojacker)</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>What it does:</strong> Hijacks your system resources to mine cryptocurrency without your consent. Runs silently in the background, consuming CPU power for the attacker's profit.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Signs of infection:</strong> System becomes very slow and laggy, high CPU usage (60-90%) even when idle, fan running constantly, higher electricity bill. Can be triggered by visiting scam websites.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Prevention:</strong><br>
+                        • Never click suspicious ads or pop-ups<br>
+                        • Avoid visiting untrusted websites<br>
+                        • Use antivirus with real-time protection<br>
+                        <br>
+                        <strong style="color:#00ff00;">Removal:</strong><br>
+                        • Open Task Manager (Ctrl+Shift+Esc or <code style="background:#000;padding:2px 6px;border-radius:3px;">taskmgr</code>)<br>
+                        • Select Bitcoin Miner process and click "End Task"<br>
+                        • Or use CMD: <code style="background:#000;padding:2px 6px;border-radius:3px;">kill bitcoin</code> to terminate<br>
+                        • Run <code style="background:#000;padding:2px 6px;border-radius:3px;">clean</code> after removal to restore system
+                    </div>
+                </div>
+
                 <div style="background:linear-gradient(135deg,#1a0000,#4d0000);border-radius:12px;padding:20px;border:1px solid #ff0000;">
                     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
                         <span style="font-size:32px;">🔒</span>
