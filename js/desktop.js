@@ -101,7 +101,7 @@ function restoreDownloadedIcons() {
         di.appendChild(icon);
         
         // Position downloaded games after the built-in icons in single column
-        const builtInCount = 6; // recycle, file-explorer, notepad, browser, fighter, tetris
+        const builtInCount = 7; // recycle, file-explorer, notepad, browser, fighter, tetris, readme
         const gameIndex = downloadedGames.indexOf(gameId);
         const col = 0;
         const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
@@ -258,7 +258,7 @@ function initIconPositions() {
     if (!container) return;
     
     // Define the desired layout order (single column)
-    const builtInApps = ['recycle', 'file-explorer', 'notepad', 'browser', 'fighter', 'tetris'];
+    const builtInApps = ['recycle', 'file-explorer', 'notepad', 'browser', 'fighter', 'tetris', 'readme'];
     
     icons.forEach((icon, index) => {
         const appId = icon.getAttribute('data-app');
@@ -967,6 +967,28 @@ function openApp(appId) {
     addTaskbarButton(winId);
     focusWindow(winId);
     setupWindowDrag(win);
+}
+
+function openReadme() {
+    openApp('notepad');
+    setTimeout(() => {
+        const notepadWin = Object.values(activeWindows).find(w => w.appId === 'notepad' && !w.closed);
+        if (notepadWin) {
+            const textarea = document.querySelector(`#${notepadWin.id}-body .notepad-textarea`);
+            if (textarea) {
+                const content = (navigateToPath(['C:', 'Users', 'User', 'Desktop']).children['README.txt'] || {}).content || 'File not found.';
+                textarea.value = content;
+                const statusbar = document.querySelector(`#${notepadWin.id}-body .notepad-statusbar`);
+                if (statusbar) {
+                    const lines = textarea.value.split('\n').length;
+                    const chars = textarea.value.length;
+                    statusbar.innerHTML = `<span>Ln 1, Col 1</span><span>${lines} lines, ${chars} chars</span>`;
+                }
+            }
+            const titleText = document.querySelector(`#${notepadWin.id} .window-titlebar-text`);
+            if (titleText) titleText.textContent = 'README.txt - Notepad';
+        }
+    }, 100);
 }
 
 function setupWindowDrag(win) {

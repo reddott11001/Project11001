@@ -11,6 +11,7 @@ const fileSystem = {
                             'Desktop': {
                                 type: 'folder',
                                 children: {
+                                    'README.txt': { type: 'file', ext: 'txt', content: 'Hello User! This is a internet IT Simulator sandbox! You can test and learn how to avoid online malware from spreading to your PC!\n\nHave Fun!\n\nBy: Reddott11001' },
                                     'welcome.txt': { type: 'file', ext: 'txt', content: 'Welcome to WebOS 10!\n\nThis is your desktop. Double-click icons to open applications.\n\nEnjoy your experience!' },
                                     'notes.txt': { type: 'file', ext: 'txt', content: 'My Notes\n--------\n- Try the BlockStack game\n- Play Street Brawl\n- Browse the web' }
                                 }
