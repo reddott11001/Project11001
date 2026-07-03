@@ -192,7 +192,14 @@ function browserNavigate(winId, rawUrl) {
         const urlBar = document.getElementById(winId + '-url-bar');
         if (urlBar) urlBar.value = url;
         const content = document.getElementById(winId + '-browser-content');
-        if (content) content.innerHTML = getNoInternetPage(winId);
+        if (content) {
+            content.innerHTML = getNoInternetPage(winId);
+            setTimeout(() => {
+                if (typeof renderDinoGame === 'function') {
+                    renderDinoGame(winId);
+                }
+            }, 100);
+        }
         return;
     }
     
@@ -342,7 +349,14 @@ function browserSearch(winId, query) {
     
     if (typeof wifiConnected !== 'undefined' && !wifiConnected) {
         const content = document.getElementById(winId + '-browser-content');
-        if (content) content.innerHTML = getNoInternetPage(winId);
+        if (content) {
+            content.innerHTML = getNoInternetPage(winId);
+            setTimeout(() => {
+                if (typeof renderDinoGame === 'function') {
+                    renderDinoGame(winId);
+                }
+            }, 100);
+        }
         return;
     }
     

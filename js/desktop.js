@@ -1541,6 +1541,12 @@ function updateBrowserForWifiState() {
     
     if (!wifiConnected) {
         content.innerHTML = getNoInternetPage(winId);
+        // Start dino game after DOM is ready
+        setTimeout(() => {
+            if (typeof renderDinoGame === 'function') {
+                renderDinoGame(winId);
+            }
+        }, 100);
     } else if (tab.url === 'home') {
         content.innerHTML = getBrowserHomePage(winId);
     } else if (tab.url.startsWith('webos://')) {
@@ -1550,20 +1556,14 @@ function updateBrowserForWifiState() {
 
 function getNoInternetPage(winId) {
     return `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #1a1a2e; color: #fff; text-align: center; padding: 40px;">
-            <div style="font-size: 80px; margin-bottom: 20px; opacity: 0.5;">📵</div>
-            <h2 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 400;">No internet</h2>
-            <p style="color: #888; font-size: 14px; margin: 0 0 24px 0; max-width: 400px;">
-                Your device is not connected to the internet. Connect to WiFi to browse the web and access online content.
-            </p>
-            <button onclick="toggleWifiPanel()" style="padding: 10px 24px; background: #0078d4; color: #fff; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;">
-                Connect to WiFi
-            </button>
-            <div style="margin-top: 32px; color: #666; font-size: 12px;">
-                <p style="margin: 4px 0;">• Check your WiFi connection</p>
-                <p style="margin: 4px 0;">• Make sure airplane mode is off</p>
-                <p style="margin: 4px 0;">• Try reconnecting to your network</p>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#f7f7f7;font-family:Arial,sans-serif;">
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="font-size:48px;margin-bottom:12px;">📵</div>
+                <h2 style="color:#535353;margin:0 0 8px 0;font-size:20px;font-weight:normal;">No internet</h2>
+                <p style="color:#777;font-size:13px;margin:0;">Play the Chrome Dino game while offline!</p>
             </div>
+            <div id="${winId}-dino-container" style="width:600px;height:150px;"></div>
+            <div style="margin-top:12px;color:#535353;font-size:12px;">Press SPACE or UP arrow to jump</div>
         </div>
     `;
 }
