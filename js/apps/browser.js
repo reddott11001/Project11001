@@ -636,7 +636,16 @@ function getGameDownloadPage() {
         </div>
     `;
     
-    setTimeout(() => startFreakyPopups(), 100);
+    // Only start freaky popups if we're actually on the game download page
+    setTimeout(() => {
+        const winId = getActiveBrowserWinId();
+        if (winId) {
+            const tab = getActiveTab(winId);
+            if (tab && tab.url === 'webos://game-download') {
+                startFreakyPopups();
+            }
+        }
+    }, 100);
     
     return `
         <div class="browser-page" style="background:#0d0d1a;min-height:100%;height:100%;overflow-y:auto;padding:20px;">
