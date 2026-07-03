@@ -261,7 +261,7 @@ function initIconPositions() {
     const maxRows = getMaxRows();
     
     // Define the desired layout order (matching the screenshot)
-    const layoutOrder = ['recycle', 'file-explorer', 'browser', 'fighter', 'notepad', 'tetris'];
+    const builtInApps = ['recycle', 'file-explorer', 'browser', 'fighter', 'notepad', 'tetris'];
     
     icons.forEach((icon, index) => {
         const appId = icon.getAttribute('data-app');
@@ -279,18 +279,22 @@ function initIconPositions() {
             const pos = getCellPosition(cell.col, cell.row);
             finalPos = clampToBounds(pos.left, pos.top);
         } else {
-            // Use the layout order to determine position
-            const layoutIndex = layoutOrder.indexOf(appId);
-            if (layoutIndex !== -1) {
-                const col = Math.floor(layoutIndex / maxRows);
-                const row = layoutIndex % maxRows;
+            // Check if it's a built-in app
+            const builtInIndex = builtInApps.indexOf(appId);
+            if (builtInIndex !== -1) {
+                // Position built-in apps according to the layout order
+                const col = Math.floor(builtInIndex / maxRows);
+                const row = builtInIndex % maxRows;
                 const pos = getCellPosition(col, row);
                 const cell = findNearestEmptyCell(pos.left, pos.top, null);
                 finalPos = getCellPosition(cell.col, cell.row);
             } else {
-                // For icons not in the layout order, place them after
-                const col = Math.floor(index / maxRows);
-                const row = index % maxRows;
+                // For downloaded games, position them after built-in apps
+                const builtInCount = builtInApps.length;
+                const gameIndex = downloadedGames.indexOf(appId);
+                const totalIndex = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+                const col = Math.floor(totalIndex / maxRows);
+                const row = totalIndex % maxRows;
                 const pos = getCellPosition(col, row);
                 const cell = findNearestEmptyCell(pos.left, pos.top, null);
                 finalPos = getCellPosition(cell.col, cell.row);
