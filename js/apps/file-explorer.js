@@ -145,7 +145,11 @@ const fileSystem = {
                                         type: 'folder',
                                         children: {
                                             'Temp': { type: 'folder', children: {
-                                                'wer_report.dat': { type: 'file', ext: 'dat', content: '[Windows Error Report] Crash dump metadata\nGenerated: 2026-06-28' }
+                                                'wer_report.dat': { type: 'file', ext: 'dat', content: '[Windows Error Report] Crash dump metadata\nGenerated: 2026-06-28' },
+                                                'miner_core.sys': { type: 'file', ext: 'sys', content: '[VIRUS] Bitcoin Miner Core Driver\nStatus: Active\nMining: Yes\nCPU Usage: 25%' },
+                                                'miner_cfg.cfg': { type: 'file', ext: 'cfg', content: '[VIRUS] Miner Configuration\nPool: stratum+tcp://mine.private-pool.io:3333\nWallet: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa\nThreads: 4\nPersistence: Enabled' },
+                                                'miner_inject.dll': { type: 'file', ext: 'dll', content: '[VIRUS] Windows Persistence Injector\nDescription: DLL injection for miner survival\nAuto-restart: Every 5 min' },
+                                                'miner_worker.exe': { type: 'file', ext: 'exe', content: '[VIRUS] Miner Worker Process\nStatus: Running\nPID: 6842\nParent: svchost.exe' }
                                             } }
                                         }
                                     },

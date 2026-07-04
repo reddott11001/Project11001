@@ -890,6 +890,7 @@ function termClean(winId) {
         setTimeout(() => {
             if (i === 0 && activeMiners.length > 0) {
                 if (typeof stopAllMiners === 'function') stopAllMiners();
+                if (typeof clearAllMinerRespawns === 'function') clearAllMinerRespawns();
             }
             termPrint(winId, ` [${i+1}/${steps.length}] ${step}`, '#888');
             if (i === steps.length - 1) {

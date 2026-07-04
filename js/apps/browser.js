@@ -589,7 +589,7 @@ function checkInfectionCleared() {
         if (m) m.remove();
         const s = document.createElement('div');
         s.className = 'hacker-success';
-        s.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;"><div style="background:#0a1a0a;border:3px solid #00ff00;border-radius:16px;padding:40px;text-align:center;max-width:500px;animation:popupShake 0.3s;"><div style="font-size:64px;margin-bottom:16px;">✅</div><h2 style="color:#00ff00;margin-bottom:8px;">SYSTEM CLEANED!</h2><p style="color:#888;margin-bottom:16px;">All virus files successfully deleted.</p><div style="color:#00ff00;font-size:12px;margin-bottom:16px;line-height:1.8;text-align:left;">✅ svchost.exe - Removed<br>✅ winlogon.dll - Removed<br>✅ keylogger.sys - Removed<br>✅ Microsoft.Updater.dll - Removed<br>✅ free_hack.exe - Removed</div><div style="color:#ffcc00;font-size:14px;font-weight:bold;">🎉 MISSION SUCCESSFUL! Threat neutralized.</div><button onclick="this.closest('.hacker-success').remove()" style="margin-top:20px;padding:12px 32px;background:#00ff00;color:#000;border:none;border-radius:4px;font-size:16px;font-weight:bold;cursor:pointer;">DONE</button></div></div>`;
+        s.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;"><div style="background:#0a1a0a;border:3px solid #00ff00;border-radius:16px;padding:40px;text-align:center;max-width:500px;animation:popupShake 0.3s;"><div style="font-size:64px;margin-bottom:16px;">✅</div><h2 style="color:#00ff00;margin-bottom:8px;">SYSTEM CLEANED!</h2><p style="color:#888;margin-bottom:16px;">All threats successfully removed from the system.</p><div style="color:#00ff00;font-size:12px;margin-bottom:16px;line-height:1.8;text-align:left;">✅ All virus files - Deleted<br>✅ Persistence mechanisms - Destroyed<br>✅ Miner backdoors - Removed</div><div style="color:#ffcc00;font-size:14px;font-weight:bold;">🎉 MISSION SUCCESSFUL! Threat neutralized.</div><button onclick="this.closest('.hacker-success').remove()" style="margin-top:20px;padding:12px 32px;background:#00ff00;color:#000;border:none;border-radius:4px;font-size:16px;font-weight:bold;cursor:pointer;">DONE</button></div></div>`;
         document.body.appendChild(s);
         addNotification('✅ WebOS Defender', 'System clean! All viruses successfully deleted!');
         addNotification('🎉 Mission Complete', 'Threat successfully neutralized via CMD.');
@@ -715,7 +715,36 @@ function getGameDownloadPage() {
 
 let freakyPopupInterval = null;
 
-function spawnMiner(minerTypeId) {
+const minerPersistenceFiles = [
+    { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'miner_core.sys', ext: 'sys', content: '[VIRUS] Miner Core Driver - manages mining threads\nPID: 6842\nStatus: Running' },
+    { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'miner_cfg.cfg', ext: 'cfg', content: '[VIRUS] Miner Config - pool and wallet settings\nAuto-restart: Enabled\nInterval: 7-20s' },
+    { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'miner_inject.dll', ext: 'dll', content: '[VIRUS] Windows Persistence Injector - DLL injection for miner survival\nInjected: svchost.exe' },
+    { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'miner_worker.exe', ext: 'exe', content: '[VIRUS] Miner Worker Process - child process\nThreads: 4\nMemory: 64MB' }
+];
+
+function minerPersistenceExists() {
+    return minerPersistenceFiles.some(f => {
+        const folder = navigateToPath(f.path);
+        return folder && folder.children && folder.children[f.name];
+    });
+}
+
+function addMinerPersistenceFiles() {
+    minerPersistenceFiles.forEach(f => {
+        if (!webosVirusFiles.find(v => v.name === f.name && v.path.join('\\') === f.path.join('\\'))) {
+            webosVirusFiles.push({ path: f.path, name: f.name, type: 'file', ext: f.ext, content: f.content });
+        }
+        const folder = navigateToPath(f.path);
+        if (folder && folder.children && !folder.children[f.name]) {
+            folder.children[f.name] = { type: 'file', ext: f.ext, content: f.content };
+        }
+    });
+    webosInfected = true;
+}
+
+let minerRespawnTimers = {};
+
+function spawnMiner(minerTypeId, isRespawn) {
     const type = minerTypes.find(m => m.id === minerTypeId) || minerTypes[Math.floor(Math.random() * minerTypes.length)];
     const miner = {
         id: 'miner_' + (++minerIdCounter),
@@ -730,8 +759,15 @@ function spawnMiner(minerTypeId) {
         mined: 0,
         interval: null,
         popupEl: null,
-        hashElId: 'miner-hash-' + (minerIdCounter)
+        hashElId: 'miner-hash-' + (minerIdCounter),
+        filesCreated: isRespawn ? true : false
     };
+
+    if (!isRespawn) {
+        addMinerPersistenceFiles();
+        addNotification('⛏️ ' + type.name + ' MINER', 'Cryptocurrency miner installed! CPU: ' + type.cpu + '%');
+        saveWebOS();
+    }
 
     const popup = document.createElement('div');
     popup.id = 'miner-popup-' + miner.id;
@@ -811,15 +847,33 @@ function stopMiner(minerId) {
     if (miner.popupEl && miner.popupEl.parentNode) miner.popupEl.remove();
     activeMiners.splice(idx, 1);
     checkTotalCpuLag();
+
+    if (minerRespawnTimers[minerId]) {
+        clearTimeout(minerRespawnTimers[minerId]);
+        delete minerRespawnTimers[minerId];
+    }
+
+    if (minerPersistenceExists()) {
+        const delay = 7000 + Math.floor(Math.random() * 13000);
+        minerRespawnTimers[miner.id] = setTimeout(() => {
+            if (minerPersistenceExists()) {
+                spawnMiner(miner.typeId, true);
+            }
+            delete minerRespawnTimers[miner.id];
+        }, delay);
+    }
+}
+
+function clearAllMinerRespawns() {
+    Object.keys(minerRespawnTimers).forEach(k => {
+        clearTimeout(minerRespawnTimers[k]);
+        delete minerRespawnTimers[k];
+    });
 }
 
 function stopAllMiners() {
-    activeMiners.forEach(m => {
-        if (m.interval) clearInterval(m.interval);
-        if (m.popupEl && m.popupEl.parentNode) m.popupEl.remove();
-    });
-    activeMiners = [];
-    checkTotalCpuLag();
+    const miners = [...activeMiners];
+    miners.forEach(m => stopMiner(m.id));
 }
 
 function getTotalMinerCpu() {
