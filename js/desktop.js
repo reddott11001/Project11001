@@ -22,6 +22,7 @@ let webosVirusFiles = [];
 let webosQuarantineFiles = [];
 let downloadedGames = [];
 let wifiConnected = true;
+let wifiNetworkName = 'Home Wifi 1';
 
 function saveWebOS() {
     try {
@@ -1450,6 +1451,39 @@ function addNotification(app, text) {
     list.insertBefore(item, list.firstChild);
 }
 
+const wifiNetworks = [
+    { name: 'Home Wifi 1', secured: true, isHome: true },
+    { name: 'Neighbor_WiFi_5G', secured: true },
+    { name: 'CoffeeShop_Free', secured: false },
+    { name: 'Campus_Edu', secured: true },
+    { name: 'FiberNet_5G_Plus', secured: true },
+];
+
+function renderWifiNetworkList() {
+    const isConnected = (name) => wifiConnected && wifiNetworkName === name;
+    let html = '<div style="padding: 12px 20px; border-bottom: 1px solid #404040;"><div style="font-size: 12px; color: #888; margin-bottom: 8px;">Available networks</div>';
+    wifiNetworks.forEach((net, i) => {
+        const connected = isConnected(net.name);
+        const bg = connected ? '#1a3a5c' : (i === 0 ? '#333' : '#2b2b2b');
+        const icon = connected ? '📶' : '📶';
+        const statusLabel = net.secured ? 'Secured' : 'Open';
+        const cursor = net.isHome ? 'default' : 'pointer';
+        const clickHandler = net.isHome ? '' : `onclick="showWifiPasswordPrompt('${net.name}',${net.secured})"`;
+        const hover = net.isHome ? '' : `onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'"`;
+        html += `
+            <div style="padding: 8px; background: ${bg}; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:${cursor};transition:background 0.2s;" ${clickHandler} ${hover}>
+                <span style="font-size: 18px;">${icon}</span>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px;">${net.name}</div>
+                    <div style="font-size: 10px; color: #888;">${statusLabel}</div>
+                </div>
+                ${connected ? '<span style="font-size: 10px; color: #0078d4;">Connected</span>' : ''}
+            </div>`;
+    });
+    html += '</div>';
+    return html;
+}
+
 function toggleWifiPanel() {
     const panel = document.getElementById('wifi-panel');
     if (!panel) {
@@ -1489,53 +1523,15 @@ function createWifiPanel() {
             <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: ${wifiConnected ? '#1a3a5c' : '#333'}; border-radius: 6px; cursor: pointer;" onclick="toggleWifiConnection()">
                 <div style="font-size: 24px;">${wifiConnected ? '📶' : '📵'}</div>
                 <div style="flex: 1;">
-                    <div style="font-size: 13px; font-weight: 500;">Home Wifi 1</div>
-                    <div style="font-size: 11px; color: #888;">${wifiConnected ? 'Connected, secured' : 'Not connected'}</div>
+                    <div style="font-size: 13px; font-weight: 500;">${wifiNetworkName}</div>
+                    <div style="font-size: 11px; color: #888;">${wifiConnected ? (wifiNetworkName === 'CoffeeShop_Free' ? 'Connected, open' : 'Connected, secured') : 'Not connected'}</div>
                 </div>
                 <div style="width: 40px; height: 20px; background: ${wifiConnected ? '#0078d4' : '#555'}; border-radius: 10px; position: relative; transition: background 0.2s;">
                     <div style="width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; top: 2px; ${wifiConnected ? 'right: 2px' : 'left: 2px'}; transition: all 0.2s;"></div>
                 </div>
             </div>
         </div>
-        <div style="padding: 12px 20px; border-bottom: 1px solid #404040;">
-            <div style="font-size: 12px; color: #888; margin-bottom: 8px;">Available networks</div>
-            <div style="padding: 8px; background: #333; border-radius: 4px; display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 18px;">📶</span>
-                <div style="flex: 1;">
-                    <div style="font-size: 12px;">Home Wifi 1</div>
-                    <div style="font-size: 10px; color: #888;">Secured</div>
-                </div>
-                <span style="font-size: 10px; color: #0078d4;">${wifiConnected ? 'Connected' : ''}</span>
-            </div>
-            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('Neighbor_WiFi_5G',true)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
-                <span style="font-size: 18px;">📶</span>
-                <div style="flex: 1;">
-                    <div style="font-size: 12px;">Neighbor_WiFi_5G</div>
-                    <div style="font-size: 10px; color: #888;">Secured</div>
-                </div>
-            </div>
-            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('CoffeeShop_Free',false)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
-                <span style="font-size: 18px;">📶</span>
-                <div style="flex: 1;">
-                    <div style="font-size: 12px;">CoffeeShop_Free</div>
-                    <div style="font-size: 10px; color: #888;">Open</div>
-                </div>
-            </div>
-            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('Campus_Edu',true)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
-                <span style="font-size: 18px;">📶</span>
-                <div style="flex: 1;">
-                    <div style="font-size: 12px;">Campus_Edu</div>
-                    <div style="font-size: 10px; color: #888;">Secured</div>
-                </div>
-            </div>
-            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('FiberNet_5G_Plus',true)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
-                <span style="font-size: 18px;">📶</span>
-                <div style="flex: 1;">
-                    <div style="font-size: 12px;">FiberNet_5G_Plus</div>
-                    <div style="font-size: 10px; color: #888;">Secured</div>
-                </div>
-            </div>
-        </div>
+        ${renderWifiNetworkList()}
         <div style="padding: 12px 20px;">
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
                 <span style="font-size: 12px;">Airplane mode</span>
@@ -1599,6 +1595,7 @@ function submitWifiPassword(networkName, secured) {
     }
     const modal = document.getElementById('wifi-password-modal');
     if (modal) modal.remove();
+    wifiNetworkName = networkName;
     wifiConnected = true;
     const wifiIcon = document.getElementById('wifi-icon');
     if (wifiIcon) { wifiIcon.textContent = '📶'; wifiIcon.title = 'Network - Connected'; }
@@ -1618,6 +1615,7 @@ function closeWifiPanelOnClickOutside(e) {
 
 function toggleWifiConnection() {
     wifiConnected = !wifiConnected;
+    if (wifiConnected) wifiNetworkName = 'Home Wifi 1';
     
     const wifiIcon = document.getElementById('wifi-icon');
     if (wifiIcon) {
@@ -1630,7 +1628,7 @@ function toggleWifiConnection() {
     if (wifiConnected) {
         addNotification('🌐 Network', 'Connected to Home Wifi 1');
     } else {
-        addNotification('🌐 Network', 'Disconnected from Home Wifi 1');
+        addNotification('🌐 Network', 'Disconnected from ' + wifiNetworkName);
     }
     
     const browserWin = Object.values(activeWindows).find(w => w.appId === 'browser' && !w.closed);
