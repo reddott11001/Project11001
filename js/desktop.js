@@ -1452,7 +1452,7 @@ function addNotification(app, text) {
 }
 
 const wifiNetworks = [
-    { name: 'Home Wifi 1', secured: true, isHome: true },
+    { name: 'Home Wifi 1', secured: true, password: '12345' },
     { name: 'Neighbor_WiFi_5G', secured: true },
     { name: 'CoffeeShop_Free', secured: false },
     { name: 'Campus_Edu', secured: true },
@@ -1462,17 +1462,13 @@ const wifiNetworks = [
 function renderWifiNetworkList() {
     const isConnected = (name) => wifiConnected && wifiNetworkName === name;
     let html = '<div style="padding: 12px 20px; border-bottom: 1px solid #404040;"><div style="font-size: 12px; color: #888; margin-bottom: 8px;">Available networks</div>';
-    wifiNetworks.forEach((net, i) => {
+    wifiNetworks.forEach((net) => {
         const connected = isConnected(net.name);
-        const bg = connected ? '#1a3a5c' : (i === 0 ? '#333' : '#2b2b2b');
-        const icon = connected ? '📶' : '📶';
+        const bg = connected ? '#1a3a5c' : '#2b2b2b';
         const statusLabel = net.secured ? 'Secured' : 'Open';
-        const cursor = net.isHome ? 'default' : 'pointer';
-        const clickHandler = net.isHome ? '' : `onclick="showWifiPasswordPrompt('${net.name}',${net.secured})"`;
-        const hover = net.isHome ? '' : `onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'"`;
         html += `
-            <div style="padding: 8px; background: ${bg}; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:${cursor};transition:background 0.2s;" ${clickHandler} ${hover}>
-                <span style="font-size: 18px;">${icon}</span>
+            <div style="padding: 8px; background: ${bg}; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('${net.name}',${net.secured})" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
+                <span style="font-size: 18px;">📶</span>
                 <div style="flex: 1;">
                     <div style="font-size: 12px;">${net.name}</div>
                     <div style="font-size: 10px; color: #888;">${statusLabel}</div>
@@ -1550,6 +1546,11 @@ function createWifiPanel() {
 }
 
 function showWifiPasswordPrompt(networkName, secured) {
+    if (wifiConnected && wifiNetworkName === networkName) {
+        addNotification('📶 WiFi', 'Already connected to ' + networkName);
+        return;
+    }
+
     const existing = document.getElementById('wifi-password-modal');
     if (existing) existing.remove();
 
@@ -1580,19 +1581,7 @@ function showWifiPasswordPrompt(networkName, secured) {
     if (secured) setTimeout(() => document.getElementById('wifi-password-input').focus(), 100);
 }
 
-function submitWifiPassword(networkName, secured) {
-    if (secured) {
-        const input = document.getElementById('wifi-password-input');
-        const err = document.getElementById('wifi-password-error');
-        if (!input || !input.value.trim()) {
-            if (err) { err.style.display = 'block'; err.textContent = 'Please enter a password.'; }
-            return;
-        }
-        if (err) { err.style.display = 'block'; err.textContent = 'Incorrect password. Try again.'; }
-        input.value = '';
-        input.focus();
-        return;
-    }
+function connectToNetwork(networkName) {
     const modal = document.getElementById('wifi-password-modal');
     if (modal) modal.remove();
     wifiNetworkName = networkName;
@@ -1602,6 +1591,27 @@ function submitWifiPassword(networkName, secured) {
     addNotification('📶 WiFi', 'Connected to ' + networkName);
     const panel = document.getElementById('wifi-panel');
     if (panel) createWifiPanel();
+}
+
+function submitWifiPassword(networkName, secured) {
+    if (secured) {
+        const input = document.getElementById('wifi-password-input');
+        const err = document.getElementById('wifi-password-error');
+        if (!input || !input.value.trim()) {
+            if (err) { err.style.display = 'block'; err.textContent = 'Please enter a password.'; }
+            return;
+        }
+        const net = wifiNetworks.find(n => n.name === networkName);
+        if (net && net.password && input.value === net.password) {
+            connectToNetwork(networkName);
+            return;
+        }
+        if (err) { err.style.display = 'block'; err.textContent = 'Incorrect password. Try again.'; }
+        input.value = '';
+        input.focus();
+        return;
+    }
+    connectToNetwork(networkName);
 }
 
 function closeWifiPanelOnClickOutside(e) {
