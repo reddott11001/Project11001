@@ -193,19 +193,17 @@ function browserNavigate(winId, rawUrl, skipLag) {
         lagPendingNavs.push(key);
         const content = document.getElementById(winId + '-browser-content');
         if (content) {
-            const count = activeMiners.length;
             content.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1a1a2e;color:#ffcc00;font-family:monospace;font-size:14px;">
                 <div style="text-align:center;">
                     <div style="font-size:48px;margin-bottom:16px;animation:spin 1s linear infinite;">⏳</div>
                     <div>WebOS is not responding...</div>
-                    <div style="color:#888;font-size:11px;margin-top:8px;">${count} miners hogging CPU — retrying in 5s</div>
                 </div>
             </div>`;
         }
         setTimeout(() => {
             lagPendingNavs = lagPendingNavs.filter(k => k !== key);
             browserNavigate(winId, rawUrl, true);
-        }, 5000);
+        }, 3000 + Math.floor(Math.random() * 2000));
         return;
     }
 
@@ -396,19 +394,17 @@ function browserSearch(winId, query, skipLag) {
         lagPendingNavs.push(key);
         const content = document.getElementById(winId + '-browser-content');
         if (content) {
-            const count = activeMiners.length;
             content.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1a1a2e;color:#ffcc00;font-family:monospace;font-size:14px;">
                 <div style="text-align:center;">
                     <div style="font-size:48px;margin-bottom:16px;animation:spin 1s linear infinite;">⏳</div>
                     <div>WebOS is not responding...</div>
-                    <div style="color:#888;font-size:11px;margin-top:8px;">${count} miners hogging CPU — retrying in 5s</div>
                 </div>
             </div>`;
         }
         setTimeout(() => {
             lagPendingNavs = lagPendingNavs.filter(k => k !== key);
             browserSearch(winId, query, true);
-        }, 5000);
+        }, 3000 + Math.floor(Math.random() * 2000));
         return;
     }
 

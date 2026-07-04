@@ -923,19 +923,20 @@ function openApp(appId, skipLag) {
     document.getElementById('context-menu').style.display = 'none';
 
     if (!skipLag && typeof isSystemLagging === 'function' && isSystemLagging()) {
-        if (lagPendingApps.includes(appId)) return;
-        lagPendingApps.push(appId);
-        const count = typeof activeMiners !== 'undefined' ? activeMiners.length : 0;
-        showLagOverlay();
-        const countEl = document.getElementById('lag-overlay-count');
-        if (countEl) countEl.textContent = count + ' miners hogging CPU — retrying in 5s';
-        addNotification('⏳ System Lag', 'WebOS is not responding... (' + count + ' miners hogging CPU)');
-        setTimeout(() => {
-            lagPendingApps = lagPendingApps.filter(a => a !== appId);
-            hideLagOverlay();
-            openApp(appId, true);
-        }, 5000);
-        return;
+        if (appId === 'cmd' || appId === 'taskmgr' || appId === 'file-explorer') {
+            skipLag = true;
+        } else {
+            if (lagPendingApps.includes(appId)) return;
+            lagPendingApps.push(appId);
+            showLagOverlay();
+            addNotification('⏳ System Lag', 'WebOS is not responding...');
+            setTimeout(() => {
+                lagPendingApps = lagPendingApps.filter(a => a !== appId);
+                hideLagOverlay();
+                openApp(appId, true);
+            }, 3000 + Math.floor(Math.random() * 2000));
+            return;
+        }
     }
 
     const existing = Object.values(activeWindows).find(w => w.appId === appId && !w.closed);
