@@ -1507,18 +1507,32 @@ function createWifiPanel() {
                 </div>
                 <span style="font-size: 10px; color: #0078d4;">${wifiConnected ? 'Connected' : ''}</span>
             </div>
-            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; opacity: 0.6;">
+            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('Neighbor_WiFi_5G',true)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
                 <span style="font-size: 18px;">📶</span>
                 <div style="flex: 1;">
                     <div style="font-size: 12px;">Neighbor_WiFi_5G</div>
                     <div style="font-size: 10px; color: #888;">Secured</div>
                 </div>
             </div>
-            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; opacity: 0.6;">
+            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('CoffeeShop_Free',false)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
                 <span style="font-size: 18px;">📶</span>
                 <div style="flex: 1;">
                     <div style="font-size: 12px;">CoffeeShop_Free</div>
                     <div style="font-size: 10px; color: #888;">Open</div>
+                </div>
+            </div>
+            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('Campus_Edu',true)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
+                <span style="font-size: 18px;">📶</span>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px;">Campus_Edu</div>
+                    <div style="font-size: 10px; color: #888;">Secured</div>
+                </div>
+            </div>
+            <div style="padding: 8px; background: #2b2b2b; border-radius: 4px; display: flex; align-items: center; gap: 10px; margin-top: 4px; cursor:pointer;transition:background 0.2s;" onclick="showWifiPasswordPrompt('FiberNet_5G_Plus',true)" onmouseenter="this.style.background='#3a3a3a'" onmouseleave="this.style.background='#2b2b2b'">
+                <span style="font-size: 18px;">📶</span>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px;">FiberNet_5G_Plus</div>
+                    <div style="font-size: 10px; color: #888;">Secured</div>
                 </div>
             </div>
         </div>
@@ -1537,6 +1551,60 @@ function createWifiPanel() {
     setTimeout(() => {
         document.addEventListener('click', closeWifiPanelOnClickOutside);
     }, 10);
+}
+
+function showWifiPasswordPrompt(networkName, secured) {
+    const existing = document.getElementById('wifi-password-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'wifi-password-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100001;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `
+        <div style="background:#2b2b2b;border:1px solid #404040;border-radius:8px;width:340px;box-shadow:0 8px 32px #000;font-family:'Segoe UI',sans-serif;color:#fff;">
+            <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #404040;">
+                <span style="font-size:20px;">${secured ? '🔒' : '🌐'}</span>
+                <div>
+                    <div style="font-size:13px;font-weight:500;">${networkName}</div>
+                    <div style="font-size:10px;color:#888;">${secured ? 'Secured' : 'Open network'}</div>
+                </div>
+            </div>
+            <div style="padding:16px 20px;">
+                <div style="font-size:12px;color:#ccc;margin-bottom:8px;">${secured ? 'Enter the network security key:' : 'Connect to this open network?'}</div>
+                ${secured ? `<input type="password" id="wifi-password-input" placeholder="Enter password" style="width:100%;padding:10px 12px;background:#1e1e1e;border:1px solid #555;border-radius:4px;color:#fff;font-size:13px;outline:none;box-sizing:border-box;" autofocus>` : ''}
+                <div id="wifi-password-error" style="color:#ff4444;font-size:11px;margin-top:6px;display:none;">Incorrect password. Try again.</div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-top:1px solid #404040;">
+                <button onclick="document.getElementById('wifi-password-modal').remove()" style="padding:8px 20px;background:#3a3a3a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Cancel</button>
+                <button onclick="submitWifiPassword('${networkName}',${secured})" style="padding:8px 20px;background:#0078d4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">${secured ? 'Next' : 'Connect'}</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    if (secured) setTimeout(() => document.getElementById('wifi-password-input').focus(), 100);
+}
+
+function submitWifiPassword(networkName, secured) {
+    if (secured) {
+        const input = document.getElementById('wifi-password-input');
+        const err = document.getElementById('wifi-password-error');
+        if (!input || !input.value.trim()) {
+            if (err) { err.style.display = 'block'; err.textContent = 'Please enter a password.'; }
+            return;
+        }
+        if (err) { err.style.display = 'block'; err.textContent = 'Incorrect password. Try again.'; }
+        input.value = '';
+        input.focus();
+        return;
+    }
+    const modal = document.getElementById('wifi-password-modal');
+    if (modal) modal.remove();
+    wifiConnected = true;
+    const wifiIcon = document.getElementById('wifi-icon');
+    if (wifiIcon) { wifiIcon.textContent = '📶'; wifiIcon.title = 'Network - Connected'; }
+    addNotification('📶 WiFi', 'Connected to ' + networkName);
+    const panel = document.getElementById('wifi-panel');
+    if (panel) createWifiPanel();
 }
 
 function closeWifiPanelOnClickOutside(e) {
