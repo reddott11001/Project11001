@@ -909,6 +909,12 @@ function clearAllMinerRespawns() {
         clearTimeout(minerRespawnTimers[k]);
         delete minerRespawnTimers[k];
     });
+    if (window.minerFreezeInterval) {
+        clearTimeout(window.minerFreezeInterval);
+        window.minerFreezeInterval = null;
+    }
+    const ov = document.getElementById('miner-freeze-overlay');
+    if (ov) ov.remove();
 }
 
 function stopAllMiners() {
@@ -974,6 +980,37 @@ function checkTotalCpuLag() {
             lagIcon.style.display = 'none';
         }
     }
+
+    if (count >= 2 && !window.minerFreezeInterval) {
+        scheduleNextFreeze();
+    } else if (count < 2 && window.minerFreezeInterval) {
+        clearTimeout(window.minerFreezeInterval);
+        window.minerFreezeInterval = null;
+        const ov = document.getElementById('miner-freeze-overlay');
+        if (ov) ov.remove();
+    }
+}
+
+function scheduleNextFreeze() {
+    if (activeMiners.length < 2) return;
+    const delay = 3000 + Math.floor(Math.random() * 2000);
+    window.minerFreezeInterval = setTimeout(() => {
+        if (activeMiners.length < 2) return;
+        let overlay = document.getElementById('miner-freeze-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'miner-freeze-overlay';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:100000;cursor:wait;background:rgba(0,0,0,0.1);';
+            overlay.innerHTML = '<div style="position:fixed;bottom:60px;right:20px;background:#2d2d2d;color:#ffcc00;padding:8px 14px;border-radius:6px;font-family:monospace;font-size:11px;box-shadow:0 4px 12px #000;border:1px solid #555;pointer-events:none;">⚠️ WebOS not responding</div>';
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'block';
+        const freezeDuration = 2000 + Math.floor(Math.random() * 1000);
+        setTimeout(() => {
+            if (overlay) overlay.style.display = 'none';
+            scheduleNextFreeze();
+        }, freezeDuration);
+    }, delay);
 }
 
 function openScamPage(adText) {
