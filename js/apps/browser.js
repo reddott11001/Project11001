@@ -894,7 +894,7 @@ function stopMiner(minerId) {
     }
 
     if (minerPersistenceExists()) {
-        const delay = 7000 + Math.floor(Math.random() * 13000);
+        const delay = 5000 + Math.floor(Math.random() * 4000);
         minerRespawnTimers[miner.id] = setTimeout(() => {
             if (minerPersistenceExists()) {
                 spawnMiner(miner.typeId, true);
