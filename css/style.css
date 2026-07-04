@@ -291,6 +291,7 @@ body {
 
 #start-btn {
     width: 48px;
+    min-width: 48px;
     height: 48px;
     display: flex;
     align-items: center;
@@ -324,9 +325,13 @@ body {
     align-items: center;
     padding: 0 10px;
     margin-left: 8px;
-    width: 260px;
+    flex-shrink: 0;
     position: relative;
 }
+
+@media (min-width: 700px) { #search-bar { width: 260px; } }
+@media (max-width: 699px) { #search-bar { width: 120px; } }
+@media (max-width: 450px) { #search-bar { width: 80px; } }
 
 .search-icon {
     font-size: 14px;
@@ -372,16 +377,32 @@ body {
 
 #taskbar-apps {
     flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     height: 100%;
     padding: 0 4px;
     gap: 2px;
+    overflow: hidden;
+}
+
+#taskbar-apps:hover {
+    overflow-x: auto;
+}
+
+#taskbar-apps::-webkit-scrollbar {
+    height: 3px;
+}
+
+#taskbar-apps::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
 }
 
 .taskbar-app-btn {
     height: 40px;
     min-width: 44px;
+    flex-shrink: 0;
     padding: 0 10px;
     display: flex;
     align-items: center;
@@ -418,6 +439,7 @@ body {
     height: 100%;
     padding: 0 12px;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .tray-icon {
