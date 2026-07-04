@@ -277,10 +277,10 @@ let wifiRatInterval = null;
 function triggerWiFiRAT() {
     webosInfected = true;
     const files = [
-        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'rat_shell.exe', type: 'file', ext: 'exe', content: '[RAT] Reverse Shell - Connected to 192.168.1.105:4443\nStatus: Active' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'rat_keylog.sys', type: 'file', ext: 'sys', content: '[RAT] Keylogger - Capturing keystrokes\nLogged: 1428 keys' },
-        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'rat_backdoor.dll', type: 'file', ext: 'dll', content: '[RAT] Backdoor Persistence - Auto-launch on boot\nInjected: svchost.exe' },
-        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'rat_screen.exe', type: 'file', ext: 'exe', content: '[RAT] Screen Capture - Streaming desktop\nRemote: 192.168.1.105:4444' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows', 'WER', 'Temp', 'ReportQueue'], name: 'rat_shell.exe', type: 'file', ext: 'exe', content: '[RAT] Reverse Shell - Connected to 192.168.1.105:4443\nStatus: Active' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'LocalLow', 'Sun', 'Java', 'tmp', 'deployment', 'cache'], name: 'rat_keylog.sys', type: 'file', ext: 'sys', content: '[RAT] Keylogger - Capturing keystrokes\nLogged: 1428 keys' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs'], name: 'rat_backdoor.dll', type: 'file', ext: 'dll', content: '[RAT] Backdoor Persistence - Auto-launch on boot\nInjected: svchost.exe' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp', 'Archive'], name: 'rat_screen.exe', type: 'file', ext: 'exe', content: '[RAT] Screen Capture - Streaming desktop\nRemote: 192.168.1.105:4444' },
     ];
     addVirusFiles(files);
     showVirusPopups(files, '🖥️ RAT - REMOTE ACCESS', '#00cc66', '🔴', 4);
@@ -299,10 +299,10 @@ function triggerWiFiRAT() {
     let ratIdx = 0;
     wifiRatInterval = setInterval(() => {
         const coreFiles = [
-            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'rat_shell.exe' },
-            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'rat_keylog.sys' },
-            { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'rat_backdoor.dll' },
-            { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'rat_screen.exe' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows', 'WER', 'Temp', 'ReportQueue'], name: 'rat_shell.exe' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'LocalLow', 'Sun', 'Java', 'tmp', 'deployment', 'cache'], name: 'rat_keylog.sys' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs'], name: 'rat_backdoor.dll' },
+            { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp', 'Archive'], name: 'rat_screen.exe' },
         ];
         const anyAlive = coreFiles.some(f => {
             const folder = navigateToPath(f.path);
