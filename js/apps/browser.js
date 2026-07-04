@@ -184,9 +184,31 @@ function normalizeUrl(url) {
     return 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(url);
 }
 
-function browserNavigate(winId, rawUrl) {
+function browserNavigate(winId, rawUrl, skipLag) {
     stopFreakyPopups();
     
+    if (!skipLag && isSystemLagging()) {
+        const key = winId + '-' + rawUrl;
+        if (lagPendingNavs.includes(key)) return;
+        lagPendingNavs.push(key);
+        const content = document.getElementById(winId + '-browser-content');
+        if (content) {
+            const count = activeMiners.length;
+            content.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1a1a2e;color:#ffcc00;font-family:monospace;font-size:14px;">
+                <div style="text-align:center;">
+                    <div style="font-size:48px;margin-bottom:16px;animation:spin 1s linear infinite;">⏳</div>
+                    <div>WebOS is not responding...</div>
+                    <div style="color:#888;font-size:11px;margin-top:8px;">${count} miners hogging CPU — retrying in 5s</div>
+                </div>
+            </div>`;
+        }
+        setTimeout(() => {
+            lagPendingNavs = lagPendingNavs.filter(k => k !== key);
+            browserNavigate(winId, rawUrl, true);
+        }, 5000);
+        return;
+    }
+
     const tab = getActiveTab(winId);
     if (!tab) return;
     if (!rawUrl || rawUrl === 'home') { browserHome(winId); return; }
@@ -365,9 +387,31 @@ function getWebOSPage(url) {
     return pages[url] || '<div class="browser-page"><h1>Page Not Found</h1><p>The page ' + url + ' could not be found.</p></div>';
 }
 
-function browserSearch(winId, query) {
+function browserSearch(winId, query, skipLag) {
     if (!query.trim()) return;
-    
+
+    if (!skipLag && isSystemLagging()) {
+        const key = winId + '-search-' + query;
+        if (lagPendingNavs.includes(key)) return;
+        lagPendingNavs.push(key);
+        const content = document.getElementById(winId + '-browser-content');
+        if (content) {
+            const count = activeMiners.length;
+            content.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1a1a2e;color:#ffcc00;font-family:monospace;font-size:14px;">
+                <div style="text-align:center;">
+                    <div style="font-size:48px;margin-bottom:16px;animation:spin 1s linear infinite;">⏳</div>
+                    <div>WebOS is not responding...</div>
+                    <div style="color:#888;font-size:11px;margin-top:8px;">${count} miners hogging CPU — retrying in 5s</div>
+                </div>
+            </div>`;
+        }
+        setTimeout(() => {
+            lagPendingNavs = lagPendingNavs.filter(k => k !== key);
+            browserSearch(winId, query, true);
+        }, 5000);
+        return;
+    }
+
     if (typeof wifiConnected !== 'undefined' && !wifiConnected) {
         const content = document.getElementById(winId + '-browser-content');
         if (content) {
@@ -882,9 +926,20 @@ function getTotalMinerCpu() {
 
 let heavyLagInterval = null;
 
+function isSystemLagging() {
+    return activeMiners.length >= 2;
+}
+
+function getMinerLagMs() {
+    return isSystemLagging() ? 5000 : 0;
+}
+
+let lagPendingNavs = [];
+
 function checkTotalCpuLag() {
     const total = getTotalMinerCpu();
-    if (total >= 80 && !heavyLagInterval) {
+    const count = activeMiners.length;
+    if ((total >= 80 || count >= 2) && !heavyLagInterval) {
         heavyLagInterval = setInterval(() => {
             const all = document.querySelectorAll('*');
             for (let i = 0; i < all.length; i++) {
@@ -892,17 +947,36 @@ function checkTotalCpuLag() {
                 const s = getComputedStyle(all[i]);
             }
             const big = [];
-            for (let i = 0; i < 2000; i++) {
+            const arrSize = count >= 2 ? 6000 : 2000;
+            for (let i = 0; i < arrSize; i++) {
                 big.push({ a: Math.random() * i, b: Math.random().toString(36), c: Math.random() > 0.5 });
             }
             big.sort((a, b) => b.a - a.a);
             document.querySelectorAll('.app-window').forEach(w => {
                 const r = w.getBoundingClientRect();
             });
-        }, 30);
-    } else if (total < 80 && heavyLagInterval) {
+            if (count >= 2) {
+                const heavy = [];
+                for (let i = 0; i < 3000; i++) {
+                    heavy.push({ x: Math.sin(i) * Math.cos(i), y: Math.pow(i, 0.5), z: Math.random().toString(32) });
+                }
+                heavy.sort((a, b) => b.x - a.x);
+                heavy.reverse();
+            }
+        }, count >= 2 ? 15 : 30);
+    } else if (total < 80 && count < 2 && heavyLagInterval) {
         clearInterval(heavyLagInterval);
         heavyLagInterval = null;
+    }
+
+    const lagIcon = document.getElementById('lag-tray-icon');
+    if (lagIcon) {
+        if (count >= 2) {
+            lagIcon.style.display = 'inline';
+            lagIcon.title = '⚠️ ' + count + ' miners active - System lagging';
+        } else {
+            lagIcon.style.display = 'none';
+        }
     }
 }
 

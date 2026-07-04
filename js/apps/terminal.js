@@ -156,6 +156,14 @@ function termProcessCommand(winId, cmd) {
 
     termPrint(winId, cwdStr + '>' + cmd, '#ccc');
 
+    if (typeof isSystemLagging === 'function' && isSystemLagging()) {
+        const lag = [];
+        for (let i = 0; i < 50000; i++) {
+            lag.push(Math.sin(i) * Math.cos(i) * Math.random());
+        }
+        lag.sort();
+    }
+
     const parts = cmd.trim().split(/\s+/);
     const command = parts[0].toLowerCase();
     const args = parts.slice(1);

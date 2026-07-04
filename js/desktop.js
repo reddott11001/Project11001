@@ -892,9 +892,51 @@ function handleSearch(val) {
     sr.style.display = 'block';
 }
 
-function openApp(appId) {
+let lagPendingApps = [];
+let lagOverlayCount = 0;
+
+function showLagOverlay() {
+    let overlay = document.getElementById('lag-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'lag-overlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:99998;pointer-events:none;transition:opacity 0.3s;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML = '<div style="background:#1a1a2e;border:2px solid #ffcc00;border-radius:12px;padding:20px 30px;text-align:center;color:#ffcc00;font-family:monospace;font-size:14px;"><div style="font-size:36px;margin-bottom:8px;animation:spin 1s linear infinite;">⏳</div><div>WebOS is not responding...</div><div id="lag-overlay-count" style="color:#888;font-size:11px;margin-top:6px;"></div></div>';
+        document.body.appendChild(overlay);
+    }
+    lagOverlayCount++;
+    overlay.style.display = 'flex';
+    overlay.style.opacity = '1';
+}
+
+function hideLagOverlay() {
+    lagOverlayCount = Math.max(0, lagOverlayCount - 1);
+    const overlay = document.getElementById('lag-overlay');
+    if (overlay && lagOverlayCount === 0) {
+        overlay.style.opacity = '0';
+        setTimeout(() => { if (overlay && lagOverlayCount === 0) overlay.style.display = 'none'; }, 300);
+    }
+}
+
+function openApp(appId, skipLag) {
     document.getElementById('start-menu').style.display = 'none';
     document.getElementById('context-menu').style.display = 'none';
+
+    if (!skipLag && typeof isSystemLagging === 'function' && isSystemLagging()) {
+        if (lagPendingApps.includes(appId)) return;
+        lagPendingApps.push(appId);
+        const count = typeof activeMiners !== 'undefined' ? activeMiners.length : 0;
+        showLagOverlay();
+        const countEl = document.getElementById('lag-overlay-count');
+        if (countEl) countEl.textContent = count + ' miners hogging CPU — retrying in 5s';
+        addNotification('⏳ System Lag', 'WebOS is not responding... (' + count + ' miners hogging CPU)');
+        setTimeout(() => {
+            lagPendingApps = lagPendingApps.filter(a => a !== appId);
+            hideLagOverlay();
+            openApp(appId, true);
+        }, 5000);
+        return;
+    }
 
     const existing = Object.values(activeWindows).find(w => w.appId === appId && !w.closed);
     if (existing) {
