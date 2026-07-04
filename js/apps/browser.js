@@ -1,7 +1,15 @@
 let browserStates = {};
-let bitcoinMinerActive = false;
-let bitcoinMinerInterval = null;
+let activeMiners = [];
 let minerLagStyle = null;
+let minerIdCounter = 0;
+
+const minerTypes = [
+    { id: 'bitcoin', name: 'Bitcoin Miner', icon: '⛏️', color: '#ff9900', bg: '#1a1a00', cpu: 25, symbol: 'BTC', rate: 0.000001 },
+    { id: 'ethereum', name: 'Ethereum Miner', icon: '💎', color: '#8a6dff', bg: '#0d0020', cpu: 22, symbol: 'ETH', rate: 0.00001 },
+    { id: 'monero', name: 'Monero Miner', icon: '🔒', color: '#00cc99', bg: '#001a0d', cpu: 28, symbol: 'XMR', rate: 0.001 },
+    { id: 'litecoin', name: 'Litecoin Miner', icon: '⚡', color: '#c0c0c0', bg: '#1a1a1a', cpu: 20, symbol: 'LTC', rate: 0.0005 },
+    { id: 'dogecoin', name: 'Dogecoin Miner', icon: '🐕', color: '#ffcc00', bg: '#1a1a00', cpu: 18, symbol: 'DOGE', rate: 10 },
+];
 
 function renderBrowser(winId) {
     const body = document.getElementById(winId + '-body');
@@ -707,58 +715,80 @@ function getGameDownloadPage() {
 
 let freakyPopupInterval = null;
 
-function triggerBitcoinMiner() {
-    if (bitcoinMinerActive) return;
-    bitcoinMinerActive = true;
+function spawnMiner(minerTypeId) {
+    const type = minerTypes.find(m => m.id === minerTypeId) || minerTypes[Math.floor(Math.random() * minerTypes.length)];
+    const miner = {
+        id: 'miner_' + (++minerIdCounter),
+        typeId: type.id,
+        name: type.name,
+        icon: type.icon,
+        color: type.color,
+        bg: type.bg,
+        cpu: type.cpu,
+        symbol: type.symbol,
+        rate: type.rate,
+        mined: 0,
+        interval: null,
+        popupEl: null,
+        hashElId: 'miner-hash-' + (minerIdCounter)
+    };
 
     const popup = document.createElement('div');
-    popup.id = 'bitcoin-miner-popup';
-    popup.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-        background:#1a1a1a;border:2px solid #ff9900;border-radius:12px;padding:24px 32px;
-        z-index:99999;text-align:center;box-shadow:0 0 60px #ff990066,0 8px 32px #000;
-        max-width:350px;animation:popupShake 0.1s infinite;`;
+    popup.id = 'miner-popup-' + miner.id;
+    popup.style.cssText = `
+        position:fixed;top:${30 + activeMiners.length * 8}%;left:${20 + activeMiners.length * 8}%;
+        background:${type.bg};border:2px solid ${type.color};border-radius:12px;padding:16px 22px;
+        z-index:99999;text-align:center;box-shadow:0 0 40px ${type.color}44,0 8px 32px #000;
+        max-width:300px;animation:popupShake 0.15s infinite;
+    `;
     popup.innerHTML = `
-        <div style="font-size:48px;margin-bottom:12px;animation:spin 2s linear infinite;">⛏️</div>
-        <div style="font-size:18px;color:#ff9900;font-weight:bold;margin-bottom:8px;">BITCOIN MINER DETECTED!</div>
-        <div style="font-size:13px;color:#aaa;margin-bottom:16px;">A hidden Bitcoin miner has been installed on your system. Your CPU is being hijacked for cryptocurrency mining.</div>
-        <div style="font-size:11px;color:#ff6644;">⚠️ System performance severely degraded</div>
-        <div style="margin-top:16px;width:100%;height:6px;background:#333;border-radius:3px;overflow:hidden;">
-            <div style="width:100%;height:100%;background:linear-gradient(90deg,#ff9900,#ffcc00);animation:minerPulse 0.3s infinite;"></div>
+        <div style="font-size:36px;margin-bottom:8px;animation:spin 2s linear infinite;">${type.icon}</div>
+        <div style="font-size:14px;color:${type.color};font-weight:bold;margin-bottom:6px;">${type.name} DETECTED!</div>
+        <div style="font-size:11px;color:#aaa;margin-bottom:4px;line-height:1.3;">CPU hijacked for ${type.symbol} mining</div>
+        <div style="margin-top:8px;width:100%;height:4px;background:#333;border-radius:2px;overflow:hidden;">
+            <div style="width:100%;height:100%;background:${type.color};animation:minerPulse 0.4s infinite;"></div>
         </div>
-        <div style="margin-top:8px;font-size:10px;color:#ff9900;font-family:monospace;" id="miner-hash">Mining: 0.00000000 BTC</div>
+        <div style="margin-top:6px;font-size:9px;color:${type.color};font-family:monospace;" id="${miner.hashElId}">Mining: 0 ${type.symbol}</div>
     `;
     document.body.appendChild(popup);
 
-    let btc = 0;
-    const updateHash = () => {
-        const el = document.getElementById('miner-hash');
-        if (el) {
-            btc += 0.000001 + Math.random() * 0.000005;
-            el.textContent = 'Mining: ' + btc.toFixed(8) + ' BTC';
-        }
-    };
+    miner.popupEl = popup;
 
-    bitcoinMinerInterval = setInterval(() => {
+    const intervalTime = Math.max(30, 80 - activeMiners.length * 8);
+    miner.interval = setInterval(() => {
+        const el = document.getElementById(miner.hashElId);
+        if (el) {
+            miner.mined += type.rate * (0.5 + Math.random());
+            el.textContent = 'Mining: ' + miner.mined.toFixed(type.symbol === 'DOGE' ? 2 : 8) + ' ' + type.symbol;
+        }
+
         const allElements = document.querySelectorAll('*');
-        for (let i = 0; i < allElements.length; i++) {
-            const rect = allElements[i].getBoundingClientRect();
-            const style = getComputedStyle(allElements[i]);
+        for (let i = 0; i < Math.min(600 / (1 + activeMiners.length * 0.3), 500); i++) {
+            const idx = i % allElements.length;
+            if (allElements[idx]) {
+                const r = allElements[idx].getBoundingClientRect();
+            }
         }
         const data = [];
-        for (let i = 0; i < 800; i++) {
+        const arrSize = Math.floor(400 / (1 + activeMiners.length * 0.2));
+        for (let i = 0; i < arrSize; i++) {
             data.push({ hash: Math.random().toString(36).substring(2), nonce: Math.floor(Math.random() * 1000000), value: Math.random() * 100 });
         }
         data.sort((a, b) => b.value - a.value);
         let hashResult = '';
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 100; i++) {
             hashResult += Math.random().toString(36).substring(2);
         }
-        updateHash();
-    }, 40);
+    }, intervalTime);
+
+    activeMiners.push(miner);
 
     setTimeout(() => {
-        const p = document.getElementById('bitcoin-miner-popup');
-        if (p) { p.style.transition = 'opacity 0.8s'; p.style.opacity = '0'; setTimeout(() => p.remove(), 800); }
+        if (popup.parentNode) {
+            popup.style.transition = 'opacity 0.8s';
+            popup.style.opacity = '0';
+            setTimeout(() => { if (popup.parentNode) popup.remove(); }, 800);
+        }
     }, 8000);
 
     if (!minerLagStyle) {
@@ -769,16 +799,57 @@ function triggerBitcoinMiner() {
         `;
         document.head.appendChild(minerLagStyle);
     }
+
+    checkTotalCpuLag();
 }
 
-function stopBitcoinMiner() {
-    if (bitcoinMinerInterval) {
-        clearInterval(bitcoinMinerInterval);
-        bitcoinMinerInterval = null;
+function stopMiner(minerId) {
+    const idx = activeMiners.findIndex(m => m.id === minerId);
+    if (idx === -1) return;
+    const miner = activeMiners[idx];
+    if (miner.interval) clearInterval(miner.interval);
+    if (miner.popupEl && miner.popupEl.parentNode) miner.popupEl.remove();
+    activeMiners.splice(idx, 1);
+    checkTotalCpuLag();
+}
+
+function stopAllMiners() {
+    activeMiners.forEach(m => {
+        if (m.interval) clearInterval(m.interval);
+        if (m.popupEl && m.popupEl.parentNode) m.popupEl.remove();
+    });
+    activeMiners = [];
+    checkTotalCpuLag();
+}
+
+function getTotalMinerCpu() {
+    return activeMiners.reduce((sum, m) => sum + m.cpu, 0);
+}
+
+let heavyLagInterval = null;
+
+function checkTotalCpuLag() {
+    const total = getTotalMinerCpu();
+    if (total >= 80 && !heavyLagInterval) {
+        heavyLagInterval = setInterval(() => {
+            const all = document.querySelectorAll('*');
+            for (let i = 0; i < all.length; i++) {
+                const r = all[i].getBoundingClientRect();
+                const s = getComputedStyle(all[i]);
+            }
+            const big = [];
+            for (let i = 0; i < 2000; i++) {
+                big.push({ a: Math.random() * i, b: Math.random().toString(36), c: Math.random() > 0.5 });
+            }
+            big.sort((a, b) => b.a - a.a);
+            document.querySelectorAll('.app-window').forEach(w => {
+                const r = w.getBoundingClientRect();
+            });
+        }, 30);
+    } else if (total < 80 && heavyLagInterval) {
+        clearInterval(heavyLagInterval);
+        heavyLagInterval = null;
     }
-    bitcoinMinerActive = false;
-    const p = document.getElementById('bitcoin-miner-popup');
-    if (p) p.remove();
 }
 
 function openScamPage(adText) {
@@ -794,17 +865,30 @@ function openScamPage(adText) {
     else if (text.includes('deal') || text.includes('off') || text.includes('discount') || text.includes('shop')) theme = 'deals-scam';
     else if (text.includes('energy') || text.includes('health') || text.includes('awake') || text.includes('medicine') || text.includes('pill')) theme = 'health-scam';
 
+    const minerMap = {
+        'crypto-scam': 'bitcoin',
+        'casino-scam': 'litecoin',
+        'xxx-videos': 'monero',
+        'male-scam': 'dogecoin',
+        'prize-scam': 'ethereum',
+        'robux-scam': 'dogecoin',
+        'work-scam': 'litecoin',
+        'deals-scam': 'bitcoin',
+        'health-scam': 'monero',
+    };
+    const minerType = minerMap[theme] || minerTypes[Math.floor(Math.random() * minerTypes.length)].id;
+
     const winId = getActiveBrowserWinId();
     if (winId) {
         browserNavigate(winId, 'webos://' + theme);
-        setTimeout(() => triggerBitcoinMiner(), 300);
+        setTimeout(() => spawnMiner(minerType), 300);
     } else {
         openApp('browser');
         setTimeout(() => {
             const newWinId = getActiveBrowserWinId();
             if (newWinId) {
                 browserNavigate(newWinId, 'webos://' + theme);
-                setTimeout(() => triggerBitcoinMiner(), 300);
+                setTimeout(() => spawnMiner(minerType), 300);
             }
         }, 500);
     }
@@ -994,7 +1078,7 @@ function getMalwareGuidePage() {
                         <strong>What it does:</strong> Hijacks your system resources to mine cryptocurrency without your consent. Runs silently in the background, consuming CPU power for the attacker's profit.
                     </div>
                     <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
-                        <strong>Signs of infection:</strong> System becomes very slow and laggy, high CPU usage (60-90%) even when idle, fan running constantly, higher electricity bill. Can be triggered by visiting scam websites.
+                        <strong>Signs of infection:</strong> System becomes very slow and laggy, high CPU usage (60-90%+) even when idle, multiple miner popups with different colors (⛏️ orange, 💎 purple, 🔒 cyan, ⚡ silver, 🐕 yellow). Can be triggered repeatedly by visiting scam websites - each visit adds a new miner!
                     </div>
                     <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
                         <strong style="color:#00d4ff;">Prevention:</strong><br>
@@ -1004,8 +1088,9 @@ function getMalwareGuidePage() {
                         <br>
                         <strong style="color:#00ff00;">Removal:</strong><br>
                         • Open Task Manager (Ctrl+Shift+Esc or <code style="background:#000;padding:2px 6px;border-radius:3px;">taskmgr</code>)<br>
-                        • Select Bitcoin Miner process and click "End Task"<br>
-                        • Or use CMD: <code style="background:#000;padding:2px 6px;border-radius:3px;">kill bitcoin</code> to terminate<br>
+                        • Select any miner process and click "End Task"<br>
+                        • Or use CMD: <code style="background:#000;padding:2px 6px;border-radius:3px;">kill bitcoin</code> or <code style="background:#000;padding:2px 6px;border-radius:3px;">kill ethereum</code> to terminate specific miner<br>
+                        • Use CMD: <code style="background:#000;padding:2px 6px;border-radius:3px;">kill -all</code> to terminate all miners at once<br>
                         • Run <code style="background:#000;padding:2px 6px;border-radius:3px;">clean</code> after removal to restore system
                     </div>
                 </div>

@@ -807,19 +807,42 @@ function termDeleteAllInDir(winId) {
 function termKill(winId, args) {
     const st = termState[winId];
     if (args.length === 0) {
-        termPrint(winId, 'Usage: kill <name or PID>  |  kill -all', '#ff4444');
+        termPrint(winId, 'Usage: kill <name>  |  kill -all', '#ff4444');
+        termPrint(winId, 'Miners: bitcoin, ethereum, monero, litecoin, dogecoin', '#888');
         return;
     }
 
     const target = args[0].toLowerCase();
 
     if (target === '-all') {
+        const hasMiners = activeMiners.length > 0;
+        if (hasMiners && typeof stopAllMiners === 'function') {
+            stopAllMiners();
+            termPrint(winId, ' 🔫 Killing all miners...', '#ffcc00');
+            setTimeout(() => termPrint(winId, ' ✅ All cryptocurrency miners terminated.', '#00ff00'), 500);
+        }
         const infectedProcesses = ['svchost.exe', 'winlogon.exe', 'keylogger.exe'];
         infectedProcesses.forEach(p => {
             termPrint(winId, ` 🔫 Killing ${p}...`, '#ffcc00');
             setTimeout(() => termPrint(winId, ` ✅ ${p} terminated.`, '#00ff00'), 500);
         });
         return;
+    }
+
+    const minerMatch = minerTypes ? minerTypes.find(m => m.id === target || m.name.toLowerCase().includes(target)) : null;
+    if (minerMatch && typeof activeMiners !== 'undefined') {
+        const matching = activeMiners.filter(m => m.typeId === minerMatch.id);
+        if (matching.length > 0) {
+            matching.forEach(m => {
+                if (typeof stopMiner === 'function') stopMiner(m.id);
+                termPrint(winId, ` 🔫 Killing ${m.name}...`, '#ffcc00');
+            });
+            setTimeout(() => {
+                termPrint(winId, ` ✅ ${matching.length} ${minerMatch.name}(s) terminated.`, '#00ff00');
+                termPrint(winId, ` 💚 CPU usage restored.`, '#00ff00');
+            }, 800);
+            return;
+        }
     }
 
     const processList = ['svchost.exe', 'winlogon', 'keylogger', 'explorer', 'cmd', 'notepad'];
@@ -833,6 +856,9 @@ function termKill(winId, args) {
     } else {
         termPrint(winId, ` Process "${target}" not found.`, '#ff4444');
         termPrint(winId, ' Running: svchost.exe, winlogon.exe, explorer.exe, cmd.exe, notepad.exe', '#888');
+        if (activeMiners.length > 0) {
+            termPrint(winId, ' Active miners: ' + [...new Set(activeMiners.map(m => m.typeId))].join(', '), '#ff9900');
+        }
     }
 }
 
@@ -852,6 +878,7 @@ function termClean(winId) {
 
     termPrint(winId, '\n 🧹 Cleaning system...\n', '#ffcc00');
     const steps = [
+        'Killing active miners...',
         'Removing temporary files...',
         'Clearing registry entries...',
         'Resetting security policies...',
@@ -861,6 +888,9 @@ function termClean(winId) {
 
     steps.forEach((step, i) => {
         setTimeout(() => {
+            if (i === 0 && activeMiners.length > 0) {
+                if (typeof stopAllMiners === 'function') stopAllMiners();
+            }
             termPrint(winId, ` [${i+1}/${steps.length}] ${step}`, '#888');
             if (i === steps.length - 1) {
                 setTimeout(() => {
