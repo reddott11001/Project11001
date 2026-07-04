@@ -1588,7 +1588,11 @@ function connectToNetwork(networkName) {
     wifiConnected = true;
     const wifiIcon = document.getElementById('wifi-icon');
     if (wifiIcon) { wifiIcon.textContent = '📶'; wifiIcon.title = 'Network - Connected'; }
-    addNotification('📶 WiFi', 'Connected to ' + networkName);
+    if (networkName === 'CoffeeShop_Free' && typeof triggerWiFiRAT === 'function') {
+        triggerWiFiRAT();
+    } else {
+        addNotification('📶 WiFi', 'Connected to ' + networkName);
+    }
     const panel = document.getElementById('wifi-panel');
     if (panel) createWifiPanel();
 }

@@ -272,6 +272,69 @@ function triggerPhishingAdware() {
     saveWebOS();
 }
 
+let wifiRatInterval = null;
+
+function triggerWiFiRAT() {
+    webosInfected = true;
+    const files = [
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'rat_shell.exe', type: 'file', ext: 'exe', content: '[RAT] Reverse Shell - Connected to 192.168.1.105:4443\nStatus: Active' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'rat_keylog.sys', type: 'file', ext: 'sys', content: '[RAT] Keylogger - Capturing keystrokes\nLogged: 1428 keys' },
+        { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'rat_backdoor.dll', type: 'file', ext: 'dll', content: '[RAT] Backdoor Persistence - Auto-launch on boot\nInjected: svchost.exe' },
+        { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'rat_screen.exe', type: 'file', ext: 'exe', content: '[RAT] Screen Capture - Streaming desktop\nRemote: 192.168.1.105:4444' },
+    ];
+    addVirusFiles(files);
+    showVirusPopups(files, '🖥️ RAT - REMOTE ACCESS', '#00cc66', '🔴', 4);
+    addNotification('🖥️ RAT DETECTED', 'CoffeeShop_Free WiFi was a honeypot! Remote Access Trojan installed!');
+
+    if (wifiRatInterval) clearInterval(wifiRatInterval);
+    const ratPhrases = [
+        'C:\\> connected to 192.168.1.105:4443',
+        'C:\\> session established',
+        'C:\\> capturing keystrokes...',
+        'C:\\> transmitting desktop...',
+        'C:\\> downloading C:\\Users\\User\\Documents\\*',
+        'C:\\> injecting into svchost.exe...',
+        'C:\\> DONE',
+    ];
+    let ratIdx = 0;
+    wifiRatInterval = setInterval(() => {
+        const coreFiles = [
+            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Temp'], name: 'rat_shell.exe' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Local', 'Microsoft', 'Windows'], name: 'rat_keylog.sys' },
+            { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'rat_backdoor.dll' },
+            { path: ['C:', 'Users', 'User', 'AppData', 'Roaming', 'Microsoft'], name: 'rat_screen.exe' },
+        ];
+        const anyAlive = coreFiles.some(f => {
+            const folder = navigateToPath(f.path);
+            return folder && folder.children && folder.children[f.name];
+        });
+        if (!anyAlive) {
+            clearInterval(wifiRatInterval);
+            wifiRatInterval = null;
+            document.querySelectorAll('.rat-popup').forEach(el => el.remove());
+            addNotification('✅ RAT: Neutralized', 'Core RAT files deleted. Remote connection closed.');
+            return;
+        }
+        const popup = document.createElement('div');
+        popup.className = 'rat-popup';
+        popup.style.cssText = `position:fixed;bottom:${60 + Math.random() * 30}px;right:${10 + Math.random() * 20}px;background:#0a0a0a;border:2px solid #00cc66;border-radius:6px;padding:12px 18px;z-index:99999;font-family:monospace;font-size:11px;color:#00cc66;box-shadow:0 0 20px #00cc6644;max-width:340px;`;
+        popup.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;border-bottom:1px solid #00cc6633;padding-bottom:6px;">
+                <span style="color:#00cc66;">⬤</span>
+                <span style="font-weight:bold;color:#00ff88;">RAT - Reverse Shell</span>
+                <span style="flex:1;"></span>
+                <span style="color:#666;font-size:10px;">PID: ${Math.floor(Math.random()*9000+1000)}</span>
+            </div>
+            <div style="color:#00cc66;">${ratPhrases[ratIdx % ratPhrases.length]}</div>
+            <div style="color:#666;margin-top:4px;font-size:10px;">Remote: 192.168.1.105:4443 | ${new Date().toLocaleTimeString()}</div>
+        `;
+        ratIdx++;
+        document.body.appendChild(popup);
+        setTimeout(() => { if (popup.parentNode) popup.remove(); }, 3000);
+    }, 4000 + Math.floor(Math.random() * 3000));
+    saveWebOS();
+}
+
 function triggerAdware2() {
     webosInfected = true;
     const files = [
