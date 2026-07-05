@@ -374,47 +374,59 @@ function feRefresh(winId) {
     renderFEContent(document.getElementById(winId + '-body'), winId);
 }
 
+function extractEmoji(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const iconDiv = tmp.querySelector('.icon-img');
+    if (iconDiv) return iconDiv.textContent.trim();
+    return tmp.textContent.trim().split('\n')[0].trim() || '📄';
+}
+
 function renderRecycleBin(winId) {
     const body = document.getElementById(winId + '-body');
     
-    if (recycleBinItems.length === 0) {
-        body.innerHTML = `
-            <div class="recycle-app">
-                <div class="recycle-toolbar">
-                    <button class="recycle-btn" onclick="emptyRecycleBin()">🗑️ Empty Recycle Bin</button>
+    const itemsHTML = recycleBinItems.length > 0 ? recycleBinItems.map(item => {
+        const isOldFormat = item.icon.includes('<');
+        const emoji = isOldFormat ? extractEmoji(item.icon) : item.icon;
+        return `
+        <div class="recycle-item">
+            <div class="recycle-item-icon">${emoji}</div>
+            <div class="recycle-item-info">
+                <div class="recycle-item-name">${item.name}</div>
+                <div class="recycle-item-date">Deleted: ${item.deletedAt}</div>
+            </div>
+            <div class="recycle-item-actions">
+                <button class="recycle-action-btn restore-btn" onclick="restoreApp('${item.appId}'); renderRecycleBin('${winId}');">♻️ Restore</button>
+                <button class="recycle-action-btn delete-btn" onclick="permaDelete('${item.appId}'); renderRecycleBin('${winId}');">🗑️ Delete</button>
+            </div>
+        </div>`;
+    }).join('') : '';
+    
+    body.innerHTML = `
+        <div class="recycle-app">
+            <div class="recycle-toolbar">
+                <div class="recycle-toolbar-left">
+                    <span class="recycle-toolbar-icon">🗑️</span>
+                    <span class="recycle-toolbar-title">Recycle Bin</span>
                 </div>
-                <div class="recycle-empty">
-                    <div style="text-align:center;">
-                        <div style="font-size:64px;margin-bottom:16px;">🗑️</div>
-                        <div>Recycle Bin is empty</div>
-                    </div>
+                <div class="recycle-toolbar-right">
+                    ${recycleBinItems.length > 0 ? `<span class="recycle-count">${recycleBinItems.length} item${recycleBinItems.length !== 1 ? 's' : ''}</span>` : ''}
+                    <button class="recycle-btn" onclick="emptyRecycleBin()" ${recycleBinItems.length === 0 ? 'disabled style="opacity:0.5;cursor:default;"' : ''}>🗑️ Empty Recycle Bin</button>
                 </div>
             </div>
-        `;
-    } else {
-        const itemsHTML = recycleBinItems.map(item => `
-            <div class="recycle-item">
-                <div class="recycle-item-icon">${item.icon}</div>
-                <div class="recycle-item-info">
-                    <div class="recycle-item-name">${item.name}</div>
-                    <div class="recycle-item-date">Deleted: ${item.deletedAt}</div>
-                </div>
-                <div class="recycle-item-actions">
-                    <button class="recycle-action-btn restore-btn" onclick="restoreApp('${item.appId}'); renderRecycleBin('${winId}');">♻️ Restore</button>
+            ${recycleBinItems.length === 0 ? `
+            <div class="recycle-empty">
+                <div class="recycle-empty-content">
+                    <div class="recycle-empty-icon">🗑️</div>
+                    <div class="recycle-empty-text">Recycle Bin is empty</div>
+                    <div class="recycle-empty-sub">Items you delete from the desktop will appear here</div>
                 </div>
             </div>
-        `).join('');
-        
-        body.innerHTML = `
-            <div class="recycle-app">
-                <div class="recycle-toolbar">
-                    <button class="recycle-btn" onclick="emptyRecycleBin()">🗑️ Empty Recycle Bin</button>
-                    <span class="recycle-count">${recycleBinItems.length} item(s)</span>
-                </div>
-                <div class="recycle-list">
-                    ${itemsHTML}
-                </div>
+            ` : `
+            <div class="recycle-list">
+                ${itemsHTML}
             </div>
-        `;
-    }
+            `}
+        </div>
+    `;
 }

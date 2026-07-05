@@ -291,7 +291,7 @@ function initIconPositions() {
         let idx = orderedIds.indexOf(appId);
         if (idx === -1) idx = orderedIds.length; // fallback: append at end
 
-        // Column-first layout: 7 icons down, then next column
+        // Column-first layout: 7 icons per column, then wrap to next column
         const col = Math.floor(idx / MAX_ROWS);
         const row = idx % MAX_ROWS;
         const pos = getCellPosition(col, row);
@@ -708,12 +708,13 @@ function deleteApp(appId) {
     if (!icon) return;
     
     const appName = getAppName(appId);
-    const iconHTML = icon.innerHTML;
+    const iconEl = icon.querySelector('.icon-img');
+    const emoji = iconEl ? iconEl.textContent.trim() : icon.textContent.trim();
     
     recycleBinItems.push({
         appId: appId,
         name: appName,
-        icon: iconHTML,
+        icon: emoji,
         deletedAt: new Date().toLocaleString()
     });
     
@@ -745,7 +746,8 @@ function restoreApp(appId) {
     icon.className = 'desktop-icon';
     icon.setAttribute('data-app', appId);
     icon.setAttribute('ondblclick', `openApp('${appId}')`);
-    icon.innerHTML = item.icon;
+    const emoji = (item.icon && item.icon.includes('<')) ? extractEmoji(item.icon) : (item.icon || '📄');
+    icon.innerHTML = `<div class="icon-img">${emoji}</div><span>${item.name}</span>`;
     
     icon.addEventListener('click', (e) => {
         if (iconDragState.hasMoved) {
@@ -803,6 +805,12 @@ function emptyRecycleBin() {
     if (rbWin) {
         renderRecycleBin(rbWin.id);
     }
+}
+
+function permaDelete(appId) {
+    recycleBinItems = recycleBinItems.filter(i => i.appId !== appId);
+    saveWebOS();
+    addNotification('🗑️ Permanently Deleted', `${appId} has been permanently deleted.`);
 }
 
 function toggleStartMenu() {

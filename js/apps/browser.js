@@ -1990,6 +1990,15 @@ function downloadGame(gameId) {
         tictactoe: { name: 'Tic Tac Toe Pro', icon: '⭕', file: 'tictactoe_game.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
         platformer: { name: 'Super Pixel Mario', icon: '🏃', file: 'super_pixel_mario.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
         doom2: { name: 'Doom 2: Hell Walker', icon: '🔫', file: 'doom2_hell_walker.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        snake: { name: 'Snake (eat apple)', icon: '🐍', file: 'snake.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        flappy: { name: 'Flappy Bird (endless)', icon: '🐦', file: 'flappy_bird.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        breakout: { name: 'Breakout (Arkanoid)', icon: '🧱', file: 'breakout.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        invaders: { name: 'Space Invaders', icon: '👾', file: 'space_invaders.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        game2048: { name: '2048', icon: '🔢', file: 'game2048.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        minesweeper: { name: 'Minesweeper', icon: '💣', file: 'minesweeper.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        pacman: { name: 'Pac-Man', icon: '🟡', file: 'pacman.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        pong: { name: 'Pong', icon: '🏓', file: 'pong.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
+        doodle: { name: 'Doodle Jump', icon: '👽', file: 'doodle_jump.exe', path: ['C:', 'Users', 'User', 'Downloads'] },
     };
     const info = gameInfo[gameId];
     if (!info) return;
@@ -2074,11 +2083,13 @@ function downloadGame(gameId) {
                     icon.style.left = '-1000px';
                     icon.style.top = '-1000px';
                     
-                    // Position after built-in icons in single column (col 0)
-                    const builtInCount = 6;
+                    // Column-first layout: 7 icons per column, then wrap to next column
+                    const MAX_ROWS = 7;
+                    const builtInCount = 7;
                     const gameIndex = typeof downloadedGames !== 'undefined' ? downloadedGames.indexOf(gameId) : 0;
-                    const col = 0;
-                    const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+                    const totalIdx = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+                    const col = Math.floor(totalIdx / MAX_ROWS);
+                    const row = totalIdx % MAX_ROWS;
                     const pos = typeof getCellPosition !== 'undefined' ? getCellPosition(col, row) : { left: 10, top: 10 + row * 100 };
                     
                     if (typeof findNearestEmptyCell !== 'undefined' && typeof getCellPosition !== 'undefined' && typeof clampToBounds !== 'undefined') {
