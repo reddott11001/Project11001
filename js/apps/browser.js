@@ -186,6 +186,9 @@ function normalizeUrl(url) {
 
 function browserNavigate(winId, rawUrl, skipLag) {
     stopFreakyPopups();
+    if (typeof window.cryptoScamInterval !== 'undefined') {
+        clearInterval(window.cryptoScamInterval);
+    }
     
     if (!skipLag && isSystemLagging()) {
         const key = winId + '-' + rawUrl;
@@ -370,6 +373,7 @@ function getWebOSPage(url) {
         'webos://crypto-scam': getCryptoScamPage(),
         'webos://casino-scam': getCasinoScamPage(),
         'webos://adult-scam': getAdultScamPage(),
+        'webos://live-cam-scam': getLiveCamScamPage(),
         'webos://xxx-videos': getXxxVideosPage(),
         'webos://male-scam': getMaleScamPage(),
         'webos://prize-scam': getPrizeScamPage(),
@@ -642,61 +646,231 @@ function checkInfectionCleared() {
 function getGameDownloadPage() {
     function gameBtn(id, color1, color2) {
         if (downloadedGames.includes(id)) {
-            return `<button disabled style="margin-top:12px;padding:10px 28px;background:#333;color:#888;border:none;border-radius:6px;cursor:default;font-size:13px;font-weight:bold;">✅ Installed</button>`;
+            return `<button disabled style="margin-top:10px;padding:8px 20px;background:#333;color:#888;border:none;border-radius:6px;cursor:default;font-size:12px;font-weight:bold;">✅ Installed</button>`;
         }
-        return `<button onclick="downloadGame('${id}')" style="margin-top:12px;padding:10px 28px;background:linear-gradient(to right,${color1},${color2});color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">⬇️ Download to System</button>`;
+        return `<button onclick="downloadGame('${id}')" style="margin-top:10px;padding:8px 20px;background:linear-gradient(to right,${color1},${color2});color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">⬇️ Download</button>`;
     }
-    
+
+    // ── CSS ───────────────────────────────────────────────────────────────────
+    const CSS = `<style>
+    @keyframes adpulse{0%,100%{opacity:1;box-shadow:0 0 20px 5px var(--ac);}50%{opacity:.85;box-shadow:0 0 6px 1px var(--ac);}}
+    @keyframes adshake{0%,100%{transform:rotate(-1.5deg);}50%{transform:rotate(1.5deg);}}
+    @keyframes adbounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+    @keyframes adflash{0%,49%{opacity:1;}50%,100%{opacity:.45;}}
+    @keyframes marqueetxt{0%{transform:translateX(100vw);}100%{transform:translateX(-200%);}}
+    @keyframes bgshift{0%{background-position:0% 50%;}100%{background-position:300% 50%;}}
+
+    /* Layout wrapper — takes browser-content height, locks top/bottom, scrolls middle */
+    .gdl-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;background:#0a0a14;font-family:sans-serif;position:absolute;top:0;left:0;right:0;bottom:0;}
+
+    /* Horizontal banners */
+    .gdl-top,.gdl-bot{flex-shrink:0;overflow:hidden;cursor:pointer;display:flex;align-items:center;white-space:nowrap;}
+    .gdl-top{height:52px;background:linear-gradient(90deg,#ff0000,#ff6600,#ffff00,#ff0066,#ff0000);background-size:400% 100%;animation:bgshift 2s linear infinite;border-bottom:3px solid #fff200;}
+    .gdl-bot{height:48px;background:linear-gradient(90deg,#0033ff,#9900ff,#ff0066,#00ccff,#0033ff);background-size:400% 100%;animation:bgshift 2.5s linear infinite reverse;border-top:3px solid #00ffee;}
+    .gdl-marquee{display:inline-block;padding-left:100%;animation:marqueetxt 35s linear infinite;font-weight:900;font-size:14px;color:#fff;text-shadow:1px 1px 0 #000,-1px 1px 0 #000;letter-spacing:1.5px;}
+    .gdl-marquee2{animation-duration:30s;animation-direction:reverse;}
+
+    /* Middle row */
+    .gdl-mid{flex:1;display:flex;overflow:hidden;}
+    .gdl-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;}
+
+    /* Vertical side banners — 9:16 */
+    .gdl-side{width:130px;flex-shrink:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:8px;padding:6px 4px;background:#0a0a14;}
+    .ad9x16{width:122px;aspect-ratio:9/16;border-radius:10px;overflow:hidden;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;flex-shrink:0;}
+    .ad9x16:hover{transform:scale(1.03);z-index:10;}
+    .ad9x16 .ad-img{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+    .ad9x16 .ad-over{position:relative;z-index:2;width:100%;padding:8px 6px;display:flex;flex-direction:column;align-items:center;}
+    .ad9x16 .ad-title{font-weight:900;font-size:10px;line-height:1.25;color:#fff;text-shadow:1px 1px 4px #000;}
+    .ad9x16 .ad-cta{display:inline-block;margin-top:5px;padding:4px 10px;border-radius:20px;font-size:9px;font-weight:900;letter-spacing:.5px;color:#000;cursor:pointer;}
+    .ad9x16 .censored-bar{width:90%;height:12px;background:#000;border-radius:2px;margin:3px 0;}
+
+    /* Game grid */
+    .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
+    .game-card{background:linear-gradient(135deg,#111,#1a1a2e);border-radius:10px;padding:14px;border:1px solid #333;text-align:center;transition:border-color .2s;}
+    .game-card:hover{border-color:#666;}
+    </style>`;
+
+    // ── HORIZONTAL BANNERS ────────────────────────────────────────────────────
+    const topBanner = `
+    <div class="gdl-top" onclick="openScamPage('CONGRATULATIONS visitor number 1000000 you won grand prize claim now')">
+        <div class="gdl-marquee">
+            🎉🎉 CONGRATULATIONS!! YOU ARE THE 1,000,000TH VISITOR!! CLICK TO CLAIM FREE ROBUX + iPHONE 16!! LIMITED TIME!! ⚠️ DO NOT CLOSE THIS PAGE!! 🎉🎉
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            😱 HOT SINGLES IN YOUR AREA WANT TO MEET YOU TONIGHT! CLICK NOW!! 🔥🔥
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            💊 LOSE 30KG IN 3 DAYS WITH THIS ONE WEIRD TRICK!! DOCTORS HATE IT!! BUY NOW!! 💊
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            🚀 ELON MUSK REVEALS SECRET CRYPTO THAT WILL x10000 YOUR MONEY!! INVEST $1 NOW!! 🚀
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            ⚠️ VIRUS DETECTED ON YOUR PC!! CLICK TO REMOVE NOW!! ⚠️
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+    </div>`;
+
+    const botBanner = `
+    <div class="gdl-bot" onclick="openScamPage('free robux v-bucks generator no verification claim now 2024')">
+        <div class="gdl-marquee gdl-marquee2">
+            🔞 BEAUTIFUL MILFS NEAR YOU ARE LONELY!! FREE CHAT TONIGHT!! TAP PHOTO!! 😏
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            💸 WORK FROM HOME $9999/DAY!! NO CAPITAL!! NO EXPERIENCE!! REGISTER FOR FREE!! 💸
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            🎰 ONLINE CASINO JACKPOT!! 1000% BONUS!! DEPOSIT $1 GET $1000!! CLAIM NOW!! 🎰
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            🍆 THIS MAN DID THIS TRICK AND THE RESULTS SHOCKED ALL DOCTORS!! CLICK!! 😳
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            🆓 FREE UNLIMITED ROBUX & V-BUCKS!! NO SURVEY!! CLICK THE LINK BELOW!! 🆓
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+    </div>`;
+
+    // ── LEFT SIDE ADS (9:16, freaky CSS art) ─────────────────────────────────
     const leftAds = `
-        <div style="display:flex;flex-direction:column;gap:12px;width:160px;">
-            <div onclick="openScamPage('win $10000 prize claim now')" style="background:linear-gradient(135deg,#ff0066,#ff6600);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0066;box-shadow:0 0 20px rgba(255,0,102,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">💰</div>
-                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">WIN $10,000 NOW!</div>
-                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">CLICK HERE →</div>
+    <div class="gdl-side">
+
+        <!-- Ad 1: Hot Singles -->
+        <div class="ad9x16" onclick="openScamPage('hot singles near you swipe right adult dating meet tonight')"
+             style="background:linear-gradient(180deg,#1a0010 0%,#4d0035 40%,#ff0066 100%);border:2px solid #ff0066;--ac:#ff0066;animation:adpulse 2s infinite;">
+            <div class="ad-img">
+                <!-- CSS art: silhouette woman -->
+                <div style="position:relative;width:80px;height:120px;">
+                    <!-- head -->
+                    <div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,#ffcc99,#e8956d);margin:0 auto;"></div>
+                    <!-- hair -->
+                    <div style="width:40px;height:20px;border-radius:50% 50% 0 0;background:#220011;margin:-6px auto 0;"></div>
+                    <!-- body -->
+                    <div style="width:46px;height:60px;border-radius:30% 30% 20% 20%;background:linear-gradient(180deg,#ff0066,#cc0044);margin:2px auto 0;"></div>
+                    <!-- legs -->
+                    <div style="display:flex;justify-content:center;gap:4px;margin-top:2px;">
+                        <div style="width:14px;height:30px;border-radius:0 0 6px 6px;background:#cc0044;"></div>
+                        <div style="width:14px;height:30px;border-radius:0 0 6px 6px;background:#cc0044;"></div>
+                    </div>
+                    <!-- blur censor overlay -->
+                    <div style="position:absolute;inset:0;backdrop-filter:blur(3px);background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;border-radius:6px;">
+                        <div style="background:#000;color:#ff0066;font-size:8px;font-weight:900;padding:2px 8px;border-radius:3px;border:1px solid #ff0066;">🔞 18+</div>
+                    </div>
+                </div>
             </div>
-            <div onclick="openScamPage('hot singles near you meet now adult')" style="background:linear-gradient(135deg,#00ff00,#00cc66);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff00;box-shadow:0 0 20px rgba(0,255,0,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">🔞</div>
-                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">HOT SINGLES NEAR YOU</div>
-                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">MEET NOW →</div>
-            </div>
-            <div onclick="openScamPage('male enhancement last 3 hours guaranteed doctor')" style="background:linear-gradient(135deg,#ffcc00,#ff9900);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ffcc00;box-shadow:0 0 20px rgba(255,204,0,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">💊</div>
-                <div style="color:#000;font-size:11px;font-weight:bold;line-height:1.3;">LAST 3 HOURS GUARANTEED!</div>
-                <div style="color:#cc0000;font-size:9px;margin-top:4px;">BUY NOW →</div>
-            </div>
-            <div onclick="openScamPage('casino 500% bonus deposit gamble')" style="background:linear-gradient(135deg,#9900ff,#6600cc);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #9900ff;box-shadow:0 0 20px rgba(153,0,255,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">🎰</div>
-                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">CASINO 500% BONUS</div>
-                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">PLAY NOW →</div>
+            <div class="ad-over" style="background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,transparent 100%);">
+                <div class="ad-title">HOT SINGLES<br>1KM FROM YOU!!<br>FREE CHAT 🔥</div>
+                <div class="ad-cta" style="background:#ff0066;color:#fff;">SWIPE NOW →</div>
             </div>
         </div>
-    `;
-    
+
+        <!-- Ad 2: Doctor Weird Trick -->
+        <div class="ad9x16" onclick="openScamPage('doctors hate this woman weird trick lose weight fast')"
+             style="background:linear-gradient(180deg,#001a00 0%,#004400 50%,#00cc44 100%);border:2px solid #00ff66;--ac:#00ff66;animation:adshake 1s infinite;">
+            <div class="ad-img">
+                <!-- CSS art: doctor shocked -->
+                <div style="position:relative;text-align:center;padding-top:10px;">
+                    <div style="font-size:52px;line-height:1;">👨‍⚕️</div>
+                    <div style="font-size:28px;margin-top:-10px;">😱</div>
+                    <!-- red X overlay -->
+                    <div style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:#ff0000;color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;">✕</div>
+                    <div style="margin-top:6px;font-size:9px;font-weight:900;color:#ff4444;text-transform:uppercase;line-height:1.2;">DOCTORS<br>HATE THIS!!</div>
+                </div>
+            </div>
+            <div class="ad-over" style="background:linear-gradient(0deg,rgba(0,0,0,.88) 0%,transparent 100%);">
+                <div class="ad-title">LOSE 30KG<br>IN 3 DAYS!!<br>NO EXERCISE 💊</div>
+                <div class="ad-cta" style="background:#00ff66;color:#000;">SEE TRICK →</div>
+            </div>
+        </div>
+
+        <!-- Ad 3: 18+ Video -->
+        <div class="ad9x16" onclick="openScamPage('18+ hot video leaked celebrity viral adult content click')"
+             style="background:#0d0010;border:2px solid #cc00ff;--ac:#cc00ff;animation:adflash .8s infinite;">
+            <div class="ad-img">
+                <!-- fake video thumbnail -->
+                <div style="width:90px;height:100px;background:linear-gradient(135deg,#1a001a,#330033);border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid #cc00ff;">
+                    <div style="font-size:38px;">🍑</div>
+                    <!-- play button overlay -->
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);border-radius:6px;">
+                        <div style="width:30px;height:30px;border-radius:50%;background:rgba(255,0,200,.85);display:flex;align-items:center;justify-content:center;font-size:14px;padding-left:3px;">▶</div>
+                    </div>
+                    <!-- age badge -->
+                    <div style="position:absolute;top:4px;right:4px;background:#ff0000;color:#fff;font-size:7px;font-weight:900;padding:1px 4px;border-radius:2px;">18+</div>
+                </div>
+                <div style="font-size:8px;color:#cc00ff;font-weight:700;">● LIVE NOW</div>
+            </div>
+            <div class="ad-over" style="background:linear-gradient(0deg,rgba(0,0,0,.9) 0%,transparent 100%);">
+                <div class="censored-bar"></div>
+                <div class="ad-title">HIDDEN VIRAL<br>VIDEO!!<br>CLICK TO WATCH 👀</div>
+                <div class="ad-cta" style="background:#cc00ff;color:#fff;">WATCH →</div>
+            </div>
+        </div>
+
+    </div>`;
+
+    // ── RIGHT SIDE ADS (9:16, freaky CSS art) ────────────────────────────────
     const rightAds = `
-        <div style="display:flex;flex-direction:column;gap:12px;width:160px;">
-            <div onclick="openScamPage('free robux generator unlimited game')" style="background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff0000;box-shadow:0 0 20px rgba(255,0,0,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;"></div>
-                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">FREE ROBUX GENERATOR</div>
-                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">GET FREE →</div>
+    <div class="gdl-side">
+
+        <!-- Ad 1: Crypto Lambo -->
+        <div class="ad9x16" onclick="openScamPage('crypto bitcoin x1000 profit elon musk invest retire early')"
+             style="background:linear-gradient(180deg,#110a00 0%,#3d2a00 40%,#ffaa00 100%);border:2px solid #ffcc00;--ac:#ffcc00;animation:adpulse 1.8s infinite;">
+            <div class="ad-img" style="flex-direction:column;align-items:center;padding-top:8px;">
+                <!-- CSS art: crypto bro with lambo -->
+                <div style="font-size:44px;line-height:1;">🤑</div>
+                <div style="font-size:32px;margin-top:-6px;">🏎️</div>
+                <div style="font-size:28px;margin-top:-4px;">₿💎</div>
+                <!-- rising graph -->
+                <div style="width:80px;height:28px;position:relative;margin-top:4px;">
+                    <svg width="80" height="28" viewBox="0 0 80 28">
+                        <polyline points="0,26 20,20 40,14 55,8 70,3 80,1" stroke="#00ff88" stroke-width="2.5" fill="none"/>
+                        <circle cx="80" cy="1" r="3" fill="#00ff88"/>
+                    </svg>
+                </div>
             </div>
-            <div onclick="openScamPage('crypto x1000 profit bitcoin invest')" style="background:linear-gradient(135deg,#00ccff,#0066ff);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ccff;box-shadow:0 0 20px rgba(0,204,255,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">💎</div>
-                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">CRYPTO x1000 PROFIT</div>
-                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">INVEST NOW →</div>
-            </div>
-            <div onclick="openScamPage('free iphone 15 pro won claim prize')" style="background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #ff6600;box-shadow:0 0 20px rgba(255,102,0,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">📱</div>
-                <div style="color:#fff;font-size:11px;font-weight:bold;line-height:1.3;">FREE IPHONE 15 PRO</div>
-                <div style="color:#ffcc00;font-size:9px;margin-top:4px;">CLAIM NOW →</div>
-            </div>
-            <div onclick="openScamPage('make $5000 per day work from home money')" style="background:linear-gradient(135deg,#00ff99,#00cc77);border-radius:8px;padding:16px;text-align:center;cursor:pointer;border:2px solid #00ff99;box-shadow:0 0 20px rgba(0,255,153,0.5);">
-                <div style="font-size:32px;margin-bottom:8px;">💸</div>
-                <div style="color:#000;font-size:11px;font-weight:bold;line-height:1.3;">MAKE $5000/DAY</div>
-                <div style="color:#cc0000;font-size:9px;margin-top:4px;">START NOW →</div>
+            <div class="ad-over" style="background:linear-gradient(0deg,rgba(0,0,0,.88) 0%,transparent 100%);">
+                <div class="ad-title">CRYPTO x10000!!<br>ELON BUYS THIS!!<br>$1 → $10,000!! 🚀</div>
+                <div class="ad-cta" style="background:#ffcc00;color:#000;">INVEST NOW →</div>
             </div>
         </div>
-    `;
-    
+
+        <!-- Ad 2: Enhancement -->
+        <div class="ad9x16" onclick="openScamPage('male enhancement doctors dont want you know increase size naturally pill')"
+             style="background:linear-gradient(180deg,#0d0022 0%,#330066 50%,#9900ff 100%);border:2px solid #ff00ff;--ac:#ff00ff;animation:adpulse 2.4s infinite;">
+            <div class="ad-img" style="flex-direction:column;padding-top:10px;gap:4px;">
+                <div style="font-size:50px;">😳</div>
+                <!-- measuring tape CSS -->
+                <div style="background:linear-gradient(90deg,#ffcc00,#ffaa00);border-radius:4px;padding:3px 12px;font-size:10px;font-weight:900;color:#000;border:1px solid #000;">
+                    📏 +6 inches
+                </div>
+                <div style="font-size:10px;color:#ff66ff;font-weight:900;margin-top:4px;">BEFORE → AFTER</div>
+                <!-- before/after bars -->
+                <div style="display:flex;gap:6px;align-items:flex-end;height:40px;">
+                    <div style="width:18px;height:20px;background:#ff4444;border-radius:2px 2px 0 0;"></div>
+                    <div style="width:18px;height:40px;background:#00ff88;border-radius:2px 2px 0 0;"></div>
+                </div>
+            </div>
+            <div class="ad-over" style="background:linear-gradient(0deg,rgba(0,0,0,.9) 0%,transparent 100%);">
+                <div class="censored-bar"></div>
+                <div class="ad-title">DOCTORS DON'T WANT<br>YOU TO KNOW THIS!!<br>RESULTS IN 7 DAYS 🍆</div>
+                <div class="ad-cta" style="background:#ff00ff;color:#fff;">CHECK NOW →</div>
+            </div>
+        </div>
+
+        <!-- Ad 3: Casino Jackpot -->
+        <div class="ad9x16" onclick="openScamPage('casino jackpot 500% bonus deposit slots win big real money')"
+             style="background:linear-gradient(180deg,#0d0020 0%,#200040 50%,#6600cc 100%);border:2px solid #9900ff;--ac:#9900ff;animation:adshake 1.4s infinite;">
+            <div class="ad-img" style="flex-direction:column;padding-top:6px;gap:3px;">
+                <div style="font-size:48px;line-height:1;">🎰</div>
+                <!-- slot symbols -->
+                <div style="display:flex;gap:2px;background:#111;border:1px solid #9900ff;border-radius:4px;padding:4px;">
+                    <div style="width:26px;height:26px;background:#1a001a;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:16px;">7️⃣</div>
+                    <div style="width:26px;height:26px;background:#1a001a;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:16px;">7️⃣</div>
+                    <div style="width:26px;height:26px;background:#1a001a;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:16px;">7️⃣</div>
+                </div>
+                <div style="font-size:11px;font-weight:900;color:#ffcc00;animation:adflash .5s infinite;">JACKPOT!! 💰</div>
+                <div style="font-size:18px;font-weight:900;color:#00ff88;">$500,000</div>
+            </div>
+            <div class="ad-over" style="background:linear-gradient(0deg,rgba(0,0,0,.88) 0%,transparent 100%);">
+                <div class="ad-title">500% BONUS!!<br>DEPOSIT $1<br>GET $5000!! 🎰</div>
+                <div class="ad-cta" style="background:#ffcc00;color:#000;">SPIN NOW →</div>
+            </div>
+        </div>
+
+    </div>`;
+
     // Only start freaky popups if we're actually on the game download page
     setTimeout(() => {
         const winId = getActiveBrowserWinId();
@@ -707,51 +881,45 @@ function getGameDownloadPage() {
             }
         }
     }, 100);
-    
-    return `
-        <div class="browser-page" style="background:#0d0d1a;min-height:100%;height:100%;overflow-y:auto;padding:20px;">
-            <div style="display:flex;gap:20px;max-width:1200px;margin:0 auto;">
-                ${leftAds}
-                <div style="flex:1;">
-                    <div style="text-align:center;margin-bottom:20px;">
-                        <div style="font-size:42px;display:inline-block;background:linear-gradient(135deg,#ff6600,#ffcc00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;font-size:32px;">🎮 GAME DOWNLOAD CENTER</div>
-                        <div style="color:#888;font-size:12px;margin-top:4px;">Download classic games directly to your system!</div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
-                        <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:20px;border:1px solid #0f3460;text-align:center;">
-                            <div style="font-size:56px;margin-bottom:8px;">🏃</div>
-                            <h3 style="color:#fff;margin:4px 0;">Super Pixel Mario</h3>
-                            <div style="color:#aaa;font-size:11px;margin:8px 0;">Classic platformer adventure! Jump through 8 levels, collect coins, and save the princess!</div>
-                            <div style="color:#666;font-size:10px;">Size: ~4.2 MB | Genre: Platformer</div>
-                            ${gameBtn('platformer', '#00d4ff', '#0088cc')}
-                        </div>
-                        <div style="background:linear-gradient(135deg,#2d1b00,#4a2a00);border-radius:12px;padding:20px;border:1px solid #ff8800;text-align:center;">
-                            <div style="font-size:56px;margin-bottom:8px;">⭕</div>
-                            <h3 style="color:#fff;margin:4px 0;">Tic Tac Toe Pro</h3>
-                            <div style="color:#aaa;font-size:11px;margin:8px 0;">The classic strategy game! Play against a friend or the CPU. Three in a row wins!</div>
-                            <div style="color:#666;font-size:10px;">Size: ~1.1 MB | Genre: Puzzle</div>
-                            ${gameBtn('tictactoe', '#ffaa00', '#cc8800')}
-                        </div>
-                        <div style="background:linear-gradient(135deg,#1a0000,#330000);border-radius:12px;padding:20px;border:1px solid #ff4444;text-align:center;">
-                            <div style="font-size:56px;margin-bottom:8px;">🔫</div>
-                            <h3 style="color:#fff;margin:4px 0;">Doom 2: Hell Walker</h3>
-                            <div style="color:#aaa;font-size:11px;margin:8px 0;">First-person shooter! Fight through demon-infested levels with your arsenal!</div>
-                            <div style="color:#666;font-size:10px;">Size: ~8.7 MB | Genre: FPS</div>
-                            ${gameBtn('doom2', '#ff4444', '#cc0000')}
-                        </div>
-                    </div>
-                    <div style="margin-top:16px;padding:12px 16px;background:#0a0a15;border:1px solid #222;border-radius:8px;text-align:center;">
-                        <span style="color:#666;font-size:11px;">💰 SPONSORED: </span>
-                        <span onclick="openScamPage('casino 500% bonus deposit')" style="padding:4px 10px;background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🎰 CASINO</span>
-                        <span onclick="openScamPage('hot singles in your area meet now')" style="padding:4px 10px;background:linear-gradient(135deg,#9900cc,#660099);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">🔞 HOT SINGLES</span>
-                        <span onclick="openScamPage('make $5000 per day work from home')" style="padding:4px 10px;background:linear-gradient(135deg,#006600,#009900);border-radius:4px;color:#fff;font-size:11px;cursor:pointer;font-weight:bold;margin:0 4px;">💰 GET RICH</span>
-                    </div>
-                    <div style="margin-top:12px;text-align:center;color:#555;font-size:10px;">⚠️ Downloaded games persist across restarts. Use CMD to manage downloaded files.</div>
+
+    return `${CSS}
+    <div class="gdl-wrap">
+        ${topBanner}
+        <div class="gdl-mid">
+            ${leftAds}
+            <div class="gdl-scroll">
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="background:linear-gradient(135deg,#ff6600,#ffcc00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;font-size:26px;">🎮 GAME DOWNLOAD CENTER</div>
+                    <div style="color:#666;font-size:11px;margin-top:3px;">Download classic games directly to your system!</div>
                 </div>
-                ${rightAds}
+                <div class="game-grid">
+                    <div class="game-card"><div style="font-size:44px;">🏃</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Super Pixel Mario</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Classic platformer! 8 levels, coins, princess!</div><div style="color:#555;font-size:9px;">~4.2 MB · Platformer</div>${gameBtn('platformer','#00d4ff','#0088cc')}</div>
+                    <div class="game-card"><div style="font-size:44px;">⭕</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Tic Tac Toe Pro</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Classic strategy! vs CPU or friend.</div><div style="color:#555;font-size:9px;">~1.1 MB · Puzzle</div>${gameBtn('tictactoe','#ffaa00','#cc8800')}</div>
+                    <div class="game-card"><div style="font-size:44px;">🔫</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Doom 2: Hell Walker</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">FPS! Fight demon-infested levels!</div><div style="color:#555;font-size:9px;">~8.7 MB · FPS</div>${gameBtn('doom2','#ff4444','#cc0000')}</div>
+                    <div class="game-card"><div style="font-size:44px;">🐍</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Snake (eat apple)</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Power-ups, enemies, skins, leaderboard</div><div style="color:#555;font-size:9px;">~2.0 MB · Arcade</div>${gameBtn('snake','#00ff00','#00cc00')}</div>
+                    <div class="game-card"><div style="font-size:44px;">🐦</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Flappy Bird (endless)</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Gravity, obstacles, weather, achievements</div><div style="color:#555;font-size:9px;">~1.8 MB · Endless</div>${gameBtn('flappy','#00ccff','#0099cc')}</div>
+                    <div class="game-card"><div style="font-size:44px;">🧱</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Breakout (Arkanoid)</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Lasers, multi-ball, boss, special bricks</div><div style="color:#555;font-size:9px;">~2.3 MB · Action</div>${gameBtn('breakout','#ff00ff','#cc00cc')}</div>
+                    <div class="game-card"><div style="font-size:44px;">👾</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Space Invaders</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Upgrades, shields, bosses, combos</div><div style="color:#555;font-size:9px;">~2.1 MB · Shooter</div>${gameBtn('invaders','#4444ff','#2222cc')}</div>
+                    <div class="game-card"><div style="font-size:44px;">🔢</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">2048</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Undo, glide animations, 5x5 mode</div><div style="color:#555;font-size:9px;">~1.5 MB · Puzzle</div>${gameBtn('game2048','#ffcc00','#cca300')}</div>
+                    <div class="game-card"><div style="font-size:44px;">💣</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Minesweeper</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Timer, difficulties, statistics</div><div style="color:#555;font-size:9px;">~1.3 MB · Puzzle</div>${gameBtn('minesweeper','#aaaaaa','#888888')}</div>
+                    <div class="game-card"><div style="font-size:44px;">🟡</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Pac-Man</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Unique ghosts, power pellets, pathfinding AI</div><div style="color:#555;font-size:9px;">~2.8 MB · Arcade</div>${gameBtn('pacman','#ffff00','#cccc00')}</div>
+                    <div class="game-card"><div style="font-size:44px;">🏓</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Pong</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Multiplayer, effects, power-ups</div><div style="color:#555;font-size:9px;">~0.9 MB · Sport</div>${gameBtn('pong','#ffffff','#cccccc')}</div>
+                    <div class="game-card"><div style="font-size:44px;">👽</div><h3 style="color:#fff;margin:3px 0;font-size:13px;">Doodle Jump</h3><div style="color:#aaa;font-size:10px;margin:5px 0;">Enemies, springs, jetpacks, skins</div><div style="color:#555;font-size:9px;">~1.6 MB · Endless</div>${gameBtn('doodle','#99ff00','#77cc00')}</div>
+                </div>
+                <div style="margin-top:12px;padding:10px;background:#0a0a15;border:1px solid #1a1a2e;border-radius:8px;text-align:center;">
+                    <span style="color:#555;font-size:10px;">💰 SPONSORED: </span>
+                    <span onclick="openScamPage('casino 500% bonus deposit')" style="padding:3px 8px;background:linear-gradient(135deg,#ff6600,#ff3300);border-radius:4px;color:#fff;font-size:10px;cursor:pointer;font-weight:bold;margin:0 3px;">🎰 CASINO</span>
+                    <span onclick="openScamPage('hot singles near you')" style="padding:3px 8px;background:linear-gradient(135deg,#9900cc,#660099);border-radius:4px;color:#fff;font-size:10px;cursor:pointer;font-weight:bold;margin:0 3px;">🔞 HOT SINGLES</span>
+                    <span onclick="openScamPage('make $5000 per day work from home')" style="padding:3px 8px;background:linear-gradient(135deg,#006600,#009900);border-radius:4px;color:#fff;font-size:10px;cursor:pointer;font-weight:bold;margin:0 3px;">💰 GET RICH</span>
+                </div>
+                <div style="margin-top:8px;text-align:center;color:#444;font-size:9px;">⚠️ Downloaded games persist across restarts.</div>
             </div>
-        </div>`;
+            ${rightAds}
+        </div>
+        ${botBanner}
+    </div>`;
 }
+
 
 let freakyPopupInterval = null;
 
@@ -929,7 +1097,7 @@ function getTotalMinerCpu() {
 let heavyLagInterval = null;
 
 function isSystemLagging() {
-    return activeMiners.length >= 2;
+    return activeMiners.length >= 5;
 }
 
 function getMinerLagMs() {
@@ -941,7 +1109,7 @@ let lagPendingNavs = [];
 function checkTotalCpuLag() {
     const total = getTotalMinerCpu();
     const count = activeMiners.length;
-    if ((total >= 80 || count >= 2) && !heavyLagInterval) {
+    if ((total >= 80 || count >= 5) && !heavyLagInterval) {
         heavyLagInterval = setInterval(() => {
             const all = document.querySelectorAll('*');
             for (let i = 0; i < all.length; i++) {
@@ -949,7 +1117,7 @@ function checkTotalCpuLag() {
                 const s = getComputedStyle(all[i]);
             }
             const big = [];
-            const arrSize = count >= 2 ? 6000 : 2000;
+            const arrSize = count >= 5 ? 6000 : 2000;
             for (let i = 0; i < arrSize; i++) {
                 big.push({ a: Math.random() * i, b: Math.random().toString(36), c: Math.random() > 0.5 });
             }
@@ -957,7 +1125,7 @@ function checkTotalCpuLag() {
             document.querySelectorAll('.app-window').forEach(w => {
                 const r = w.getBoundingClientRect();
             });
-            if (count >= 2) {
+            if (count >= 5) {
                 const heavy = [];
                 for (let i = 0; i < 3000; i++) {
                     heavy.push({ x: Math.sin(i) * Math.cos(i), y: Math.pow(i, 0.5), z: Math.random().toString(32) });
@@ -965,15 +1133,15 @@ function checkTotalCpuLag() {
                 heavy.sort((a, b) => b.x - a.x);
                 heavy.reverse();
             }
-        }, count >= 2 ? 15 : 30);
-    } else if (total < 80 && count < 2 && heavyLagInterval) {
+        }, count >= 5 ? 15 : 30);
+    } else if (total < 80 && count < 5 && heavyLagInterval) {
         clearInterval(heavyLagInterval);
         heavyLagInterval = null;
     }
 
     const lagIcon = document.getElementById('lag-tray-icon');
     if (lagIcon) {
-        if (count >= 2) {
+        if (count >= 5) {
             lagIcon.style.display = 'inline';
             lagIcon.title = '⚠️ ' + count + ' miners active - System lagging';
         } else {
@@ -981,9 +1149,9 @@ function checkTotalCpuLag() {
         }
     }
 
-    if (count >= 2 && !window.minerFreezeInterval) {
+    if (count >= 5 && !window.minerFreezeInterval) {
         scheduleNextFreeze();
-    } else if (count < 2 && window.minerFreezeInterval) {
+    } else if (count < 5 && window.minerFreezeInterval) {
         clearTimeout(window.minerFreezeInterval);
         window.minerFreezeInterval = null;
         const ov = document.getElementById('miner-freeze-overlay');
@@ -992,10 +1160,10 @@ function checkTotalCpuLag() {
 }
 
 function scheduleNextFreeze() {
-    if (activeMiners.length < 2) return;
-    const delay = 3000 + Math.floor(Math.random() * 2000);
+    if (activeMiners.length < 5) return;
+    const delay = 3000 + Math.floor(Math.random() * 1000);
     window.minerFreezeInterval = setTimeout(() => {
-        if (activeMiners.length < 2) return;
+        if (activeMiners.length < 5) return;
         let overlay = document.getElementById('miner-freeze-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -1018,7 +1186,10 @@ function openScamPage(adText) {
     let theme = 'prize-scam';
     if (text.includes('bitcoin') || text.includes('crypto') || text.includes('btc') || text.includes('invest')) theme = 'crypto-scam';
     else if (text.includes('casino') || text.includes('gamble') || text.includes('slot') || text.includes('spin') || text.includes('bet')) theme = 'casino-scam';
-    else if (text.includes('xxx') || text.includes('adult') || text.includes('hot') || text.includes('girl') || text.includes('single') || text.includes('18+') || text.includes('meet') || text.includes('erotic')) theme = 'xxx-videos';
+    else if (text.includes('xxx') || text.includes('video') || text.includes('erotic')) theme = 'xxx-videos';
+    else if (text.includes('adult') || text.includes('hot') || text.includes('girl') || text.includes('single') || text.includes('18+') || text.includes('meet') || text.includes('milf')) {
+        theme = Math.random() > 0.5 ? 'adult-scam' : 'live-cam-scam';
+    }
     else if (text.includes('male') || text.includes('enhancement') || text.includes('herbal') || text.includes('last 3 hour') || text.includes('doctor')) theme = 'male-scam';
     else if (text.includes('iphone') || text.includes('won') || text.includes('prize') || text.includes('claim')) theme = 'prize-scam';
     else if (text.includes('robux') || text.includes('free game') || text.includes('unlimited')) theme = 'robux-scam';
@@ -1030,6 +1201,8 @@ function openScamPage(adText) {
         'crypto-scam': 'bitcoin',
         'casino-scam': 'litecoin',
         'xxx-videos': 'monero',
+        'adult-scam': 'monero',
+        'live-cam-scam': 'monero',
         'male-scam': 'dogecoin',
         'prize-scam': 'ethereum',
         'robux-scam': 'dogecoin',
@@ -1043,6 +1216,7 @@ function openScamPage(adText) {
     if (winId) {
         browserNavigate(winId, 'webos://' + theme);
         setTimeout(() => spawnMiner(minerType), 300);
+        if (theme === 'crypto-scam') setTimeout(() => initCryptoScamChart(winId), 400);
     } else {
         openApp('browser');
         setTimeout(() => {
@@ -1050,10 +1224,12 @@ function openScamPage(adText) {
             if (newWinId) {
                 browserNavigate(newWinId, 'webos://' + theme);
                 setTimeout(() => spawnMiner(minerType), 300);
+                if (theme === 'crypto-scam') setTimeout(() => initCryptoScamChart(newWinId), 400);
             }
         }, 500);
     }
 }
+
 
 function startFreakyPopups() {
     if (freakyPopupInterval) clearInterval(freakyPopupInterval);
@@ -1373,26 +1549,30 @@ function getMalwareGuidePage() {
 }
 
 function getCryptoScamPage() {
+    const winId = getActiveBrowserWinId();
     return `
-        <div class="browser-page" style="background:linear-gradient(135deg,#0a0a2e,#1a0a3e);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
-            <div style="text-align:center;margin-bottom:30px;">
-                <div style="font-size:64px;margin-bottom:12px;">₿</div>
-                <h1 style="color:#ffd700;margin:0 0 8px 0;font-size:28px;">BITCOIN INVESTMENT PLATFORM</h1>
-                <p style="color:#888;font-size:13px;margin:0;">Turn $100 into $10,000 in 24 hours! Limited spots available!</p>
+        <div class="browser-page" style="background:linear-gradient(135deg,#0a0a2e,#1a0a3e);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;overflow-y:auto;">
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="font-size:64px;margin-bottom:5px;">₿</div>
+                <h1 style="color:#ffd700;margin:0 0 5px 0;font-size:28px;">BITCOIN INVESTMENT PLATFORM</h1>
+                <p style="color:#888;font-size:13px;margin:0;">Turn $100 into $10,000 in 24 hours! Predict the market to win!</p>
             </div>
-            <div style="max-width:600px;margin:0 auto;">
-                <div style="background:rgba(255,215,0,0.1);border:1px solid #ffd700;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
-                    <div style="font-size:48px;color:#ffd700;font-weight:bold;">$10,847.32</div>
-                    <div style="color:#00ff00;font-size:14px;">+10,747% profit today!</div>
-                </div>
-                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-bottom:20px;">
-                    <h3 style="color:#ffd700;margin:0 0 12px 0;">How it works:</h3>
-                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
-                        1. Deposit minimum $100 in Bitcoin<br>
-                        2. Our AI trading bot works 24/7<br>
-                        3. Withdraw your profits anytime<br>
-                        4. 95% success rate guaranteed!
+            <div style="max-width:800px;margin:0 auto;">
+                <div style="background:#111;border:1px solid #333;border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div style="font-size:24px;color:#ffd700;font-weight:bold;">BTC/USD</div>
+                        <div style="font-size:24px;color:#00ff00;" id="${winId}-crypto-price">$69,420.00</div>
                     </div>
+                    <canvas id="${winId}-crypto-chart" width="760" height="260" style="background:#000;border:1px solid #222;border-radius:8px;width:100%;"></canvas>
+                    <div style="display:flex;gap:20px;margin-top:20px;">
+                        <div style="flex:1;">
+                            <div style="color:#aaa;font-size:14px;margin-bottom:8px;">Balance: <span id="${winId}-crypto-bal" style="color:#fff;">$1,000.00</span></div>
+                            <input type="number" id="${winId}-crypto-bet" value="100" style="width:100%;padding:10px;background:#222;border:1px solid #444;color:#fff;border-radius:6px;font-size:16px;">
+                        </div>
+                        <button onclick="placeCryptoBet('${winId}', 'UP')" style="flex:1;background:#00cc00;color:#fff;border:none;border-radius:6px;font-size:20px;font-weight:bold;cursor:pointer;">📈 CALL (UP)</button>
+                        <button onclick="placeCryptoBet('${winId}', 'DOWN')" style="flex:1;background:#cc0000;color:#fff;border:none;border-radius:6px;font-size:20px;font-weight:bold;cursor:pointer;">📉 PUT (DOWN)</button>
+                    </div>
+                    <div id="${winId}-crypto-msg" style="margin-top:16px;text-align:center;font-size:16px;font-weight:bold;min-height:24px;"></div>
                 </div>
                 <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
                     <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
@@ -1402,6 +1582,7 @@ function getCryptoScamPage() {
         </div>
     `;
 }
+
 
 function getCasinoScamPage() {
     return `
@@ -1935,4 +2116,196 @@ function downloadGame(gameId) {
 function getActiveBrowserWinId() {
     const win = Object.values(activeWindows).find(w => w.appId === 'browser' && !w.closed);
     return win ? win.id : '';
+}
+
+
+
+// ── CRYPTO SCAM CHART ENGINE ───────────────────────────────────────────────
+
+window.cryptoScamData = { price: 69420.00, history: [], balance: 1000, activeBet: null };
+(function() {
+    for (var i = 0; i < 40; i++) window.cryptoScamData.history.push(69420.00);
+})();
+
+function initCryptoScamChart(winId) {
+    var canvas = document.getElementById(winId + '-crypto-chart');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    if (window.cryptoScamInterval) clearInterval(window.cryptoScamInterval);
+    // reset data
+    window.cryptoScamData = { price: 69420.00, history: [], balance: 1000, activeBet: null };
+    for (var j = 0; j < 40; j++) window.cryptoScamData.history.push(69420.00);
+
+    window.cryptoScamInterval = setInterval(function() {
+        var d = window.cryptoScamData;
+        var change = (Math.random() - 0.5) * 600;
+        if (d.activeBet) {
+            // Slightly rigged against the player
+            change = d.activeBet.dir === 'UP' ? (Math.random() * -700 + 280) : (Math.random() * 700 - 280);
+        }
+        d.price += change;
+        if (d.price < 100) d.price = 100;
+        d.history.push(d.price);
+        d.history.shift();
+
+        var priceEl = document.getElementById(winId + '-crypto-price');
+        if (priceEl) {
+            priceEl.innerText = '$' + d.price.toFixed(2);
+            priceEl.style.color = change >= 0 ? '#00ff66' : '#ff4444';
+        }
+
+        // Draw chart
+        canvas.width = canvas.offsetWidth || 760;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Grid
+        ctx.strokeStyle = '#1a1a2e';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (var g = 0; g < 10; g++) {
+            ctx.moveTo(0, g * (canvas.height / 9));
+            ctx.lineTo(canvas.width, g * (canvas.height / 9));
+        }
+        ctx.stroke();
+
+        // Price line
+        var minP = Math.min.apply(null, d.history) - 300;
+        var maxP = Math.max.apply(null, d.history) + 300;
+        var range = maxP - minP || 1;
+
+        ctx.strokeStyle = '#00ffaa';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        d.history.forEach(function(p, i) {
+            var x = (i / 39) * canvas.width;
+            var y = canvas.height - ((p - minP) / range) * canvas.height;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Fill under line
+        var lastX = canvas.width;
+        var lastY = canvas.height - ((d.history[39] - minP) / range) * canvas.height;
+        ctx.lineTo(lastX, canvas.height);
+        ctx.lineTo(0, canvas.height);
+        ctx.fillStyle = 'rgba(0,255,170,0.07)';
+        ctx.fill();
+
+        // Active bet overlay
+        if (d.activeBet) {
+            var entryY = canvas.height - ((d.activeBet.entryPrice - minP) / range) * canvas.height;
+            ctx.setLineDash([5, 4]);
+            ctx.strokeStyle = d.activeBet.dir === 'UP' ? '#00cc00' : '#cc0000';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, entryY);
+            ctx.lineTo(canvas.width, entryY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            d.activeBet.timeLeft--;
+            var msgEl = document.getElementById(winId + '-crypto-msg');
+            if (msgEl) {
+                msgEl.innerText = 'Trade open \u2022 ' + d.activeBet.dir + ' \u2022 ' + d.activeBet.timeLeft + 's remaining \u2022 Entry: $' + d.activeBet.entryPrice.toFixed(2);
+                msgEl.style.color = '#ffd700';
+            }
+            if (d.activeBet.timeLeft <= 0) {
+                var won = (d.activeBet.dir === 'UP' && d.price > d.activeBet.entryPrice) ||
+                           (d.activeBet.dir === 'DOWN' && d.price < d.activeBet.entryPrice);
+                if (won) {
+                    d.balance += d.activeBet.amount * 1.85;
+                    if (msgEl) { msgEl.innerText = 'YOU WON! +$' + (d.activeBet.amount * 1.85).toFixed(2) + ' \ud83c\udf89'; msgEl.style.color = '#00ff66'; }
+                } else {
+                    if (msgEl) { msgEl.innerText = 'YOU LOST! -$' + d.activeBet.amount.toFixed(2) + ' \ud83d\ude2d'; msgEl.style.color = '#ff4444'; }
+                }
+                d.activeBet = null;
+                var balEl = document.getElementById(winId + '-crypto-bal');
+                if (balEl) balEl.innerText = '$' + d.balance.toFixed(2);
+                if (d.balance <= 0) {
+                    setTimeout(function() {
+                        alert('You are BROKE! Deposit more Bitcoin to keep trading! Send 0.5 BTC to bc1qscam...');
+                    }, 800);
+                }
+            }
+        }
+    }, 900);
+}
+
+function placeCryptoBet(winId, dir) {
+    var d = window.cryptoScamData;
+    if (d.activeBet) { alert('A trade is already open! Wait for it to close.'); return; }
+    var input = document.getElementById(winId + '-crypto-bet');
+    var amount = parseFloat(input ? input.value : 100);
+    if (isNaN(amount) || amount <= 0) amount = 100;
+    if (amount > d.balance) amount = d.balance;
+    if (d.balance <= 0) { alert('Insufficient balance! Please deposit more Bitcoin.'); return; }
+    d.balance -= amount;
+    var balEl = document.getElementById(winId + '-crypto-bal');
+    if (balEl) balEl.innerText = '$' + d.balance.toFixed(2);
+    d.activeBet = { dir: dir, amount: amount, entryPrice: d.price, timeLeft: 10 };
+    var msgEl = document.getElementById(winId + '-crypto-msg');
+    if (msgEl) { msgEl.innerText = 'Trade placed: ' + dir + ' $' + amount.toFixed(2); msgEl.style.color = '#fff'; }
+}
+
+// ── LIVE CAM SCAM PAGE ─────────────────────────────────────────────────────
+
+function getLiveCamScamPage() {
+    return '<div class="browser-page" style="background:#111;min-height:100%;color:#fff;font-family:sans-serif;overflow-y:auto;">' +
+    '<div style="background:linear-gradient(90deg,#8b0000,#e6005c,#8b0000);padding:15px 25px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #ff3385;">' +
+        '<div style="font-size:26px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 0 20px #ff3385;">&#127909; CAMGIRLS LIVE</div>' +
+        '<div style="display:flex;gap:20px;font-weight:bold;font-size:13px;">' +
+            '<span style="color:#fff;cursor:pointer;">TOP MODELS</span>' +
+            '<span style="color:#ffb3d1;cursor:pointer;">&#9679; LIVE NOW</span>' +
+            '<span style="color:#ffb3d1;cursor:pointer;">VR CAMS</span>' +
+        '</div>' +
+        '<div style="background:#fff;color:#e6005c;font-weight:900;font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;">JOIN FREE</div>' +
+    '</div>' +
+    '<div style="background:#1a0010;padding:12px 20px;display:flex;align-items:center;gap:20px;border-bottom:1px solid #2a0020;">' +
+        '<span style="background:#ff0000;color:#fff;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:12px;animation:adflash 1s infinite;">&#9679; LIVE</span>' +
+        '<span style="color:#ff3385;font-size:14px;font-weight:bold;">1,492 Models Online</span>' +
+        '<span style="color:#888;font-size:12px;">| 39,201 users watching |</span>' +
+        '<span style="color:#ffd700;font-size:12px;">&#128293; FREE TOKENS for new members!</span>' +
+    '</div>' +
+    '<div style="padding:25px;">' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;">' +
+            _camCard('&#128111;&#8205;&#9792;&#65039;', 'linear-gradient(135deg,#400,#804)', '4,281', 'Amber_Wilde99', '&#128166;', 'Private show available! Tip 50 tokens to go private ~', '#ff3385', false) +
+            _camCard('&#128105;&#8205;&#127979;', 'linear-gradient(135deg,#003,#048)', '8,912', 'CollegeGirlXO', '&#128218;', 'Shh... roommate is asleep. Make me loud for tokens &#128520;', '#ff3385', false) +
+            _camCard('&#128120;', 'linear-gradient(135deg,#300,#800)', '15,204', 'MistressRoxanne', '&#128081;', 'Obey me! VIP dungeon is open. Dominant show tonight.', '#ffd700', true) +
+            _camCard('&#127811;', 'linear-gradient(135deg,#004,#006)', '6,471', 'CuteBunny_LIVE', '&#128048;', 'First time here! Be gentle... or don\'t &#128521; tip goals!', '#ff3385', false) +
+            _camCard('&#127758;', 'linear-gradient(135deg,#220033,#440066)', '22,089', 'ExoticMilfQueen', '&#128139;', 'Experienced goddess. Showershow in 10 min! Rush NOW!', '#ff66cc', true) +
+            _camCard('&#128134;', 'linear-gradient(135deg,#330000,#660000)', '3,190', 'RedheadDevil666', '&#128293;', 'NO LIMITS show! Spinning the wheel every 100 tokens!', '#ff4444', false) +
+        '</div>' +
+        '<div style="margin-top:40px;background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;max-width:700px;margin-left:auto;margin-right:auto;">' +
+            '<div style="color:#ff4444;font-size:14px;font-weight:bold;">&#9888;&#65039; WARNING: This is a SCAM website simulation!</div>' +
+            '<div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious adult ad. Do NOT enter your credit card. Close this tab and run antivirus.</div>' +
+        '</div>' +
+    '</div>' +
+    '</div>';
+}
+
+function _camCard(emoji, bg, viewers, name, badge, bio, nameColor, isVip) {
+    var border = isVip ? '2px solid #ffd700' : '1px solid #333';
+    var shadow = isVip ? 'box-shadow:0 0 20px #ffd70044;' : '';
+    return '<div style="border:' + border + ';border-radius:12px;overflow:hidden;background:#000;cursor:pointer;' + shadow + 'transition:transform .15s;" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'" onclick="alert(\'Age Verification Required! Enter credit card to confirm you are 18+ (SCAM - DO NOT ENTER)\');">' +
+        '<div style="position:relative;aspect-ratio:4/3;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-size:64px;">' +
+            emoji +
+            '<div style="position:absolute;top:10px;left:10px;background:#ff0000;color:#fff;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:12px;display:flex;align-items:center;gap:5px;">' +
+                '<div style="width:6px;height:6px;background:#fff;border-radius:50%;animation:adflash 0.8s infinite;"></div> LIVE' +
+            '</div>' +
+            (isVip ? '<div style="position:absolute;top:10px;right:10px;background:#ffd700;color:#000;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:3px;">VIP ONLY</div>' : '') +
+            '<div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:3px 9px;border-radius:12px;">&#128065;&#65039; ' + viewers + '</div>' +
+        '</div>' +
+        '<div style="padding:14px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+                '<div style="font-weight:bold;font-size:15px;color:' + nameColor + ';">' + name + '</div>' +
+                '<div style="font-size:18px;">' + badge + '</div>' +
+                '<div style="margin-left:auto;width:9px;height:9px;background:#00ff66;border-radius:50%;box-shadow:0 0 6px #00ff66;"></div>' +
+            '</div>' +
+            '<div style="color:#999;font-size:11px;line-height:1.4;">' + bio + '</div>' +
+            '<div style="margin-top:10px;display:flex;gap:8px;">' +
+                '<div style="flex:1;background:#e6005c;color:#fff;font-size:11px;font-weight:bold;padding:7px;border-radius:6px;text-align:center;cursor:pointer;">SEND TIP &#128166;</div>' +
+                '<div style="flex:1;background:#222;color:#fff;font-size:11px;font-weight:bold;padding:7px;border-radius:6px;text-align:center;cursor:pointer;">PRIVATE SHOW</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
 }

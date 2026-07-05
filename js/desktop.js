@@ -67,6 +67,15 @@ function restoreDownloadedIcons() {
         tictactoe: { name: 'Tic Tac Toe Pro', icon: '⭕' },
         platformer: { name: 'Super Pixel Mario', icon: '🏃' },
         doom2: { name: 'Doom 2: Hell Walker', icon: '🔫' },
+        snake: { name: 'Snake (eat apple)', icon: '🐍' },
+        flappy: { name: 'Flappy Bird (endless)', icon: '🐦' },
+        breakout: { name: 'Breakout (Arkanoid)', icon: '🧱' },
+        invaders: { name: 'Space Invaders', icon: '👾' },
+        game2048: { name: '2048', icon: '🔢' },
+        minesweeper: { name: 'Minesweeper', icon: '💣' },
+        pacman: { name: 'Pac-Man', icon: '🟡' },
+        pong: { name: 'Pong', icon: '🏓' },
+        doodle: { name: 'Doodle Jump', icon: '👽' },
     };
     downloadedGames.forEach(gameId => {
         const info = gameInfo[gameId];
@@ -101,11 +110,14 @@ function restoreDownloadedIcons() {
         icon.addEventListener('mousedown', handleIconMouseDown);
         di.appendChild(icon);
         
-        // Position downloaded games after the built-in icons in single column
-        const builtInCount = 7; // recycle, file-explorer, notepad, browser, fighter, tetris, readme
+        // Column-first layout: 7 icons per column, then wrap to next column
+        const builtInApps = ['recycle', 'file-explorer', 'notepad', 'browser', 'fighter', 'tetris', 'readme'];
+        const MAX_ROWS = 7;
+        const builtInCount = builtInApps.length;
         const gameIndex = downloadedGames.indexOf(gameId);
-        const col = 0;
-        const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
+        const totalIdx = builtInCount + (gameIndex >= 0 ? gameIndex : downloadedGames.length);
+        const col = Math.floor(totalIdx / MAX_ROWS);
+        const row = totalIdx % MAX_ROWS;
         const pos = getCellPosition(col, row);
         icon.style.left = pos.left + 'px';
         icon.style.top = pos.top + 'px';
@@ -257,42 +269,38 @@ function initIconPositions() {
     const icons = document.querySelectorAll('.desktop-icon');
     const container = document.getElementById('desktop-icons');
     if (!container) return;
-    
-    // Define the desired layout order (single column)
+
+    // Master order: built-in apps first, then downloaded games
     const builtInApps = ['recycle', 'file-explorer', 'notepad', 'browser', 'fighter', 'tetris', 'readme'];
-    
-    icons.forEach((icon, index) => {
-        const appId = icon.getAttribute('data-app');
-        
-        // Temporarily move icon off-screen so it's not counted in occupied cells
+    const MAX_ROWS = 7; // icons per column before wrapping to next column
+
+    // Build a flat ordered list: built-ins first, then downloaded games in order
+    const orderedIds = [
+        ...builtInApps,
+        ...downloadedGames.filter(id => !builtInApps.includes(id))
+    ];
+
+    icons.forEach(icon => {
+        // Move off-screen temporarily
         icon.style.left = '-1000px';
-        icon.style.top = '-1000px';
-        
-        let finalPos;
-        // Always use the correct layout order, ignore saved positions
-        const builtInIndex = builtInApps.indexOf(appId);
-        if (builtInIndex !== -1) {
-            // Position built-in apps in single column (col 0)
-            const col = 0;
-            const row = builtInIndex;
-            const pos = getCellPosition(col, row);
-            finalPos = { left: pos.left, top: pos.top };
-        } else {
-            // For downloaded games, position them after built-in apps in same column
-            const builtInCount = builtInApps.length;
-            const gameIndex = downloadedGames.indexOf(appId);
-            const totalRow = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
-            const col = 0;
-            const row = totalRow;
-            const pos = getCellPosition(col, row);
-            finalPos = { left: pos.left, top: pos.top };
-        }
-        
-        icon.style.left = finalPos.left + 'px';
-        icon.style.top = finalPos.top + 'px';
-        iconPositions[appId] = finalPos;
+        icon.style.top  = '-1000px';
     });
-    
+
+    icons.forEach(icon => {
+        const appId = icon.getAttribute('data-app');
+        let idx = orderedIds.indexOf(appId);
+        if (idx === -1) idx = orderedIds.length; // fallback: append at end
+
+        // Column-first layout: 7 icons down, then next column
+        const col = Math.floor(idx / MAX_ROWS);
+        const row = idx % MAX_ROWS;
+        const pos = getCellPosition(col, row);
+
+        icon.style.left = pos.left + 'px';
+        icon.style.top  = pos.top  + 'px';
+        iconPositions[appId] = pos;
+    });
+
     saveWebOS();
 }
 
@@ -764,21 +772,12 @@ function restoreApp(appId) {
     
     di.appendChild(icon);
     
-    // Temporarily move icon off-screen so it's not counted in occupied cells
-    icon.style.left = '-1000px';
-    icon.style.top = '-1000px';
-    
-    // Always position in single column after built-in icons
-    const builtInCount = 6;
-    const gameIndex = downloadedGames.indexOf(appId);
-    const col = 0;
-    const row = builtInCount + (gameIndex >= 0 ? gameIndex : 0);
-    const pos = getCellPosition(col, row);
-    const clampedPos = clampToBounds(pos.left, pos.top);
-    
-    icon.style.left = clampedPos.left + 'px';
-    icon.style.top = clampedPos.top + 'px';
-    iconPositions[appId] = clampedPos;
+    if (typeof initIconPositions !== 'undefined') {
+        initIconPositions();
+    } else {
+        icon.style.left = '0px';
+        icon.style.top = '0px';
+    }
     
     if (!downloadedGames.includes(appId)) {
         downloadedGames.push(appId);
@@ -953,6 +952,15 @@ function openApp(appId, skipLag) {
         'paint': { title: 'Paint', icon: '🎨', width: 900, height: 620, render: renderPaint },
         'solitaire': { title: 'Solitaire', icon: '🃏', width: 850, height: 620, render: renderSolitaire },
         'tetris': { title: 'BlockStack', icon: '🧱', width: 420, height: 580, render: renderTetris },
+        'snake': { title: 'Snake (eat apple)', icon: '🐍', width: 450, height: 500, render: renderSnake },
+        'flappy': { title: 'Flappy Bird (endless)', icon: '🐦', width: 400, height: 550, render: renderFlappy },
+        'breakout': { title: 'Breakout (Arkanoid)', icon: '🧱', width: 600, height: 500, render: renderBreakout },
+        'invaders': { title: 'Space Invaders', icon: '👾', width: 600, height: 550, render: renderInvaders },
+        'game2048': { title: '2048', icon: '🔢', width: 450, height: 550, render: render2048 },
+        'minesweeper': { title: 'Minesweeper', icon: '💣', width: 400, height: 500, render: renderMinesweeper },
+        'pacman': { title: 'Pac-Man', icon: '🟡', width: 500, height: 550, render: renderPacman },
+        'pong': { title: 'Pong', icon: '🏓', width: 700, height: 450, render: renderPong },
+        'doodle': { title: 'Doodle Jump', icon: '👽', width: 400, height: 600, render: renderDoodle },
         'fighter': { title: 'Street Brawl', icon: '🥊', width: 700, height: 520, render: renderFighter },
         'tictactoe': { title: 'Tic Tac Toe Pro', icon: '⭕', width: 350, height: 430, render: renderTicTacToe },
         'platformer': { title: 'Super Pixel Mario', icon: '🏃', width: 700, height: 520, render: renderPlatformer },
@@ -1417,9 +1425,17 @@ function runExecute() {
         'fighter': 'fighter',
         'brawl': 'fighter',
         'street brawl': 'fighter',
-        'recycle': 'recycle',
         'recycle bin': 'recycle',
         'tictactoe': 'tictactoe',
+        'snake': 'snake',
+        'flappy': 'flappy',
+        'breakout': 'breakout',
+        'invaders': 'invaders',
+        '2048': 'game2048',
+        'minesweeper': 'minesweeper',
+        'pacman': 'pacman',
+        'pong': 'pong',
+        'doodle': 'doodle',
         'platformer': 'platformer',
         'mario': 'platformer',
         'doom': 'doom2',
