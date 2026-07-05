@@ -11,9 +11,19 @@ const fileSystem = {
                             'Desktop': {
                                 type: 'folder',
                                 children: {
-                                    'README.txt': { type: 'file', ext: 'txt', content: 'Hello User! This is a internet IT Simulator sandbox! You can test and learn how to avoid online malware from spreading to your PC!\n\nPasswords for Home Wifi 1: 12345\n\nHave Fun!\n\nBy: Reddott11001' },
+                                    'README.txt': { type: 'file', ext: 'txt', content: 'Hello User! This is a internet IT Simulator sandbox! You can test and learn how to avoid online malware from spreading to your PC!\n\nHome Wifi 1 Passwords: 12345\n\nHave Fun!\n\nBy: Reddott11001' },
                                     'welcome.txt': { type: 'file', ext: 'txt', content: 'Welcome to WebOS 10!\n\nThis is your desktop. Double-click icons to open applications.\n\nEnjoy your experience!' },
-                                    'notes.txt': { type: 'file', ext: 'txt', content: 'My Notes\n--------\n- Try the BlockStack game\n- Play Street Brawl\n- Browse the web' }
+                                    'notes.txt': { type: 'file', ext: 'txt', content: 'My Notes\n--------\n- Try the BlockStack game\n- Play Street Brawl\n- Browse the web' },
+                                    'File Explorer.lnk': { type: 'file', ext: 'lnk', content: 'APP:file-explorer' },
+                                    'Browser.lnk': { type: 'file', ext: 'lnk', content: 'APP:browser' },
+                                    'Notepad.lnk': { type: 'file', ext: 'lnk', content: 'APP:notepad' },
+                                    'Calculator.lnk': { type: 'file', ext: 'lnk', content: 'APP:calculator' },
+                                    'Paint.lnk': { type: 'file', ext: 'lnk', content: 'APP:paint' },
+                                    'Command Prompt.lnk': { type: 'file', ext: 'lnk', content: 'APP:cmd' },
+                                    'Task Manager.lnk': { type: 'file', ext: 'lnk', content: 'APP:taskmgr' },
+                                    'Settings.lnk': { type: 'file', ext: 'lnk', content: 'APP:settings' },
+                                    'BlockStack.lnk': { type: 'file', ext: 'lnk', content: 'APP:tetris' },
+                                    'Street Brawl.lnk': { type: 'file', ext: 'lnk', content: 'APP:fighter' },
                                 }
                             },
                             'Documents': {
@@ -276,7 +286,7 @@ function getFileIcon(ext) {
     const icons = {
         'txt': '📄', 'jpg': '🖼️', 'png': '🖼️', 'mp3': '🎵',
         'exe': '⚙️', 'dll': '⚙️', 'sys': '⚙️', 'pdf': '📕',
-        'ini': '⚙️', 'doc': '📘', 'xls': '📗'
+        'ini': '⚙️', 'doc': '📘', 'xls': '📗', 'lnk': '🔗'
     };
     return icons[ext] || '📄';
 }
@@ -314,6 +324,12 @@ function feOpenItem(winId, name) {
             }, 100);
         } else if (item.ext === 'png' || item.ext === 'jpg' || item.ext === 'jpeg' || item.ext === 'gif' || item.ext === 'bmp') {
             openImageViewer(name, item);
+        } else if (item.ext === 'lnk') {
+            const appMatch = item.content.match(/^APP:(.+)$/m);
+            if (appMatch) {
+                const appId = appMatch[1].trim();
+                openApp(appId);
+            }
         } else if (item.ext === 'url') {
             openApp('browser');
             setTimeout(() => {
