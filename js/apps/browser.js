@@ -1256,6 +1256,33 @@ function getMalwareGuidePage() {
                     </div>
                 </div>
 
+                <div style="background:linear-gradient(135deg,#003300,#004d00);border-radius:12px;padding:20px;border:1px solid #00ff66;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <span style="font-size:32px;">🕵️</span>
+                        <h3 style="color:#00ff66;margin:0;font-size:18px;">RAT (Remote Access Trojan) — CoffeeShop_Free WiFi</h3>
+                    </div>
+                    <div style="color:#ccc;font-size:12px;line-height:1.6;margin-bottom:12px;">
+                        <strong>Attack Vector:</strong> Fake open WiFi hotspot named "CoffeeShop_Free" in WiFi panel. No password required — connects instantly. Once connected, all internet is intercepted via Man-in-the-Middle (MitM) attack and a RAT payload is silently installed.
+                    </div>
+                    <div style="color:#aaa;font-size:11px;line-height:1.5;margin-bottom:12px;">
+                        <strong>Technique:</strong> Honeypot WiFi + Drive-by Download. The attacker sets up a rogue access point that mimics a legitimate coffee shop network. When the victim connects, the RAT is deployed through the network without any user interaction.
+                    </div>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;font-size:11px;line-height:1.6;">
+                        <strong style="color:#00d4ff;">Virus Files (deep paths):</strong><br>
+                        • <code style="background:#000;padding:2px 6px;border-radius:3px;">C:\ProgramData\ReportQueue\rat_shell.exe</code> — Remote shell backdoor<br>
+                        • <code style="background:#000;padding:2px 6px;border-radius:3px;">C:\Windows\System32\deployment\cache\rat_keylog.sys</code> — Keylogger driver<br>
+                        • <code style="background:#000;padding:2px 6px;border-radius:3px;">C:\Users\Public\Start Menu\Programs\rat_backdoor.dll</code> — Backdoor DLL injector<br>
+                        • <code style="background:#000;padding:2px 6px;border-radius:3px;">C:\Archive\Logs\rat_screen.exe</code> — Screen capture tool<br>
+                        <strong style="color:#ff4444;">Symptoms:</strong> Green "hacker CMD" popups every 4-7s showing fake reverse shell output, remote control indicators<br>
+                        <br>
+                        <strong style="color:#00ff00;">Removal:</strong><br>
+                        • Navigate to each path above using <code style="background:#000;padding:2px 6px;border-radius:3px;">cd</code> in CMD<br>
+                        • Use <code style="background:#000;padding:2px 6px;border-radius:3px;">del &lt;filename&gt;</code> to delete each RAT file<br>
+                        • The popups will stop automatically once all 4 files are removed<br>
+                        • Switch to a trusted WiFi network after cleanup
+                    </div>
+                </div>
+
                 <div style="background:linear-gradient(135deg,#1a0000,#4d0000);border-radius:12px;padding:20px;border:1px solid #ff0000;">
                     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
                         <span style="font-size:32px;">🔒</span>

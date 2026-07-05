@@ -123,9 +123,8 @@
                 <div class="start-nav-item" onclick="openApp('cmd')">⌨️ Command Prompt</div>
                 <div class="start-nav-item" onclick="openApp('tetris')">🧱 BlockStack</div>
                 <div class="start-nav-item" onclick="openApp('fighter')">🥊 Street Brawl</div>
-                <div class="start-nav-item" onclick="openApp('solitaire')">🃏 Solitaire</div>
                 <div class="start-bottom-btns">
-                    <div class="start-nav-item" onclick="alert('Settings coming soon!')">⚙️ Settings</div>
+                    <div class="start-nav-item" onclick="openApp('settings')">⚙️ Settings</div>
                     <div class="start-nav-item" onclick="showPowerMenu()">⏻ Power</div>
                 </div>
             </div>
@@ -144,7 +143,7 @@
                         <div class="tile-icon">📁</div>
                         <span>Files</span>
                     </div>
-                    <div class="start-tile tile-gray" onclick="openApp('cmd')" style="background:#444;">
+                    <div class="start-tile tile-gray" onclick="openApp('cmd')">
                         <div class="tile-icon">⌨️</div>
                         <span>CMD</span>
                     </div>
@@ -156,6 +155,10 @@
                         <div class="tile-icon">🎨</div>
                         <span>Paint</span>
                     </div>
+                    <div class="start-tile" style="background:#0078d4;" onclick="openApp('settings')">
+                        <div class="tile-icon">⚙️</div>
+                        <span>Settings</span>
+                    </div>
                 </div>
                 <div class="tile-group-label">Games</div>
                 <div class="start-tiles">
@@ -166,10 +169,6 @@
                     <div class="start-tile tile-red" onclick="openApp('fighter')">
                         <div class="tile-icon">🥊</div>
                         <span>Brawl</span>
-                    </div>
-                    <div class="start-tile" style="background:#008272;" onclick="openApp('solitaire')">
-                        <div class="tile-icon">🃏</div>
-                        <span>Solitaire</span>
                     </div>
                 </div>
             </div>
@@ -275,5 +274,6 @@
     <script src="js/apps/taskmgr.js"></script>
     <script src="js/apps/terminal.js"></script>
     <script src="js/apps/phishing.js"></script>
+    <script src="js/apps/settings.js"></script>
 </body>
 </html>

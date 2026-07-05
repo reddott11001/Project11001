@@ -879,8 +879,7 @@ function handleSearch(val) {
         { name: 'Command Prompt', icon: '⌨️', id: 'cmd' },
         { name: 'BlockStack (Tetris)', icon: '🧱', id: 'tetris' },
         { name: 'Street Brawl (Fighter)', icon: '🥊', id: 'fighter' },
-        { name: 'Solitaire', icon: '🃏', id: 'solitaire' },
-
+        { name: 'Settings', icon: '⚙️', id: 'settings' },
     ];
     const filtered = apps.filter(a => a.name.toLowerCase().includes(val.toLowerCase()));
     if (filtered.length === 0) {
@@ -924,7 +923,7 @@ function openApp(appId, skipLag) {
     document.getElementById('context-menu').style.display = 'none';
 
     if (!skipLag && typeof isSystemLagging === 'function' && isSystemLagging()) {
-        if (appId === 'cmd' || appId === 'taskmgr' || appId === 'file-explorer') {
+        if (appId === 'cmd' || appId === 'taskmgr' || appId === 'file-explorer' || appId === 'settings') {
             skipLag = true;
         } else {
             if (lagPendingApps.includes(appId)) return;
@@ -961,6 +960,7 @@ function openApp(appId, skipLag) {
         'recycle': { title: 'Recycle Bin', icon: '🗑️', width: 600, height: 400, render: renderRecycleBin },
         'cmd': { title: 'Command Prompt', icon: '⌨️', width: 750, height: 450, render: renderTerminal },
         'taskmgr': { title: 'Task Manager', icon: '📊', width: 700, height: 480, render: renderTaskManager },
+        'settings': { title: 'Settings', icon: '📊', width: 900, height: 580, render: renderSettings },
     };
 
     const config = configs[appId];

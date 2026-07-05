@@ -197,6 +197,7 @@ function termProcessCommand(winId, cmd) {
         case 'notepad': termPrint(winId, 'Opening Notepad...', st.color); openApp('notepad'); break;
         case 'explorer': termPrint(winId, 'Opening File Explorer...', st.color); openApp('file-explorer'); break;
         case 'taskmgr': termPrint(winId, 'Opening Task Manager...', st.color); openApp('taskmgr'); break;
+        case 'settings': termPrint(winId, 'Opening Settings...', st.color); openApp('settings'); break;
         case 'ping': termPing(winId, args); break;
         case 'matrix': termMatrix(winId); break;
         case 'banner': termBanner(winId, args); break;
