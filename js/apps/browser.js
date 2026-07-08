@@ -380,7 +380,8 @@ function getWebOSPage(url) {
         'webos://robux-scam': getRobuxScamPage(),
         'webos://work-scam': getWorkScamPage(),
         'webos://deals-scam': getDealsScamPage(),
-        'webos://health-scam': getHealthScamPage()
+        'webos://health-scam': getHealthScamPage(),
+        'webos://bitcoin-motherfuckers': getBitcoinMotherfuckersPage()
     };
     const winId = getActiveBrowserWinId();
     if (url === 'webos://gmail' && winId) {
@@ -625,7 +626,9 @@ function animateHackerScan() {
 function checkInfectionCleared() {
     const remaining = webosVirusFiles.filter(vf => { const f = navigateToPath(vf.path); return f && f.children && f.children[vf.name]; });
     const over = document.getElementById('hacker-mission-overlay');
-    if (remaining.length === 0 && webosInfected) {
+    const ransomActive = typeof ransomwareState !== 'undefined' && ransomwareState.infected;
+    
+    if (remaining.length === 0 && !ransomActive && webosInfected) {
         webosInfected = false; saveWebOS();
         if (over) over.style.display = 'none';
         document.querySelectorAll('.fake-popup').forEach(el => el.remove());
@@ -641,6 +644,7 @@ function checkInfectionCleared() {
         const sd = over.querySelector('.hacker-mission');
         if (sd) sd.innerHTML = `<div style="color:#ffcc00;font-weight:bold;margin-bottom:8px;">📋 REMAINING VIRUS FILES: ${remaining.length}</div><div style="color:#ff4444;font-size:12px;line-height:1.6;text-align:left;">${remaining.map(vf => '⚠️ ' + vf.name).join('<br>')}</div><div style="color:#00ff00;font-size:12px;margin-top:8px;">Use CMD: <b>locate</b> to find paths, then <b>cd</b> + <b>del</b></div>`;
     }
+}
 }
 
 function getGameDownloadPage() {
@@ -1214,9 +1218,10 @@ function openScamPage(adText) {
 
     const malwareRoll = Math.random();
     let malwareType;
-    if (malwareRoll < 0.34) malwareType = 'miner';
-    else if (malwareRoll < 0.67) malwareType = 'trojan';
-    else malwareType = 'spyware';
+    if (malwareRoll < 0.25) malwareType = 'miner';
+    else if (malwareRoll < 0.50) malwareType = 'trojan';
+    else if (malwareRoll < 0.75) malwareType = 'spyware';
+    else malwareType = 'ransomware';
 
     const winId = getActiveBrowserWinId();
     const doNavigate = (wId) => {
@@ -1231,8 +1236,10 @@ function openScamPage(adText) {
                 spawnMiner(minerType);
             } else if (malwareType === 'trojan') {
                 if (typeof triggerPhishingTrojan !== 'undefined') triggerPhishingTrojan();
-            } else {
+            } else if (malwareType === 'spyware') {
                 if (typeof triggerPhishingSpyware !== 'undefined') triggerPhishingSpyware();
+            } else {
+                if (typeof triggerRansomware !== 'undefined') triggerRansomware();
             }
         }, 300);
     } else {
@@ -1246,8 +1253,10 @@ function openScamPage(adText) {
                         spawnMiner(minerType);
                     } else if (malwareType === 'trojan') {
                         if (typeof triggerPhishingTrojan !== 'undefined') triggerPhishingTrojan();
-                    } else {
+                    } else if (malwareType === 'spyware') {
                         if (typeof triggerPhishingSpyware !== 'undefined') triggerPhishingSpyware();
+                    } else {
+                        if (typeof triggerRansomware !== 'undefined') triggerRansomware();
                     }
                 }, 300);
             }
@@ -2004,6 +2013,51 @@ function getHealthScamPage() {
                 <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
                     <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a scam website!</div>
                     <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getBitcoinMotherfuckersPage() {
+    return `
+        <div class="browser-page" style="background:linear-gradient(135deg,#0a0000,#1a0000,#0a0000);min-height:100%;padding:30px 40px;color:#fff;font-family:Segoe UI,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+                <div style="font-size:72px;margin-bottom:12px;">₿</div>
+                <h1 style="color:#ff6600;margin:0 0 8px 0;font-size:32px;text-shadow:0 0 20px #ff6600;">BITCOIN MOTHERFUCKERS</h1>
+                <p style="color:#ff4444;font-size:14px;margin:0;">The only way to decrypt your files</p>
+            </div>
+            <div style="max-width:500px;margin:0 auto;">
+                <div style="background:rgba(255,102,0,0.1);border:2px solid #ff6600;border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;">
+                    <div style="font-size:48px;color:#ff6600;margin-bottom:12px;">💀</div>
+                    <div style="color:#ff6600;font-size:20px;font-weight:bold;margin-bottom:8px;">DECRYPTION KEY</div>
+                    <div style="color:#888;font-size:13px;margin-bottom:16px;">Payment required: <span style="color:#ff6600;font-size:24px;font-weight:bold;">0.5 BTC</span></div>
+                    <div style="background:#0a0000;border:1px solid #ff660044;border-radius:8px;padding:12px;margin-bottom:16px;">
+                        <div style="color:#666;font-size:11px;margin-bottom:4px;">Wallet Address:</div>
+                        <div style="color:#ff6600;font-size:12px;font-family:monospace;word-break:break-all;">bc1qmotherfucker69420decryptkey2026</div>
+                    </div>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff0000;border-radius:12px;padding:16px;margin-bottom:20px;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;margin-bottom:8px;">⚠️ YOUR BALANCE</div>
+                    <div style="color:#ff0000;font-size:24px;font-weight:bold;">0.00000000 BTC</div>
+                    <div style="color:#888;font-size:12px;margin-top:4px;">You have no Bitcoin. Buy some first.</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:20px;">
+                    <h3 style="color:#ff6600;margin:0 0 12px 0;">How to pay:</h3>
+                    <div style="color:#ccc;font-size:13px;line-height:1.8;">
+                        1. Buy 0.5 BTC from any exchange<br>
+                        2. Send to the wallet address above<br>
+                        3. Enter your transaction ID below<br>
+                        4. Receive decryption key instantly<br>
+                    </div>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <input type="text" placeholder="Enter BTC transaction ID..." style="width:100%;padding:12px 16px;background:#0a0000;border:1px solid #ff660044;border-radius:8px;color:#fff;font-size:13px;text-align:center;outline:none;margin-bottom:8px;">
+                    <button onclick="alert('Payment verification failed. You need 0.5 BTC to proceed.')" style="width:100%;padding:12px;background:linear-gradient(to right,#ff6600,#ff3300);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:bold;">VERIFY PAYMENT</button>
+                </div>
+                <div style="background:rgba(255,0,0,0.1);border:1px solid #ff4444;border-radius:12px;padding:16px;text-align:center;">
+                    <div style="color:#ff4444;font-size:14px;font-weight:bold;">⚠️ WARNING: This is a ransomware payment page!</div>
+                    <div style="color:#888;font-size:12px;margin-top:8px;">You clicked a malicious ad. Close this tab and run antivirus scan in CMD.</div>
                 </div>
             </div>
         </div>

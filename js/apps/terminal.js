@@ -659,7 +659,7 @@ function termBanner(winId, args) {
 
 function termScan(winId) {
     const st = termState[winId];
-    if (!webosInfected) {
+    if (!webosInfected && !(typeof ransomwareState !== 'undefined' && ransomwareState.infected)) {
         termPrint(winId, '\n System is clean. No threats detected.', '#00ff00');
         return;
     }
@@ -671,23 +671,31 @@ function termScan(winId) {
 
     termPrint(winId, '\n ╔══════════════════════════════════════╗', '#ff4444');
     termPrint(winId, ' ║     WEBOS DEFENDER - THREAT SCAN    ║', '#ff4444');
-    termPrint(winId, ' ╚══════════════════════════════════════╝\n', '#ff4444');
+    termPrint(winId, ' ══════════════════════════════════════╝\n', '#ff4444');
 
-    if (remaining.length === 0) {
+    if (typeof ransomwareState !== 'undefined' && ransomwareState.infected) {
+        termPrint(winId, ' [!] RANSOMWARE DETECTED: GotFucked Ransomware', '#ff0000');
+        termPrint(winId, `     Encrypted files: ${ransomwareState.encryptedFiles.length}`, '#ff4444');
+        termPrint(winId, '     Use "clean" to remove ransomware and restore files.\n', '#ff6666');
+    }
+
+    if (remaining.length === 0 && !(typeof ransomwareState !== 'undefined' && ransomwareState.infected)) {
         termPrint(winId, ' [SCAN] No virus files found. Run "clean" to finish.', '#00ff00');
         return;
     }
 
-    termPrint(winId, ` [SCAN] Threats found: ${remaining.length}\n`, '#ffcc00');
+    if (remaining.length > 0) {
+        termPrint(winId, ` [SCAN] Threats found: ${remaining.length}\n`, '#ffcc00');
 
-    remaining.forEach((vf, i) => {
-        termPrint(winId, ` [${i+1}] ⚠️ ${vf.name}`, '#ff4444');
-        termPrint(winId, `      Type: .${vf.ext} | Threat Level: CRITICAL`, '#ff6666');
-    });
+        remaining.forEach((vf, i) => {
+            termPrint(winId, ` [${i+1}] ⚠️ ${vf.name}`, '#ff4444');
+            termPrint(winId, `      Type: .${vf.ext} | Threat Level: CRITICAL`, '#ff6666');
+        });
 
-    termPrint(winId, '\n [TIP] Files are hidden in deep system paths.', '#888');
-    termPrint(winId, ' [TIP] Use "locate" for deep scan to reveal hiding locations.', '#888');
-    termPrint(winId, ' [TIP] Then "cd" to that folder and "del <filename>" to remove.\n', '#888');
+        termPrint(winId, '\n [TIP] Files are hidden in deep system paths.', '#888');
+        termPrint(winId, ' [TIP] Use "locate" for deep scan to reveal hiding locations.', '#888');
+        termPrint(winId, ' [TIP] Then "cd" to that folder and "del <filename>" to remove.\n', '#888');
+    }
 }
 
 function termLocate(winId) {
@@ -900,6 +908,9 @@ function termClean(winId) {
             if (i === 0 && activeMiners.length > 0) {
                 if (typeof stopAllMiners === 'function') stopAllMiners();
                 if (typeof clearAllMinerRespawns === 'function') clearAllMinerRespawns();
+            }
+            if (i === 1 && typeof clearRansomwareState === 'function') {
+                clearRansomwareState();
             }
             termPrint(winId, ` [${i+1}/${steps.length}] ${step}`, '#888');
             if (i === steps.length - 1) {

@@ -6,6 +6,15 @@ let selectionState = { isSelecting: false, startX: 0, startY: 0, rect: null };
 let recycleBinItems = [];
 let iconDragState = { isDragging: false, icon: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, hasMoved: false };
 let iconPositions = {};
+let ransomwareState = {
+    infected: false,
+    encryptedFiles: [],
+    timerStart: null,
+    timerInterval: null,
+    popupEl: null,
+    keyInput: '',
+    validKey: 'GOTFUCKED-DECRYPT-KEY-2026'
+};
 
 const wallpapers = [
     'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 30%, #1a4a7a 60%, #0d2137 100%)',
@@ -33,7 +42,8 @@ function saveWebOS() {
             currentWallpaper: currentWallpaper,
             downloadedGames: downloadedGames,
             recycleBinItems: recycleBinItems,
-            iconPositions: iconPositions
+            iconPositions: iconPositions,
+            ransomwareState: typeof ransomwareState !== 'undefined' ? ransomwareState : null
         };
         localStorage.setItem('webos-save', JSON.stringify(data));
     } catch(e) {}
@@ -55,6 +65,13 @@ function loadWebOS() {
             downloadedGames = data.downloadedGames || [];
             recycleBinItems = data.recycleBinItems || [];
             iconPositions = data.iconPositions || {};
+            if (data.ransomwareState) {
+                Object.assign(ransomwareState, data.ransomwareState);
+                if (ransomwareState.infected) {
+                    showRansomPopup();
+                    startRansomTimer();
+                }
+            }
             restoreDownloadedIcons();
             return true;
         }

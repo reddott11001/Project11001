@@ -399,6 +399,222 @@ function stopWorm() {
     });
 }
 
+function triggerRansomware() {
+    if (ransomwareState.infected) return;
+    ransomwareState.infected = true;
+    ransomwareState.encryptedFiles = [];
+    ransomwareState.timerStart = Date.now();
+
+    const protectedPaths = [
+        ['C:', 'Program Files', 'WebOS', 'Browser'],
+        ['C:', 'Program Files', 'WebOS', 'browser'],
+    ];
+
+    function isProtected(path) {
+        return protectedPaths.some(pp => {
+            if (path.length < pp.length) return false;
+            for (let i = 0; i < pp.length; i++) {
+                if (path[i] !== pp[i]) return false;
+            }
+            return true;
+        });
+    }
+
+    function encryptFolder(folder, path) {
+        if (!folder || !folder.children) return;
+        for (const [name, item] of Object.entries(folder.children)) {
+            const currentPath = [...path, name];
+            if (item.type === 'folder') {
+                encryptFolder(item, currentPath);
+            } else if (item.type === 'file' && !isProtected(currentPath)) {
+                const originalContent = item.content || '';
+                const originalExt = item.ext || '';
+                const encryptedContent = btoa(originalContent).split('').reverse().join('');
+                ransomwareState.encryptedFiles.push({
+                    path: currentPath,
+                    name: name,
+                    originalExt: originalExt,
+                    originalContent: originalContent
+                });
+                folder.children[name] = {
+                    type: 'file',
+                    ext: 'encrypted',
+                    content: `[ENCRYPTED BY GotFucked RANSOMWARE]\nFile: ${name}\nOriginal: ${name}.${originalExt}\n\nYour files have been encrypted!\nPay 0.5 BTC to Bitcoin Motherfuckers to decrypt.\n\nDO NOT attempt to decrypt manually or files will be permanently destroyed.`
+                };
+            }
+        }
+    }
+
+    encryptFolder(fileSystem['C:'], ['C:']);
+
+    webosInfected = true;
+    saveWebOS();
+
+    showRansomPopup();
+    startRansomTimer();
+
+    addNotification('🔒 RANSOMWARE DETECTED', 'GotFucked ransomware has encrypted all your files!');
+}
+
+function showRansomPopup() {
+    if (ransomwareState.popupEl) ransomwareState.popupEl.remove();
+
+    const popup = document.createElement('div');
+    ransomwareState.popupEl = popup;
+    popup.id = 'ransomware-popup';
+    popup.style.cssText = `
+        position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;
+        pointer-events:none;display:flex;align-items:center;justify-content:center;
+        font-family:'Segoe UI',sans-serif;
+    `;
+
+    popup.innerHTML = `
+        <div style="pointer-events:auto;background:linear-gradient(135deg,#1a0000,#330000,#1a0000);border:3px solid #ff0000;border-radius:16px;padding:30px 40px;max-width:500px;width:90%;text-align:center;box-shadow:0 0 80px #ff000066,0 0 160px #ff000033;position:relative;">
+            <div style="position:absolute;top:-12px;right:-12px;background:#ff0000;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:bold;" onclick="this.parentElement.parentElement.style.display='none';">✕</div>
+            <div style="font-size:48px;margin-bottom:8px;">💀</div>
+            <div style="font-size:28px;color:#ff0000;font-weight:900;text-shadow:0 0 20px #ff0000;margin-bottom:4px;animation:ransomPulse 1s infinite;">GOT FUCKED!</div>
+            <div style="font-size:14px;color:#ff4444;font-weight:bold;margin-bottom:16px;">GotFucked Ransomware v2.0</div>
+            
+            <div style="background:#0a0000;border:1px solid #ff000044;border-radius:8px;padding:12px;margin-bottom:16px;">
+                <div style="color:#ff6666;font-size:12px;line-height:1.6;text-align:left;">
+                    ⚠️ All files encrypted!<br>
+                    ⚠️ Only Browser remains functional.<br>
+                    ⏱️ Time left: <span id="ransom-timer" style="color:#ff0000;font-weight:bold;font-size:14px;">24:00:00</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <div style="color:#ffaa00;font-size:12px;margin-bottom:6px;font-weight:bold;">PAYMENT: 0.5 BTC</div>
+                <button onclick="if(typeof browserNavigate==='undefined'){openApp('browser');}setTimeout(()=>{const w=Object.values(activeWindows||{}).find(w=>w.appId==='browser'&&!w.closed);if(w)browserNavigate(w.id,'webos://bitcoin-motherfuckers');},300);this.parentElement.parentElement.style.display='none';" style="padding:8px 20px;background:linear-gradient(to right,#ff6600,#ff3300);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">🌐 Bitcoin Motherfuckers</button>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <div style="color:#aaa;font-size:11px;margin-bottom:4px;"> Decryption Key:</div>
+                <input id="ransom-key-input" type="text" placeholder="Enter key..." style="width:100%;padding:8px 12px;background:#0a0000;border:1px solid #ff000044;border-radius:6px;color:#fff;font-size:12px;text-align:center;outline:none;" onkeydown="if(event.key==='Enter')attemptRansomDecrypt();">
+                <button onclick="attemptRansomDecrypt()" style="margin-top:6px;padding:6px 16px;background:#ff0000;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:bold;width:100%;">UNLOCK</button>
+            </div>
+
+            <div style="color:#666;font-size:9px;">Bitcoin Motherfuckers | Timer expires = files deleted</div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    const style = document.createElement('style');
+    style.id = 'ransom-style';
+    style.textContent = `
+        @keyframes ransomPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+    `;
+    document.head.appendChild(style);
+}
+
+function updateRansomTimer() {
+    if (!ransomwareState.infected || !ransomwareState.timerStart) return;
+    
+    const elapsed = Date.now() - ransomwareState.timerStart;
+    const totalMs = 24 * 60 * 60 * 1000;
+    const remaining = Math.max(0, totalMs - elapsed);
+    
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+    
+    const timerEl = document.getElementById('ransom-timer');
+    if (timerEl) {
+        timerEl.textContent = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }
+    
+    if (remaining <= 0) {
+        deleteAllEncryptedFiles();
+    }
+}
+
+function startRansomTimer() {
+    if (ransomwareState.timerInterval) clearInterval(ransomwareState.timerInterval);
+    ransomwareState.timerInterval = setInterval(updateRansomTimer, 1000);
+    updateRansomTimer();
+}
+
+function stopRansomTimer() {
+    if (ransomwareState.timerInterval) {
+        clearInterval(ransomwareState.timerInterval);
+        ransomwareState.timerInterval = null;
+    }
+}
+
+function deleteAllEncryptedFiles() {
+    stopRansomTimer();
+    
+    ransomwareState.encryptedFiles.forEach(ef => {
+        const folder = navigateToPath(ef.path.slice(0, -1));
+        if (folder && folder.children) {
+            delete folder.children[ef.name];
+        }
+    });
+    
+    ransomwareState.encryptedFiles = [];
+    ransomwareState.infected = false;
+    
+    if (ransomwareState.popupEl) {
+        ransomwareState.popupEl.remove();
+        ransomwareState.popupEl = null;
+    }
+    
+    saveWebOS();
+    addNotification('💀 FILES DELETED', 'Ransomware timer expired! All encrypted files have been permanently deleted.');
+}
+
+function attemptRansomDecrypt() {
+    const input = document.getElementById('ransom-key-input');
+    if (!input) return;
+    
+    const key = input.value.trim();
+    
+    if (key === ransomwareState.validKey) {
+        ransomwareState.encryptedFiles.forEach(ef => {
+            const folder = navigateToPath(ef.path.slice(0, -1));
+            if (folder && folder.children) {
+                folder.children[ef.name] = {
+                    type: 'file',
+                    ext: ef.originalExt,
+                    content: ef.originalContent
+                };
+            }
+        });
+        
+        ransomwareState.encryptedFiles = [];
+        ransomwareState.infected = false;
+        stopRansomTimer();
+        
+        if (ransomwareState.popupEl) {
+            ransomwareState.popupEl.remove();
+            ransomwareState.popupEl = null;
+        }
+        
+        saveWebOS();
+        addNotification('🔓 FILES DECRYPTED', 'GotFucked ransomware removed! All files restored.');
+    } else {
+        input.style.borderColor = '#ff0000';
+        input.value = '';
+        input.placeholder = 'WRONG KEY! Try again...';
+        setTimeout(() => {
+            input.style.borderColor = '#ff000044';
+            input.placeholder = 'Enter key to decrypt...';
+        }, 2000);
+    }
+}
+
+function clearRansomwareState() {
+    ransomwareState.infected = false;
+    ransomwareState.encryptedFiles = [];
+    ransomwareState.timerStart = null;
+    stopRansomTimer();
+    if (ransomwareState.popupEl) {
+        ransomwareState.popupEl.remove();
+        ransomwareState.popupEl = null;
+    }
+}
+
 // Gmail UI
 function renderGmail(winId) {
     const body = document.getElementById(winId + '-browser-content');
