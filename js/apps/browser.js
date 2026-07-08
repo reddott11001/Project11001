@@ -1212,19 +1212,44 @@ function openScamPage(adText) {
     };
     const minerType = minerMap[theme] || minerTypes[Math.floor(Math.random() * minerTypes.length)].id;
 
+    const malwareRoll = Math.random();
+    let malwareType;
+    if (malwareRoll < 0.34) malwareType = 'miner';
+    else if (malwareRoll < 0.67) malwareType = 'trojan';
+    else malwareType = 'spyware';
+
     const winId = getActiveBrowserWinId();
+    const doNavigate = (wId) => {
+        browserNavigate(wId, 'webos://' + theme);
+        if (theme === 'crypto-scam') setTimeout(() => initCryptoScamChart(wId), 400);
+    };
+
     if (winId) {
-        browserNavigate(winId, 'webos://' + theme);
-        setTimeout(() => spawnMiner(minerType), 300);
-        if (theme === 'crypto-scam') setTimeout(() => initCryptoScamChart(winId), 400);
+        doNavigate(winId);
+        setTimeout(() => {
+            if (malwareType === 'miner') {
+                spawnMiner(minerType);
+            } else if (malwareType === 'trojan') {
+                if (typeof triggerPhishingTrojan !== 'undefined') triggerPhishingTrojan();
+            } else {
+                if (typeof triggerPhishingSpyware !== 'undefined') triggerPhishingSpyware();
+            }
+        }, 300);
     } else {
         openApp('browser');
         setTimeout(() => {
             const newWinId = getActiveBrowserWinId();
             if (newWinId) {
-                browserNavigate(newWinId, 'webos://' + theme);
-                setTimeout(() => spawnMiner(minerType), 300);
-                if (theme === 'crypto-scam') setTimeout(() => initCryptoScamChart(newWinId), 400);
+                doNavigate(newWinId);
+                setTimeout(() => {
+                    if (malwareType === 'miner') {
+                        spawnMiner(minerType);
+                    } else if (malwareType === 'trojan') {
+                        if (typeof triggerPhishingTrojan !== 'undefined') triggerPhishingTrojan();
+                    } else {
+                        if (typeof triggerPhishingSpyware !== 'undefined') triggerPhishingSpyware();
+                    }
+                }, 300);
             }
         }, 500);
     }
