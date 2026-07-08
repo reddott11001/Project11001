@@ -458,43 +458,44 @@ function triggerRansomware() {
 
 function showRansomPopup() {
     if (ransomwareState.popupEl) ransomwareState.popupEl.remove();
+    if (!ransomwareState.infected) return;
 
     const popup = document.createElement('div');
     ransomwareState.popupEl = popup;
     popup.id = 'ransomware-popup';
     popup.style.cssText = `
-        position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;
-        pointer-events:none;display:flex;align-items:center;justify-content:center;
+        position:fixed;bottom:20px;right:20px;z-index:999999;
         font-family:'Segoe UI',sans-serif;
     `;
 
     popup.innerHTML = `
-        <div style="pointer-events:auto;background:linear-gradient(135deg,#1a0000,#330000,#1a0000);border:3px solid #ff0000;border-radius:16px;padding:30px 40px;max-width:500px;width:90%;text-align:center;box-shadow:0 0 80px #ff000066,0 0 160px #ff000033;position:relative;">
-            <div style="position:absolute;top:-12px;right:-12px;background:#ff0000;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:bold;" onclick="this.parentElement.parentElement.style.display='none';">✕</div>
-            <div style="font-size:48px;margin-bottom:8px;">💀</div>
-            <div style="font-size:28px;color:#ff0000;font-weight:900;text-shadow:0 0 20px #ff0000;margin-bottom:4px;animation:ransomPulse 1s infinite;">GOT FUCKED!</div>
-            <div style="font-size:14px;color:#ff4444;font-weight:bold;margin-bottom:16px;">GotFucked Ransomware v2.0</div>
+        <div style="background:linear-gradient(135deg,#1a0000,#330000,#1a0000);border:3px solid #ff0000;border-radius:16px;padding:24px 30px;max-width:420px;width:90vw;box-shadow:0 0 80px #ff000066,0 0 160px #ff000033;position:relative;">
+            <div style="position:absolute;top:-10px;right:-10px;background:#ff0000;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.4);" onclick="document.getElementById('ransomware-popup').style.display='none';">✕</div>
+            <div style="font-size:36px;margin-bottom:6px;">💀</div>
+            <div style="font-size:22px;color:#ff0000;font-weight:900;text-shadow:0 0 15px #ff0000;margin-bottom:3px;animation:ransomPulse 1s infinite;">GOT FUCKED!</div>
+            <div style="font-size:11px;color:#ff4444;font-weight:bold;margin-bottom:12px;">GotFucked Ransomware v2.0</div>
             
-            <div style="background:#0a0000;border:1px solid #ff000044;border-radius:8px;padding:12px;margin-bottom:16px;">
-                <div style="color:#ff6666;font-size:12px;line-height:1.6;text-align:left;">
-                    ⚠️ All files encrypted!<br>
-                    ⚠️ Only Browser remains functional.<br>
-                    ⏱️ Time left: <span id="ransom-timer" style="color:#ff0000;font-weight:bold;font-size:14px;">24:00:00</span>
+            <div style="background:#0a0000;border:1px solid #ff000044;border-radius:8px;padding:10px;margin-bottom:12px;">
+                <div style="color:#ff6666;font-size:11px;line-height:1.5;text-align:left;">
+                    ️ Files encrypted! Only Browser works.<br>
+                    ⏱️ <span id="ransom-timer" style="color:#ff0000;font-weight:bold;">24:00:00</span> until deletion!
                 </div>
             </div>
 
-            <div style="margin-bottom:12px;">
-                <div style="color:#ffaa00;font-size:12px;margin-bottom:6px;font-weight:bold;">PAYMENT: 0.5 BTC</div>
-                <button onclick="if(typeof browserNavigate==='undefined'){openApp('browser');}setTimeout(()=>{const w=Object.values(activeWindows||{}).find(w=>w.appId==='browser'&&!w.closed);if(w)browserNavigate(w.id,'webos://bitcoin-motherfuckers');},300);this.parentElement.parentElement.style.display='none';" style="padding:8px 20px;background:linear-gradient(to right,#ff6600,#ff3300);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">🌐 Bitcoin Motherfuckers</button>
+            <div style="margin-bottom:10px;">
+                <button onclick="if(typeof browserNavigate==='undefined'){openApp('browser');}setTimeout(()=>{const w=Object.values(activeWindows||{}).find(w=>w.appId==='browser'&&!w.closed);if(w)browserNavigate(w.id,'webos://bitcoin-motherfuckers');},300);" style="padding:7px 16px;background:linear-gradient(to right,#ff6600,#ff3300);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:bold;width:100%;">🌐 Bitcoin Motherfuckers</button>
             </div>
 
-            <div style="margin-bottom:12px;">
-                <div style="color:#aaa;font-size:11px;margin-bottom:4px;"> Decryption Key:</div>
-                <input id="ransom-key-input" type="text" placeholder="Enter key..." style="width:100%;padding:8px 12px;background:#0a0000;border:1px solid #ff000044;border-radius:6px;color:#fff;font-size:12px;text-align:center;outline:none;" onkeydown="if(event.key==='Enter')attemptRansomDecrypt();">
-                <button onclick="attemptRansomDecrypt()" style="margin-top:6px;padding:6px 16px;background:#ff0000;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:bold;width:100%;">UNLOCK</button>
+            <div style="margin-bottom:10px;">
+                <input id="ransom-key-input" type="text" placeholder="Decryption key..." style="width:100%;padding:7px 10px;background:#0a0000;border:1px solid #ff000044;border-radius:6px;color:#fff;font-size:11px;text-align:center;outline:none;" onkeydown="if(event.key==='Enter')attemptRansomDecrypt();">
+                <button onclick="attemptRansomDecrypt()" style="margin-top:5px;padding:6px 14px;background:#ff0000;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:10px;font-weight:bold;width:100%;">UNLOCK</button>
             </div>
 
-            <div style="color:#666;font-size:9px;">Bitcoin Motherfuckers | Timer expires = files deleted</div>
+            <div style="border-top:1px solid #ff000033;padding-top:10px;margin-top:10px;">
+                <button onclick="forceClearRansomware()" style="padding:6px 14px;background:#333;color:#ff6666;border:1px solid #ff000044;border-radius:6px;cursor:pointer;font-size:10px;width:100%;">⚠️ FORCE CLEAR (Emergency)</button>
+            </div>
+
+            <div style="color:#555;font-size:8px;text-align:center;margin-top:8px;">Bitcoin Motherfuckers | 0.5 BTC required</div>
         </div>
     `;
 
@@ -503,9 +504,22 @@ function showRansomPopup() {
     const style = document.createElement('style');
     style.id = 'ransom-style';
     style.textContent = `
-        @keyframes ransomPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+        @keyframes ransomPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.03);} }
     `;
     document.head.appendChild(style);
+}
+
+function forceClearRansomware() {
+    ransomwareState.infected = false;
+    ransomwareState.encryptedFiles = [];
+    ransomwareState.timerStart = null;
+    stopRansomTimer();
+    if (ransomwareState.popupEl) {
+        ransomwareState.popupEl.remove();
+        ransomwareState.popupEl = null;
+    }
+    saveWebOS();
+    addNotification('⚠️ Ransomware Cleared', 'Emergency force clear executed. Check files for corruption.');
 }
 
 function updateRansomTimer() {

@@ -43,6 +43,7 @@ const termCommands = {
     clean: { desc: "Clean system after virus removal", usage: "clean" },
     system: { desc: "Check system integrity status", usage: "system" },
     resetos: { desc: "Reset WebOS to factory defaults (clears all saved data)", usage: "resetos" },
+    forceremoveransomware: { desc: "Force remove ransomware state (emergency)", usage: "forceremoveransomware" },
 };
 
 function renderTerminal(winId) {

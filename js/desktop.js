@@ -65,12 +65,25 @@ function loadWebOS() {
             downloadedGames = data.downloadedGames || [];
             recycleBinItems = data.recycleBinItems || [];
             iconPositions = data.iconPositions || {};
-            if (data.ransomwareState) {
-                Object.assign(ransomwareState, data.ransomwareState);
-                if (ransomwareState.infected) {
+            
+            if (data.ransomwareState && data.ransomwareState.infected) {
+                const hasEncrypted = data.ransomwareState.encryptedFiles && data.ransomwareState.encryptedFiles.length > 0;
+                if (hasEncrypted) {
+                    ransomwareState.infected = true;
+                    ransomwareState.encryptedFiles = data.ransomwareState.encryptedFiles;
+                    ransomwareState.timerStart = data.ransomwareState.timerStart || Date.now();
+                    ransomwareState.validKey = data.ransomwareState.validKey || 'GOTFUCKED-DECRYPT-KEY-2026';
                     showRansomPopup();
                     startRansomTimer();
+                } else {
+                    ransomwareState.infected = false;
+                    ransomwareState.encryptedFiles = [];
+                    ransomwareState.timerStart = null;
                 }
+            } else {
+                ransomwareState.infected = false;
+                ransomwareState.encryptedFiles = [];
+                ransomwareState.timerStart = null;
             }
             restoreDownloadedIcons();
             return true;
