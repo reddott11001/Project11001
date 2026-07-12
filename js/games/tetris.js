@@ -25,6 +25,7 @@ let tetrisState = {};
 
 function renderTetris(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.tetris ? gameSaves.tetris.highScore : 0;

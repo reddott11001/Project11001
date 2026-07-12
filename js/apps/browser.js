@@ -13,6 +13,7 @@ const minerTypes = [
 
 function renderBrowser(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     body.innerHTML = `
         <div class="browser-app" id="${winId}-browser-app">
             <div class="browser-tabs" id="${winId}-tab-bar">
@@ -159,8 +160,12 @@ function getBrowserHomePage(winId) {
                     <span>News</span>
                 </div>
                 <div class="browser-shortcut" onclick="browserNavigate('${winId}', 'webos://malware-guide')" style="border-color:#ff6600;background:#1a0a00;">
-                    <div class="browser-shortcut-icon">🛡️</div>
+                    <div class="browser-shortcut-icon">️</div>
                     <span style="color:#ff8800;">Malware Guide</span>
+                </div>
+                <div class="browser-shortcut" onclick="browserNavigate('${winId}', 'webos://nomoreransom')" style="border-color:#1a3a8a;background:#f0f4ff;">
+                    <div class="browser-shortcut-icon">🔒</div>
+                    <span style="color:#1a3a8a;">No More Ransom</span>
                 </div>
                 <div class="browser-shortcut" onclick="browserNavigate('${winId}', 'webos://game-download')" style="border-color:#ff6600;background:#1a0a00;">
                     <div class="browser-shortcut-icon">🎮</div>
@@ -381,7 +386,8 @@ function getWebOSPage(url) {
         'webos://work-scam': getWorkScamPage(),
         'webos://deals-scam': getDealsScamPage(),
         'webos://health-scam': getHealthScamPage(),
-        'webos://bitcoin-motherfuckers': getBitcoinMotherfuckersPage()
+        'webos://bitcoin-motherfuckers': getBitcoinMotherfuckersPage(),
+        'webos://nomoreransom': getNoMoreRansomPage()
     };
     const winId = getActiveBrowserWinId();
     if (url === 'webos://gmail' && winId) {
@@ -626,7 +632,20 @@ function animateHackerScan() {
 function checkInfectionCleared() {
     const remaining = webosVirusFiles.filter(vf => { const f = navigateToPath(vf.path); return f && f.children && f.children[vf.name]; });
     const over = document.getElementById('hacker-mission-overlay');
+    const coreFolder = navigateToPath(['C:', 'Windows', 'System32', 'drivers']);
+    const coreGone = !coreFolder || !coreFolder.children || !coreFolder.children['gotfucked.sys'];
     const ransomActive = typeof ransomwareState !== 'undefined' && ransomwareState.infected;
+    
+    if (coreGone && ransomActive) {
+        ransomwareState.infected = false;
+        ransomwareState.timerStart = null;
+        if (ransomwareState.timerInterval) { clearInterval(ransomwareState.timerInterval); ransomwareState.timerInterval = null; }
+        if (ransomwareState.popupEl) { ransomwareState.popupEl.remove(); ransomwareState.popupEl = null; }
+        const popupById = document.getElementById('ransomware-popup');
+        if (popupById) popupById.remove();
+        if (typeof unlockDesktopIcons === 'function') unlockDesktopIcons();
+        saveWebOS();
+    }
     
     if (remaining.length === 0 && !ransomActive && webosInfected) {
         webosInfected = false; saveWebOS();
@@ -634,17 +653,27 @@ function checkInfectionCleared() {
         document.querySelectorAll('.fake-popup').forEach(el => el.remove());
         const m = document.getElementById('mission-notif');
         if (m) m.remove();
+        if (typeof ransomwareState !== 'undefined' && ransomwareState.popupEl) {
+            ransomwareState.popupEl.remove();
+            ransomwareState.popupEl = null;
+        }
+        if (typeof ransomwareState !== 'undefined' && ransomwareState.timerInterval) {
+            clearInterval(ransomwareState.timerInterval);
+            ransomwareState.timerInterval = null;
+        }
+        ransomwareState.infected = false;
+        ransomwareState.timerStart = null;
+        saveWebOS();
         const s = document.createElement('div');
         s.className = 'hacker-success';
-        s.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;"><div style="background:#0a1a0a;border:3px solid #00ff00;border-radius:16px;padding:40px;text-align:center;max-width:500px;animation:popupShake 0.3s;"><div style="font-size:64px;margin-bottom:16px;">✅</div><h2 style="color:#00ff00;margin-bottom:8px;">SYSTEM CLEANED!</h2><p style="color:#888;margin-bottom:16px;">All threats successfully removed from the system.</p><div style="color:#00ff00;font-size:12px;margin-bottom:16px;line-height:1.8;text-align:left;">✅ All virus files - Deleted<br>✅ Persistence mechanisms - Destroyed<br>✅ Miner backdoors - Removed</div><div style="color:#ffcc00;font-size:14px;font-weight:bold;">🎉 MISSION SUCCESSFUL! Threat neutralized.</div><button onclick="this.closest('.hacker-success').remove()" style="margin-top:20px;padding:12px 32px;background:#00ff00;color:#000;border:none;border-radius:4px;font-size:16px;font-weight:bold;cursor:pointer;">DONE</button></div></div>`;
+        s.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;"><div style="background:#0a1a0a;border:3px solid #00ff00;border-radius:16px;padding:40px;text-align:center;max-width:500px;animation:popupShake 0.3s;"><div style="font-size:64px;margin-bottom:16px;">✅</div><h2 style="color:#00ff00;margin-bottom:8px;">SYSTEM CLEANED!</h2><p style="color:#888;margin-bottom:16px;">All threats successfully removed from the system.</p><div style="color:#00ff00;font-size:12px;margin-bottom:16px;line-height:1.8;text-align:left;">✅ All virus files - Deleted<br>✅ GotFucked Ransomware - Removed<br>✅ Persistence mechanisms - Destroyed<br>✅ Miner backdoors - Removed</div><div style="color:#ffcc00;font-size:14px;font-weight:bold;">🎉 MISSION SUCCESSFUL! Threat neutralized.</div><button onclick="this.closest('.hacker-success').remove()" style="margin-top:20px;padding:12px 32px;background:#00ff00;color:#000;border:none;border-radius:4px;font-size:16px;font-weight:bold;cursor:pointer;">DONE</button></div></div>`;
         document.body.appendChild(s);
         addNotification('✅ WebOS Defender', 'System clean! All viruses successfully deleted!');
-        addNotification('🎉 Mission Complete', 'Threat successfully neutralized via CMD.');
+        addNotification('🎉 Mission Complete', 'GotFucked Ransomware fully removed via CMD.');
     } else if (over) {
         const sd = over.querySelector('.hacker-mission');
         if (sd) sd.innerHTML = `<div style="color:#ffcc00;font-weight:bold;margin-bottom:8px;">📋 REMAINING VIRUS FILES: ${remaining.length}</div><div style="color:#ff4444;font-size:12px;line-height:1.6;text-align:left;">${remaining.map(vf => '⚠️ ' + vf.name).join('<br>')}</div><div style="color:#00ff00;font-size:12px;margin-top:8px;">Use CMD: <b>locate</b> to find paths, then <b>cd</b> + <b>del</b></div>`;
     }
-}
 }
 
 function getGameDownloadPage() {
@@ -2398,4 +2427,250 @@ function _camCard(emoji, bg, viewers, name, badge, bio, nameColor, isVip) {
             '</div>' +
         '</div>' +
     '</div>';
+}
+
+function getNoMoreRansomPage() {
+    return `
+        <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;min-height:100%;display:flex;background:#fff;">
+            <div style="width:35%;background:linear-gradient(135deg,#1a3a8a 0%,#2a4a9a 50%,#1a3a8a 100%);color:#fff;padding:40px 30px;position:relative;min-height:100vh;">
+                <div style="margin-bottom:60px;">
+                    <div style="display:flex;align-items:center;gap:12px;font-size:20px;font-weight:bold;">
+                        <span style="font-size:28px;"></span>
+                        <span>&lt;/&gt; NO MORE RANSOM</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:40px;">
+                    <h1 style="font-size:32px;font-weight:900;margin-bottom:8px;color:#ffcc00;">NEED HELP</h1>
+                    <h2 style="font-size:24px;font-weight:700;margin-bottom:20px;line-height:1.3;">
+                        unlocking your<br>
+                        digital life<br>
+                        without paying<br>
+                        your attackers*?
+                    </h2>
+                    
+                    <div style="display:flex;gap:16px;margin-bottom:40px;">
+                        <button onclick="alert('This is a simulation. In real cases, NEVER pay the ransom!')" style="padding:14px 32px;background:#66ccff;color:#1a3a8a;border:none;border-radius:30px;font-size:16px;font-weight:bold;cursor:pointer;">YES</button>
+                        <button onclick="alert('Correct! Never pay ransomware!')" style="padding:14px 32px;background:#66ccff;color:#1a3a8a;border:none;border-radius:30px;font-size:16px;font-weight:bold;cursor:pointer;">NO</button>
+                    </div>
+                    
+                    <p style="font-size:11px;line-height:1.5;color:#ccc;">
+                        At this time, not all types of ransomware have a solution. Keep checking this website as new keys and applications are continuously added when available.
+                    </p>
+                </div>
+                
+                <div style="position:absolute;bottom:40px;left:30px;right:30px;">
+                    <div style="background:rgba(255,255,255,0.1);padding:16px;border-radius:8px;font-size:10px;line-height:1.5;">
+                        <strong>⚠️ DISCLAIMER:</strong> This is a simulation of the No More Ransom website for educational purposes. The real website can be accessed at nomoreransom.org
+                    </div>
+                </div>
+            </div>
+            
+            <div style="flex:1;padding:0;">
+                <div style="display:flex;justify-content:flex-end;padding:20px 30px;gap:20px;align-items:center;border-bottom:1px solid #eee;">
+                    <a href="#" style="color:#1a3a8a;text-decoration:none;font-size:14px;">Partners</a>
+                    <a href="#" style="color:#1a3a8a;text-decoration:none;font-size:14px;">About the Project</a>
+                    <div style="background:#1a3a8a;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;">English ▼</div>
+                </div>
+                
+                <div style="padding:30px;">
+                    <div style="display:flex;gap:8px;margin-bottom:40px;flex-wrap:wrap;">
+                        <button onclick="showNMRSection('home')" style="padding:10px 20px;background:#d4af37;color:#fff;border:none;border-radius:20px;font-size:14px;font-weight:bold;cursor:pointer;">Home</button>
+                        <button onclick="showNMRSection('crypto')" style="padding:10px 20px;background:#fff;color:#1a3a8a;border:1px solid #1a3a8a;border-radius:20px;font-size:14px;cursor:pointer;">Crypto Sheriff</button>
+                        <button onclick="showNMRSection('faq')" style="padding:10px 20px;background:#fff;color:#1a3a8a;border:1px solid #1a3a8a;border-radius:20px;font-size:14px;cursor:pointer;">Ransomware: Q&A</button>
+                        <button onclick="showNMRSection('prevention')" style="padding:10px 20px;background:#fff;color:#1a3a8a;border:1px solid #1a3a8a;border-radius:20px;font-size:14px;cursor:pointer;">Prevention Advice</button>
+                        <button onclick="showNMRSection('tools')" style="padding:10px 20px;background:#fff;color:#1a3a8a;border:1px solid #1a3a8a;border-radius:20px;font-size:14px;cursor:pointer;">Decryption Tools</button>
+                        <button onclick="showNMRSection('report')" style="padding:10px 20px;background:#fff;color:#1a3a8a;border:1px solid #1a3a8a;border-radius:20px;font-size:14px;cursor:pointer;">Report Crime</button>
+                    </div>
+                    
+                    <div id="nmr-content-home" class="nmr-section">
+                        <div style="display:flex;gap:40px;align-items:center;margin-bottom:40px;">
+                            <div style="flex:1;">
+                                <div style="background:#f5f5f5;border:2px solid #d4af37;border-radius:12px;padding:40px;text-align:center;">
+                                    <div style="font-size:120px;margin-bottom:20px;">🔒</div>
+                                    <div style="color:#d4af37;font-size:14px;">Illustration: Keyboard with security lock</div>
+                                </div>
+                            </div>
+                            <div style="flex:1;">
+                                <div style="background:#f0f0f0;padding:24px;border-radius:12px;">
+                                    <p style="font-size:14px;line-height:1.6;color:#333;margin-bottom:16px;">
+                                        Ransomware is malware that locks your computer and mobile devices or encrypts your electronic files. When this happens, you cannot access your data unless you pay the ransom.
+                                    </p>
+                                    <p style="font-size:16px;font-weight:900;color:#1a3a8a;line-height:1.4;">
+                                        However, this cannot be guaranteed and you should never pay!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:40px;">
+                            <div style="background:#1a3a8a;color:#fff;padding:24px;border-radius:12px;text-align:center;cursor:pointer;" onclick="showNMRSection('tools')">
+                                <div style="font-size:48px;margin-bottom:12px;">🔓</div>
+                                <h3 style="font-size:16px;margin-bottom:8px;">Decryption Tools</h3>
+                                <p style="font-size:12px;color:#ccc;">Find free decryption tools for ransomware</p>
+                            </div>
+                            <div style="background:#1a3a8a;color:#fff;padding:24px;border-radius:12px;text-align:center;cursor:pointer;" onclick="showNMRSection('prevention')">
+                                <div style="font-size:48px;margin-bottom:12px;">️</div>
+                                <h3 style="font-size:16px;margin-bottom:8px;">Prevention</h3>
+                                <p style="font-size:12px;color:#ccc;">Protect yourself from ransomware</p>
+                            </div>
+                            <div style="background:#1a3a8a;color:#fff;padding:24px;border-radius:12px;text-align:center;cursor:pointer;" onclick="showNMRSection('report')">
+                                <div style="font-size:48px;margin-bottom:12px;">🚨</div>
+                                <h3 style="font-size:16px;margin-bottom:8px;">Report</h3>
+                                <p style="font-size:12px;color:#ccc;">Report ransomware attacks</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="nmr-content-crypto" class="nmr-section" style="display:none;">
+                        <h2 style="color:#1a3a8a;margin-bottom:20px;"> Crypto Sheriff</h2>
+                        <p style="font-size:14px;line-height:1.6;color:#333;margin-bottom:20px;">
+                            Crypto Sheriff is a service that allows you to upload ransomware samples for identification. Expert teams will analyze the files and inform you if a decryption tool is available.
+                        </p>
+                        <div style="background:#f5f5f5;padding:20px;border-radius:8px;margin-bottom:20px;">
+                            <h3 style="color:#1a3a8a;margin-bottom:12px;">How It Works:</h3>
+                            <ol style="margin-left:20px;font-size:14px;line-height:1.8;color:#333;">
+                                <li>Upload encrypted files or ransom notes</li>
+                                <li>Expert teams will analyze the samples</li>
+                                <li>You will be notified if a decryption tool is available</li>
+                                <li>Download the free decryption tool if available</li>
+                            </ol>
+                        </div>
+                        <button onclick="alert('This is a simulation. In real cases, visit nomoreransom.org')" style="padding:12px 24px;background:#d4af37;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;">Upload Sample (Simulation)</button>
+                    </div>
+                    
+                    <div id="nmr-content-faq" class="nmr-section" style="display:none;">
+                        <h2 style="color:#1a3a8a;margin-bottom:20px;">❓ Ransomware: Questions & Answers</h2>
+                        <div style="margin-bottom:20px;">
+                            <h3 style="color:#1a3a8a;margin-bottom:8px;">What is ransomware?</h3>
+                            <p style="font-size:14px;line-height:1.6;color:#333;">Ransomware is a type of malware that locks your device or encrypts your files, then demands a ransom to restore access.</p>
+                        </div>
+                        <div style="margin-bottom:20px;">
+                            <h3 style="color:#1a3a8a;margin-bottom:8px;">Should I pay the ransom?</h3>
+                            <p style="font-size:14px;line-height:1.6;color:#333;"><strong>NO!</strong> There is no guarantee that you will get your files back after paying. Additionally, payment funds criminal activities.</p>
+                        </div>
+                        <div style="margin-bottom:20px;">
+                            <h3 style="color:#1a3a8a;margin-bottom:8px;">How do I remove ransomware?</h3>
+                            <p style="font-size:14px;line-height:1.6;color:#333;">Use free decryption tools from No More Ransom, or reinstall your system from a clean backup.</p>
+                        </div>
+                        <div style="margin-bottom:20px;">
+                            <h3 style="color:#1a3a8a;margin-bottom:8px;">How do I prevent ransomware?</h3>
+                            <p style="font-size:14px;line-height:1.6;color:#333;">Back up data regularly, update software, use antivirus, and don't click suspicious links or attachments.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="nmr-content-prevention" class="nmr-section" style="display:none;">
+                        <h2 style="color:#1a3a8a;margin-bottom:20px;">🛡️ Prevention Advice</h2>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;">
+                            <div style="background:#f5f5f5;padding:20px;border-radius:8px;">
+                                <h3 style="color:#1a3a8a;margin-bottom:12px;"> Backup Data</h3>
+                                <p style="font-size:13px;line-height:1.6;color:#333;">Back up your files regularly to a separate location (cloud or external hard drive). Ensure backups are not connected to your computer when not in use.</p>
+                            </div>
+                            <div style="background:#f5f5f5;padding:20px;border-radius:8px;">
+                                <h3 style="color:#1a3a8a;margin-bottom:12px;">🔄 Update Software</h3>
+                                <p style="font-size:13px;line-height:1.6;color:#333;">Always update your operating system and applications. Updates often include security patches for known vulnerabilities.</p>
+                            </div>
+                            <div style="background:#f5f5f5;padding:20px;border-radius:8px;">
+                                <h3 style="color:#1a3a8a;margin-bottom:12px;">🛡️ Use Antivirus</h3>
+                                <p style="font-size:13px;line-height:1.6;color:#333;">Install and update antivirus/anti-malware software. Perform regular scans.</p>
+                            </div>
+                            <div style="background:#f5f5f5;padding:20px;border-radius:8px;">
+                                <h3 style="color:#1a3a8a;margin-bottom:12px;">⚠️ Be Careful with Email</h3>
+                                <p style="font-size:13px;line-height:1.6;color:#333;">Don't open attachments or click links from unknown senders. Beware of emails requesting personal information.</p>
+                            </div>
+                            <div style="background:#f5f5f5;padding:20px;border-radius:8px;">
+                                <h3 style="color:#1a3a8a;margin-bottom:12px;">🔒 Use Firewall</h3>
+                                <p style="font-size:13px;line-height:1.6;color:#333;">Enable firewall to block unauthorized access to your computer.</p>
+                            </div>
+                            <div style="background:#f5f5f5;padding:20px;border-radius:8px;">
+                                <h3 style="color:#1a3a8a;margin-bottom:12px;">‍💻 User Education</h3>
+                                <p style="font-size:13px;line-height:1.6;color:#333;">Learn how to recognize cyber threats. Share knowledge with family and colleagues.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="nmr-content-tools" class="nmr-section" style="display:none;">
+                        <h2 style="color:#1a3a8a;margin-bottom:20px;"> Decryption Tools</h2>
+                        <p style="font-size:14px;line-height:1.6;color:#333;margin-bottom:20px;">
+                            Here are some free decryption tools available for specific types of ransomware:
+                        </p>
+                        <div style="display:grid;gap:16px;">
+                            <div style="background:#f5f5f5;padding:16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <h3 style="color:#1a3a8a;margin-bottom:4px;">💀 GotFucked Decryptor</h3>
+                                    <p style="font-size:12px;color:#666;">For GotFucked Ransomware v2.0 — Unlocks all files, apps & folders</p>
+                                </div>
+                                <button onclick="if(typeof downloadDecryptor==='function'){downloadDecryptor();}else{alert('Download function not available.');}" style="padding:8px 16px;background:#1a3a8a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Download</button>
+                            </div>
+                            <div style="background:#f5f5f5;padding:16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <h3 style="color:#1a3a8a;margin-bottom:4px;">TeslaCrypt Decryptor</h3>
+                                    <p style="font-size:12px;color:#666;">For TeslaCrypt v3.0+ ransomware</p>
+                                </div>
+                                <button onclick="alert('Simulation download - this is not a real tool')" style="padding:8px 16px;background:#1a3a8a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Download</button>
+                            </div>
+                            <div style="background:#f5f5f5;padding:16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <h3 style="color:#1a3a8a;margin-bottom:4px;">RannohDecryptor</h3>
+                                    <p style="font-size:12px;color:#666;">For Rannoh and Rakhni ransomware</p>
+                                </div>
+                                <button onclick="alert('Simulation download - this is not a real tool')" style="padding:8px 16px;background:#1a3a8a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Download</button>
+                            </div>
+                            <div style="background:#f5f5f5;padding:16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <h3 style="color:#1a3a8a;margin-bottom:4px;">CoinVault Decryptor</h3>
+                                    <p style="font-size:12px;color:#666;">For CoinVault and BitCryptor ransomware</p>
+                                </div>
+                                <button onclick="alert('Simulation download - this is not a real tool')" style="padding:8px 16px;background:#1a3a8a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Download</button>
+                            </div>
+                            <div style="background:#f5f5f5;padding:16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <h3 style="color:#1a3a8a;margin-bottom:4px;">WildFire Decryptor</h3>
+                                    <p style="font-size:12px;color:#666;">For WildFire ransomware</p>
+                                </div>
+                                <button onclick="alert('Simulation download - this is not a real tool')" style="padding:8px 16px;background:#1a3a8a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Download</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:20px;padding:16px;background:#fff3cd;border:1px solid #ffc107;border-radius:8px;">
+                            <p style="font-size:13px;color:#856404;"><strong>️ Note:</strong> Not all ransomware has decryption tools. If no tool is available, you may need to consider reinstalling your system from a clean backup.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="nmr-content-report" class="nmr-section" style="display:none;">
+                        <h2 style="color:#1a3a8a;margin-bottom:20px;">🚨 Report Crime</h2>
+                        <p style="font-size:14px;line-height:1.6;color:#333;margin-bottom:20px;">
+                            If you become a victim of ransomware, report it to local authorities. This helps law enforcement track and stop cybercriminals.
+                        </p>
+                        <div style="background:#f5f5f5;padding:20px;border-radius:8px;margin-bottom:20px;">
+                            <h3 style="color:#1a3a8a;margin-bottom:12px;">Information to Report:</h3>
+                            <ul style="margin-left:20px;font-size:14px;line-height:1.8;color:#333;">
+                                <li>Type of ransomware (if known)</li>
+                                <li>Ransom note</li>
+                                <li>Encrypted files (samples)</li>
+                                <li>Attacker's email or contact information</li>
+                                <li>Cryptocurrency wallet address for payment</li>
+                                <li>Time and method of infection</li>
+                            </ul>
+                        </div>
+                        <div style="background:#f5f5f5;padding:20px;border-radius:8px;">
+                            <h3 style="color:#1a3a8a;margin-bottom:12px;">Authorities to Contact:</h3>
+                            <ul style="margin-left:20px;font-size:14px;line-height:1.8;color:#333;">
+                                <li><strong>Indonesia:</strong> Bareskrim Polri - patrolisiber.id</li>
+                                <li><strong>International:</strong> INTERPOL - interpol.int</li>
+                                <li><strong>Europe:</strong> Europol - europol.europa.eu</li>
+                                <li><strong>USA:</strong> FBI IC3 - ic3.gov</li>
+                            </ul>
+                        </div>
+                        <button onclick="alert('This is a simulation. In real cases, contact local authorities.')" style="margin-top:20px;padding:12px 24px;background:#d4af37;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;">Report Now (Simulation)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function showNMRSection(sectionName) {
+    document.querySelectorAll('.nmr-section').forEach(el => el.style.display = 'none');
+    const target = document.getElementById('nmr-content-' + sectionName);
+    if (target) target.style.display = 'block';
 }

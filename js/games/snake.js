@@ -2,6 +2,7 @@ let snakeState = {};
 
 function renderSnake(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.snake ? gameSaves.snake.highScore : 0;
     

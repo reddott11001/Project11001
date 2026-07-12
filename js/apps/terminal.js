@@ -48,6 +48,7 @@ const termCommands = {
 
 function renderTerminal(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     body.style.overflow = 'hidden';
     body.innerHTML = `
         <div class="term-container" id="${winId}-term">
@@ -785,6 +786,18 @@ function termDelete(winId, args) {
 
     if (deletedCount > 0) {
         saveWebOS();
+        const coreFolder = navigateToPath(['C:', 'Windows', 'System32', 'drivers']);
+        const coreGone = !coreFolder || !coreFolder.children || !coreFolder.children['gotfucked.sys'];
+        if (coreGone && typeof ransomwareState !== 'undefined' && ransomwareState.infected) {
+            ransomwareState.infected = false;
+            ransomwareState.timerStart = null;
+            if (ransomwareState.timerInterval) { clearInterval(ransomwareState.timerInterval); ransomwareState.timerInterval = null; }
+            if (ransomwareState.popupEl) { ransomwareState.popupEl.remove(); ransomwareState.popupEl = null; }
+            const popupById = document.getElementById('ransomware-popup');
+            if (popupById) popupById.remove();
+            if (typeof unlockDesktopIcons === 'function') unlockDesktopIcons();
+            saveWebOS();
+        }
         checkInfectionCleared();
     }
 }

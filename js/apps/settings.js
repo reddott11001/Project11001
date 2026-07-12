@@ -35,6 +35,7 @@ function saveSettingsState() {
 function renderSettings(winId) {
     loadSettingsState();
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     body.innerHTML = `
         <div class="settings-app" style="height:100%;display:flex;background:#202020;color:#fff;font-family:Segoe UI,sans-serif;">
             <div class="settings-sidebar" style="width:260px;background:#1a1a1a;border-right:1px solid #333;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;">

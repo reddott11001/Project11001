@@ -8,6 +8,7 @@ let fighterState = {};
 
 function renderFighter(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const savedFight = gameSaves.fighter || null;

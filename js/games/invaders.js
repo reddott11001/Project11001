@@ -2,6 +2,7 @@ let invadersState = {};
 
 function renderInvaders(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.invaders ? gameSaves.invaders.highScore : 0;
     

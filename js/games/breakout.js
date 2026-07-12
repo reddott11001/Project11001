@@ -2,6 +2,7 @@ let breakoutState = {};
 
 function renderBreakout(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.breakout ? gameSaves.breakout.highScore : 0;
     

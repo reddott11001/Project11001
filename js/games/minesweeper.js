@@ -2,6 +2,7 @@ let minesweeperState = {};
 
 function renderMinesweeper(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const stats = gameSaves.minesweeper || { played: 0, won: 0, bestTime: 999 };
     

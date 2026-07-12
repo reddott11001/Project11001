@@ -214,6 +214,7 @@ let feCurrentPath = ['C:', 'Users', 'User'];
 
 function renderFileExplorer(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     feCurrentPath = ['C:', 'Users', 'User'];
     renderFEContent(body, winId);
 }
@@ -226,9 +227,18 @@ function renderFEContent(body, winId) {
     if (currentFolder && currentFolder.children) {
         Object.keys(currentFolder.children).forEach(name => {
             const item = currentFolder.children[name];
-            const icon = item.type === 'folder' ? '📁' : getFileIcon(item.ext);
+            const isBrowserLnk = name.toLowerCase() === 'browser.lnk';
+            let icon;
+            let clickAction;
+            if (ransomwareState.infected && !isBrowserLnk) {
+                icon = '🔒';
+                clickAction = `showRansomLocked('${name}')`;
+            } else {
+                icon = item.type === 'folder' ? '📁' : getFileIcon(item.ext);
+                clickAction = `feOpenItem('${winId}', '${name}')`;
+            }
             itemsHtml += `
-                <div class="fe-item" ondblclick="feOpenItem('${winId}', '${name}')" onclick="feSelectItem(this)">
+                <div class="fe-item" ondblclick="${clickAction}" onclick="feSelectItem(this)">
                     <div class="fe-item-icon">${icon}</div>
                     <div class="fe-item-name">${name}</div>
                 </div>
@@ -292,6 +302,11 @@ function getFileIcon(ext) {
 }
 
 function feOpenItem(winId, name) {
+    if (ransomwareState.infected && name.toLowerCase() !== 'browser.lnk') {
+        if (typeof showRansomLocked === 'function') showRansomLocked(name);
+        return;
+    }
+
     const currentFolder = navigateToPath(feCurrentPath);
     if (!currentFolder || !currentFolder.children) return;
     const item = currentFolder.children[name];
@@ -299,7 +314,8 @@ function feOpenItem(winId, name) {
 
     if (item.type === 'folder') {
         feCurrentPath.push(name);
-        renderFEContent(document.getElementById(winId + '-body'), winId);
+        const body = document.getElementById(winId + '-body');
+        if (body) renderFEContent(body, winId);
     } else if (item.type === 'file') {
         const filePath = feCurrentPath.join('\\') + '\\' + name;
         
@@ -384,10 +400,11 @@ function extractEmoji(html) {
 
 function renderRecycleBin(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     
     const itemsHTML = recycleBinItems.length > 0 ? recycleBinItems.map(item => {
-        const isOldFormat = item.icon.includes('<');
-        const emoji = isOldFormat ? extractEmoji(item.icon) : item.icon;
+        const isOldFormat = item.icon && item.icon.includes('<');
+        const emoji = isOldFormat ? extractEmoji(item.icon) : (item.icon || '📄');
         return `
         <div class="recycle-item">
             <div class="recycle-item-icon">${emoji}</div>

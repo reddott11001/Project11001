@@ -2,6 +2,7 @@ let flappyState = {};
 
 function renderFlappy(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.flappy ? gameSaves.flappy.highScore : 0;
     

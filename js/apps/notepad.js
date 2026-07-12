@@ -1,5 +1,6 @@
 function renderNotepad(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     
     const docsFolder = navigateToPath(['C:', 'Users', 'User', 'Documents']);
     const savedNotes = docsFolder && docsFolder.children 

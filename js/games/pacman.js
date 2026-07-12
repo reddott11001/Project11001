@@ -52,6 +52,7 @@ const SNAP      = 3;                  // px — how close to tile centre to allo
 // ── Render shell ──────────────────────────────────────────────────────────────
 function renderPacman(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.pacman ? gameSaves.pacman.highScore : 0;
 

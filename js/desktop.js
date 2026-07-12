@@ -65,24 +65,22 @@ function loadWebOS() {
             downloadedGames = data.downloadedGames || [];
             recycleBinItems = data.recycleBinItems || [];
             iconPositions = data.iconPositions || {};
-            
             if (data.ransomwareState && data.ransomwareState.infected) {
-                const hasEncrypted = data.ransomwareState.encryptedFiles && data.ransomwareState.encryptedFiles.length > 0;
-                if (hasEncrypted) {
+                const coreFolder = navigateToPath(['C:', 'Windows', 'System32', 'drivers']);
+                const coreExists = coreFolder && coreFolder.children && coreFolder.children['gotfucked.sys'];
+                if (coreExists) {
                     ransomwareState.infected = true;
-                    ransomwareState.encryptedFiles = data.ransomwareState.encryptedFiles;
                     ransomwareState.timerStart = data.ransomwareState.timerStart || Date.now();
                     ransomwareState.validKey = data.ransomwareState.validKey || 'GOTFUCKED-DECRYPT-KEY-2026';
                     showRansomPopup();
                     startRansomTimer();
+                    if (typeof lockDesktopIcons === 'function') lockDesktopIcons();
                 } else {
                     ransomwareState.infected = false;
-                    ransomwareState.encryptedFiles = [];
                     ransomwareState.timerStart = null;
                 }
             } else {
                 ransomwareState.infected = false;
-                ransomwareState.encryptedFiles = [];
                 ransomwareState.timerStart = null;
             }
             restoreDownloadedIcons();
@@ -511,46 +509,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2500);
 
     document.getElementById('lock-screen').addEventListener('click', () => {
-        document.getElementById('lock-screen').style.display = 'none';
-        loadWebOS();
-        document.getElementById('desktop').style.background = wallpapers[currentWallpaper];
-        document.getElementById('desktop').style.display = 'block';
-        initIconPositions();
-        setupIconDrag();
-        if (webosInfected) {
-            showHackerOverlay();
-            addNotification('🚨 WebOS Defender CRITICAL', 'SYSTEM COMPROMISED! (saved session)');
-        }
-        setInterval(saveWebOS, 30000);
+        try {
+            document.getElementById('lock-screen').style.display = 'none';
+            loadWebOS();
+            document.getElementById('desktop').style.background = wallpapers[currentWallpaper];
+            document.getElementById('desktop').style.display = 'block';
+            initIconPositions();
+            setupIconDrag();
+            if (webosInfected) {
+                const remaining = webosVirusFiles.filter(vf => { const f = navigateToPath(vf.path); return f && f.children && f.children[vf.name]; });
+                if (remaining.length > 0) {
+                    showHackerOverlay();
+                    addNotification('🚨 WebOS Defender CRITICAL', 'SYSTEM COMPROMISED! (saved session)');
+                } else {
+                    webosInfected = false;
+                    saveWebOS();
+                }
+            }
+            setInterval(saveWebOS, 30000);
+        } catch(e) { console.error('Unlock error:', e); }
     });
 
     document.addEventListener('click', (e) => {
-        const ctx = document.getElementById('context-menu');
-        if (!ctx.contains(e.target)) ctx.style.display = 'none';
+        try {
+            if (ransomwareState.infected) return;
+            const ctx = document.getElementById('context-menu');
+            if (ctx && !ctx.contains(e.target)) ctx.style.display = 'none';
 
-        const sm = document.getElementById('start-menu');
-        const sb = document.getElementById('start-btn');
-        if (!sm.contains(e.target) && !sb.contains(e.target)) sm.style.display = 'none';
+            const sm = document.getElementById('start-menu');
+            const sb = document.getElementById('start-btn');
+            if (sm && sb && !sm.contains(e.target) && !sb.contains(e.target)) sm.style.display = 'none';
 
-        const nc = document.getElementById('notification-center');
-        const nb = document.getElementById('notification-btn');
-        if (!nc.contains(e.target) && !nb.contains(e.target)) nc.style.display = 'none';
+            const nc = document.getElementById('notification-center');
+            const nb = document.getElementById('notification-btn');
+            if (nc && nb && !nc.contains(e.target) && !nb.contains(e.target)) nc.style.display = 'none';
 
-        const pm = document.getElementById('power-menu');
-        if (!pm.contains(e.target)) pm.style.display = 'none';
+            const pm = document.getElementById('power-menu');
+            if (pm && !pm.contains(e.target)) pm.style.display = 'none';
 
-        const sr = document.getElementById('search-results');
-        const si = document.getElementById('search-input');
-        if (!sr.contains(e.target) && e.target !== si) sr.style.display = 'none';
+            const sr = document.getElementById('search-results');
+            const si = document.getElementById('search-input');
+            if (sr && si && !sr.contains(e.target) && e.target !== si) sr.style.display = 'none';
 
-        const scm = document.getElementById('start-context-menu');
-        if (!scm.contains(e.target) && !sb.contains(e.target)) scm.style.display = 'none';
+            const scm = document.getElementById('start-context-menu');
+            if (scm && sb && !scm.contains(e.target) && !sb.contains(e.target)) scm.style.display = 'none';
 
-        const icm = document.getElementById('icon-context-menu');
-        if (icm && !icm.contains(e.target)) icm.style.display = 'none';
+            const icm = document.getElementById('icon-context-menu');
+            if (icm && !icm.contains(e.target)) icm.style.display = 'none';
+        } catch(e) {}
     }, true);
 
     document.getElementById('desktop').addEventListener('contextmenu', (e) => {
+        if (ransomwareState.infected) { e.preventDefault(); return; }
         if (e.target.closest('.app-window') || e.target.closest('#taskbar') || e.target.closest('.desktop-icon')) return;
         e.preventDefault();
         const ctx = document.getElementById('context-menu');
@@ -560,6 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('desktop').addEventListener('mousedown', (e) => {
+        if (ransomwareState.infected) return;
         if (e.target.closest('.app-window') || e.target.closest('#taskbar') ||
             e.target.closest('#start-menu') || e.target.closest('#context-menu') ||
             e.target.closest('#notification-center') || e.target.closest('#power-menu') ||
@@ -691,6 +702,7 @@ function isBuiltInApp(appId) {
 }
 
 function showIconContextMenu(x, y, appId, canDelete) {
+    if (ransomwareState.infected) return;
     let menu = document.getElementById('icon-context-menu');
     if (!menu) {
         menu = document.createElement('div');
@@ -844,22 +856,26 @@ function permaDelete(appId) {
 }
 
 function toggleStartMenu() {
+    if (ransomwareState.infected) return;
     const sm = document.getElementById('start-menu');
     sm.style.display = sm.style.display === 'none' ? 'flex' : 'none';
 }
 
 function toggleNotifications() {
+    if (ransomwareState.infected) return;
     const nc = document.getElementById('notification-center');
     nc.style.display = nc.style.display === 'none' ? 'flex' : 'none';
 }
 
 function showPowerMenu() {
+    if (ransomwareState.infected) return;
     document.getElementById('start-menu').style.display = 'none';
     const pm = document.getElementById('power-menu');
     pm.style.display = pm.style.display === 'none' ? 'block' : 'none';
 }
 
 function lockScreen() {
+    if (ransomwareState.infected) return;
     document.getElementById('power-menu').style.display = 'none';
     document.getElementById('desktop').style.display = 'none';
     document.getElementById('lock-screen').style.display = 'flex';
@@ -869,6 +885,7 @@ function lockScreen() {
 }
 
 function restartOS() {
+    if (ransomwareState.infected) return;
     document.getElementById('power-menu').style.display = 'none';
     document.getElementById('desktop').style.display = 'none';
     document.getElementById('shutdown-screen').style.display = 'flex';
@@ -884,6 +901,7 @@ function restartOS() {
 }
 
 function shutdownOS() {
+    if (ransomwareState.infected) return;
     document.getElementById('power-menu').style.display = 'none';
     document.getElementById('desktop').style.display = 'none';
     document.getElementById('shutdown-screen').style.display = 'flex';
@@ -895,6 +913,7 @@ function shutdownOS() {
 }
 
 function changeWallpaper() {
+    if (ransomwareState.infected) return;
     document.getElementById('context-menu').style.display = 'none';
     currentWallpaper = (currentWallpaper + 1) % wallpapers.length;
     document.getElementById('desktop').style.background = wallpapers[currentWallpaper];
@@ -956,6 +975,10 @@ function hideLagOverlay() {
 }
 
 function openApp(appId, skipLag) {
+    if (ransomwareState.infected && appId !== 'browser' && appId !== 'gotfucked-decryptor') {
+        if (typeof showRansomLocked === 'function') showRansomLocked(appId);
+        return;
+    }
     document.getElementById('start-menu').style.display = 'none';
     document.getElementById('context-menu').style.display = 'none';
 
@@ -1005,8 +1028,9 @@ function openApp(appId, skipLag) {
         'doom2': { title: 'Doom 2: Hell Walker', icon: '🔫', width: 700, height: 520, render: renderDoom2 },
         'recycle': { title: 'Recycle Bin', icon: '🗑️', width: 600, height: 400, render: renderRecycleBin },
         'cmd': { title: 'Command Prompt', icon: '⌨️', width: 750, height: 450, render: renderTerminal },
-        'taskmgr': { title: 'Task Manager', icon: '📊', width: 700, height: 480, render: renderTaskManager },
-        'settings': { title: 'Settings', icon: '📊', width: 900, height: 580, render: renderSettings },
+        'taskmgr': { title: 'Task Manager', icon: '', width: 700, height: 480, render: renderTaskManager },
+        'settings': { title: 'Settings', icon: '', width: 900, height: 580, render: renderSettings },
+        'gotfucked-decryptor': { title: 'GotFucked Decryptor', icon: '🗝️', width: 700, height: 520, render: renderGotFuckedDecryptor },
     };
 
     const config = configs[appId];
@@ -1014,6 +1038,7 @@ function openApp(appId, skipLag) {
 
     const winId = 'win-' + (++windowIdCounter);
     const container = document.getElementById('windows-container');
+    if (!container) { console.error('openApp: #windows-container not found'); return; }
 
     const offsetX = 50 + (windowIdCounter % 8) * 30;
     const offsetY = 30 + (windowIdCounter % 8) * 30;
@@ -1370,6 +1395,7 @@ function saveSolitaireProgress(winId) {
 function addTaskbarButton(winId) {
     const winData = activeWindows[winId];
     const taskbarApps = document.getElementById('taskbar-apps');
+    if (!taskbarApps) { console.error('addTaskbarButton: #taskbar-apps not found'); return; }
     const btn = document.createElement('div');
     btn.className = 'taskbar-app-btn';
     btn.id = 'tb-' + winId;
@@ -1393,6 +1419,7 @@ function addTaskbarButton(winId) {
 }
 
 function sortIcons() {
+    if (ransomwareState.infected) return;
     document.getElementById('context-menu').style.display = 'none';
     const container = document.getElementById('desktop-icons');
     const icons = Array.from(container.children);
@@ -1405,10 +1432,12 @@ function sortIcons() {
 }
 
 function toggleIconSize() {
+    if (ransomwareState.infected) return;
     document.getElementById('context-menu').style.display = 'none';
 }
 
 function showStartContextMenu(e) {
+    if (ransomwareState.infected) return;
     e.preventDefault();
     e.stopPropagation();
     const menu = document.getElementById('start-context-menu');
@@ -1417,6 +1446,7 @@ function showStartContextMenu(e) {
 }
 
 function showRunDialog() {
+    if (ransomwareState.infected) return;
     document.getElementById('start-context-menu').style.display = 'none';
     document.getElementById('run-dialog').style.display = 'block';
     const input = document.getElementById('run-input');
@@ -1535,6 +1565,7 @@ function renderWifiNetworkList() {
 }
 
 function toggleWifiPanel() {
+    if (ransomwareState.infected) return;
     const panel = document.getElementById('wifi-panel');
     if (!panel) {
         createWifiPanel();
@@ -1748,6 +1779,7 @@ function getNoInternetPage(winId) {
 let calendarDate = new Date();
 
 function toggleCalendarPanel() {
+    if (ransomwareState.infected) return;
     const panel = document.getElementById('calendar-panel');
     if (!panel) {
         createCalendarPanel();

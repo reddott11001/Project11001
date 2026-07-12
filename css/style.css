@@ -2660,6 +2660,10 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 50000;
+    pointer-events: none;
+}
+#hacker-mission-overlay .hacker-box {
+    pointer-events: auto;
 }
 
 .hacker-bg {

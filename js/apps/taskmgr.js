@@ -1,5 +1,6 @@
 function renderTaskManager(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     body.innerHTML = `
         <div style="height:100%;display:flex;flex-direction:column;background:#1e1e1e;color:#fff;font-family:Segoe UI,sans-serif;font-size:12px;">
             <div style="display:flex;gap:2px;padding:4px 8px;background:#2d2d2d;border-bottom:1px solid #444;">

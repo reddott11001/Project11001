@@ -2,6 +2,7 @@ let pongState = {};
 
 function renderPong(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.pong ? gameSaves.pong.highScore : 0;
     

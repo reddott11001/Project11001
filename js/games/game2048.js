@@ -30,6 +30,7 @@ const TILE_TEXT_COLORS = {
 // ── Render shell ─────────────────────────────────────────────────────────────
 function render2048(winId) {
     const body = document.getElementById(winId + '-body');
+    if (!body) return;
     const gameSaves = JSON.parse(localStorage.getItem('game-saves') || '{}');
     const highScore = gameSaves.game2048 ? gameSaves.game2048.highScore : 0;
 
