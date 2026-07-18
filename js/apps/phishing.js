@@ -7,13 +7,13 @@ const mailTemplates = [
     { from: 'netflix@billing.info', subject: ' Your Netflix Subscription Will End', preview: 'Renew your subscription now or your account will be frozen. Click to update.', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
     { from: 'hr@job-offers.net', subject: ' Job Vacancy: $10,000/month Salary', preview: 'We like your profile! Work from home, great salary. Register now!', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
     { from: 'shopee@order-confirm.com', subject: ' Your Package Is Held at Customs', preview: 'Your package is held! Click to pay import duty and get your package.', type: 'phishing', malware: 'adware', detail: 'webos://free-download' },
-    { from: 'support@microsoft-verify.com', subject: '? Microsoft Account: Suspicious Login', preview: 'Someone logged in from an unknown location. Verify your identity now!', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
+    { from: 'support@microsoft-verify.com', subject: '🔒 Microsoft Account: Suspicious Login', preview: 'Someone logged in from an unknown location. Verify your identity now!', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
     { from: 'admin@google-drive-share.com', subject: ' Someone Shared a File With You', preview: 'Important file shared with you! [Download] Secret_Document.pdf', type: 'phishing', malware: 'trojan', detail: 'webos://free-download' },
     { from: 'info@free-vpn-service.com', subject: ' Premium VPN FREE for Life!', preview: 'Download our VPN and browse the internet without limits! Free for the next 24 hours!', type: 'phishing', malware: 'adware', detail: 'webos://free-download' },
     { from: 'admin@steam-community.com', subject: ' $100 Steam Gift Card FREE!', preview: 'You won a Steam Gift Card! Claim now before they run out!', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
     { from: 'admin@crypto-invest.com', subject: ' Bitcoin x10 in a week!', preview: 'Invest 1 BTC becomes 10 BTC! Real testimonials! Register right now!', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
     { from: 'support@whatsapp-security.com', subject: ' WhatsApp Web: New Device Detected', preview: 'Someone logged into your WhatsApp. Click to block unknown device.', type: 'phishing', malware: 'trojan', detail: 'webos://free-download' },
-    { from: 'admin@instagram-verify.com', subject: '? Instagram Blue Check Verification', preview: 'You are eligible for blue check verification! Click to activate.', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
+    { from: 'admin@instagram-verify.com', subject: '📷 Instagram Blue Check Verification', preview: 'You are eligible for blue check verification! Click to activate.', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
     { from: 'noreply@shopee-promo.com', subject: ' Shopee Flash Sale 99% OFF!', preview: 'All items 99% off! Click now before they run out!', type: 'phishing', malware: 'adware', detail: 'webos://free-download' },
     { from: 'admin@dikti-info.com', subject: ' Full Overseas Master Scholarship', preview: 'You are selected to receive a full scholarship! Upload your documents now!', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
     { from: 'security@apple-id.com', subject: ' Apple ID: Unrecognized Purchase', preview: 'Purchase of Rp 2,000,000 from App Store. Not you? Click to cancel!', type: 'phishing', malware: 'trojan', detail: 'webos://free-download' },
@@ -22,14 +22,14 @@ const mailTemplates = [
     { from: 'admin@spotify-premium.com', subject: ' Spotify Premium 6 Months FREE!', preview: 'Enjoy free Spotify Premium! Click to activate your premium account!', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
     { from: 'admin@tokopedia-seller.com', subject: ' Tokopedia: Your Store Suspended!', preview: 'Your store is suspended due to violation! Click to appeal.', type: 'phishing', malware: 'adware', detail: 'webos://free-download' },
     { from: 'noreply@bri-online.com', subject: ' BRI Internet Banking: Access Blocked', preview: 'Your internet banking access is temporarily blocked. Click to verify!', type: 'phishing', malware: 'trojan', detail: 'webos://free-download' },
-    { from: 'admin@disney-plus.com', subject: '? Disney+ 1 Year Rp 50,000!', preview: 'Special promo! Disney+ 1 year only Rp 50,000. Click now!', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
+    { from: 'admin@disney-plus.com', subject: '🎬 Disney+ 1 Year Rp 50,000!', preview: 'Special promo! Disney+ 1 year only Rp 50,000. Click now!', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
     { from: 'admin@alibaba-order.com', subject: ' Your Order From China Has Arrived', preview: 'Your package arrived in Jakarta! Click to track and pay customs fee of Rp 150,000.', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
     { from: 'noreply@ovo-promo.com', subject: ' 100% OVO Cashback!', preview: 'Every transaction 100% cashback! Claim the promo right now!', type: 'phishing', malware: 'adware', detail: 'webos://free-download' },
     { from: 'security@email-verify.com', subject: ' Verify Your Email Immediately!', preview: 'Your email will be deactivated! Verify within 24 hours or data will be deleted.', type: 'phishing', malware: 'trojan', detail: 'webos://free-download' },
     { from: 'admin@telkomsel.com', subject: ' 100GB Quota FREE!', preview: 'You received 100GB free quota! Click to activate now!', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
     { from: 'noreply@grab-promo.com', subject: ' GrabCar Rp 1,000 Anywhere!', preview: 'Special promo! GrabCar only Rp 1,000! Click to claim a voucher!', type: 'phishing', malware: 'spyware', detail: 'webos://free-download' },
     { from: 'admin@lazada-sale.com', subject: ' Lazada Birthday Sale 9.9!', preview: 'Discounts up to 99% + free shipping! Click now before they run out!', type: 'phishing', malware: 'adware', detail: 'webos://free-download' },
-    { from: 'admin@pertamina-promo.com', subject: '? Pertamina: 50% Fuel Discount!', preview: 'Buy fuel at 50% off! Click to get a digital coupon!', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
+    { from: 'admin@pertamina-promo.com', subject: '⛽ Pertamina: 50% Fuel Discount!', preview: 'Buy fuel at 50% off! Click to get a digital coupon!', type: 'phishing', malware: 'worm', detail: 'webos://free-download' },
 ];
 
 const realEmails = [
@@ -189,7 +189,7 @@ function triggerPhishingWorm() {
         popup.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:start;">
                 <span style="font-size:18px;"></span>
-                <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#bb66ff;font-size:12px;">?</span>
+                <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#bb66ff;font-size:12px;">✕</span>
             </div>
             <div style="font-size:11px;color:#e0b0ff;margin:4px 0;">${ad}</div>
             <button onclick="this.closest('.worm-ad-popup').remove();openScamPage('$ad')" style="padding:4px 12px;background:#bb66ff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:10px;width:100%;"> OPEN</button>
@@ -212,9 +212,9 @@ function triggerPhishingSpyware() {
         { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp'], name: 'webos_logger.exe', type: 'file', ext: 'exe', content: '[SPYWARE] Keylogger - Logging all keystrokes' },
     ];
     addVirusFiles(files);
-    showVirusPopups(files, '? SPYWARE', '#4488ff', '', 4);
+    showVirusPopups(files, '🕵️ SPYWARE', '#4488ff', '', 4);
 
-    addNotification('? SPYWARE ACTIVE', 'Collecting your personal data...');
+    addNotification('🕵️ SPYWARE ACTIVE', 'Collecting your personal data...');
 
     const stolenData = [
         'Password: user123, Email: user@webos.com, Account: Instagram',
@@ -230,11 +230,11 @@ function triggerPhishingSpyware() {
     let sCount = 0;
     const spyInterval = setInterval(() => {
         if (sCount >= 12) { clearInterval(spyInterval); return; }
-        addNotification('? SPYWARE: Data stolen', stolenData[Math.floor(Math.random() * stolenData.length)]);
+        addNotification('🕵️ SPYWARE: Data stolen', stolenData[Math.floor(Math.random() * stolenData.length)]);
         sCount++;
     }, 3000);
 
-    addNotification('? SPYWARE: Password stolen', 'Your social media accounts exposed!');
+    addNotification('🕵️ SPYWARE: Password stolen', 'Your social media accounts exposed!');
     saveWebOS();
 }
 
@@ -260,7 +260,7 @@ function triggerPhishingAdware() {
         popup.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:start;">
                 <span style="font-size:20px;"></span>
-                <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#999;font-size:14px;">?</span>
+                <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#999;font-size:14px;">✕</span>
             </div>
             <div style="font-size:12px;color:#333;margin:6px 0;">${ad}</div>
             <button onclick="this.closest('.adware-popup').remove();openScamPage('$ad')" style="padding:4px 12px;background:#ffaa00;border:none;border-radius:4px;cursor:pointer;font-size:11px;width:100%;">Click here!</button>
@@ -283,8 +283,8 @@ function triggerWiFiRAT() {
         { path: ['C:', 'ProgramData', 'Microsoft', 'Windows', 'WER', 'Temp', 'Archive'], name: 'rat_screen.exe', type: 'file', ext: 'exe', content: '[RAT] Screen Capture - Streaming desktop\nRemote: 192.168.1.105:4444' },
     ];
     addVirusFiles(files);
-    showVirusPopups(files, '? RAT - REMOTE ACCESS', '#00cc66', '', 4);
-    addNotification('? RAT DETECTED', 'CoffeeShop_Free WiFi was a honeypot! Remote Access Trojan installed!');
+    showVirusPopups(files, '️ RAT - REMOTE ACCESS', '#00cc66', '', 4);
+    addNotification('🕸️ RAT DETECTED', 'CoffeeShop_Free WiFi was a honeypot! Remote Access Trojan installed!');
 
     if (wifiRatInterval) clearInterval(wifiRatInterval);
     const ratPhrases = [
@@ -312,7 +312,7 @@ function triggerWiFiRAT() {
             clearInterval(wifiRatInterval);
             wifiRatInterval = null;
             document.querySelectorAll('.rat-popup').forEach(el => el.remove());
-            addNotification('? RAT: Neutralized', 'Core RAT files deleted. Remote connection closed.');
+            addNotification('🕸️ RAT: Neutralized', 'Core RAT files deleted. Remote connection closed.');
             return;
         }
         const popup = document.createElement('div');
@@ -361,7 +361,7 @@ function triggerAdware2() {
         if (!anyAlive) {
             clearInterval(ad2Interval);
             document.querySelectorAll('.adware2-popup').forEach(el => el.remove());
-            addNotification('? ADWARE 2.0: Neutralized', 'Core files deleted. Popup ads stopped.');
+            addNotification('📢 ADWARE 2.0: Neutralized', 'Core files deleted. Popup ads stopped.');
             return;
         }
         ad2Count++;
