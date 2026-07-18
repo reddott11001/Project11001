@@ -841,19 +841,35 @@ function gmailDelete(winId) {
     }
     if (state.currentView === 'trash') {
         state.emails = state.emails.filter(e => e.id !== state.selectedId);
-        state.deletedCount++;
-        if (state.deletedCount % 10 === 0) {
-            const fresh = generateEmails();
-            const added = fresh.slice(0, 10).map(e => ({ ...e, id: 'new-' + Date.now() + '-' + Math.random().toString(36).slice(2,6), read: false, trashed: false, starred: false }));
-            state.emails.push(...added);
-            addNotification(' Gmail', '10 new emails arrived in your inbox!');
-        }
-        state.selectedId = null;
     } else {
         selected.trashed = true;
-        state.selectedId = null;
     }
+    state.deletedCount++;
+    state.selectedId = null;
+    
+    if (state.deletedCount % 5 === 0) {
+        const fresh = generateEmails();
+        const added = fresh.slice(0, 5).map(e => ({ ...e, id: 'new-' + Date.now() + '-' + Math.random().toString(36).slice(2,6), read: false, trashed: false, starred: false }));
+        state.emails.push(...added);
+        addNotification(' Gmail', '5 new emails arrived in your inbox!');
+    }
+    
     gmailRenderListView(winId);
+    updateGmailSidebarBadges(winId);
+}
+
+function updateGmailSidebarBadges(winId) {
+    const state = gmailState[winId];
+    if (!state) return;
+    
+    const inboxCount = state.emails.filter(e => !e.trashed && !e.starred && state.currentView !== 'spam').length;
+    const spamCount = state.emails.filter(e => e.from.includes('spam') || e.from.includes('noreply')).length;
+    
+    const inboxBadge = document.querySelector(`#${winId}-gmail-main .gmail-nav-item[data-view="inbox"] .badge`);
+    const spamBadge = document.querySelector(`#${winId}-gmail-main .gmail-nav-item[data-view="spam"] .badge`);
+    
+    if (inboxBadge) inboxBadge.textContent = inboxCount;
+    if (spamBadge) spamBadge.textContent = spamCount;
 }
 
 function gmailSearch(winId, query) {
