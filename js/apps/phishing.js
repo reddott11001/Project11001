@@ -633,8 +633,13 @@ function renderGmail(winId) {
     const body = document.getElementById(winId + '-browser-content');
     if (!body) return;
 
-    const emails = generateEmails();
-    gmailState[winId] = { emails: emails, currentView: 'inbox', selectedId: null, deletedCount: 0 };
+    // Try to load saved state first
+    const savedState = loadGmailState();
+    const emails = savedState ? savedState.emails : generateEmails();
+    const currentView = savedState ? savedState.currentView : 'inbox';
+    const deletedCount = savedState ? savedState.deletedCount : 0;
+    
+    gmailState[winId] = { emails: emails, currentView: currentView, selectedId: null, deletedCount: deletedCount };
 
     const html = `
     <style>
@@ -732,6 +737,7 @@ function gmailOpenEmail(winId, emailId) {
     if (!email) return;
     email.read = true;
     state.selectedId = emailId;
+    saveGmailState();
 
     const content = document.getElementById(winId + '-gmail-content');
     if (!content) return;
@@ -811,6 +817,7 @@ function gmailSwitchView(winId, view) {
     const content = document.getElementById(winId + '-gmail-content');
     if (content) content.innerHTML = gmailRenderList(winId);
     updateGmailSidebarBadges(winId);
+    saveGmailState();
 }
 
 function gmailNewCompose(winId) {
@@ -829,6 +836,7 @@ function gmailMarkRead(winId) {
     const state = gmailState[winId];
     if (!state) return;
     state.emails.forEach(e => e.read = true);
+    saveGmailState();
     gmailRenderListView(winId);
 }
 
@@ -855,8 +863,35 @@ function gmailDelete(winId) {
         addNotification(' Gmail', '5 new emails arrived in your inbox!');
     }
     
+    saveGmailState();
     gmailRenderListView(winId);
     updateGmailSidebarBadges(winId);
+}
+
+function saveGmailState() {
+    const state = gmailState[Object.keys(gmailState)[0]];
+    if (!state) return;
+    try {
+        localStorage.setItem('gmailState', JSON.stringify({
+            emails: state.emails,
+            currentView: state.currentView,
+            deletedCount: state.deletedCount
+        }));
+    } catch(e) {
+        console.error('Failed to save Gmail state:', e);
+    }
+}
+
+function loadGmailState() {
+    try {
+        const saved = localStorage.getItem('gmailState');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch(e) {
+        console.error('Failed to load Gmail state:', e);
+    }
+    return null;
 }
 
 function updateGmailSidebarBadges(winId) {
