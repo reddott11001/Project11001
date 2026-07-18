@@ -675,19 +675,19 @@ function renderGmail(winId) {
     </style>
     <div class="gmail-app">
         <div class="gmail-sidebar">
-            <div class="gmail-compose" onclick="gmailNewCompose('${winId}')"> Compose Email</div>
-            <div class="gmail-nav-item active" data-view="inbox" onclick="gmailSwitchView('${winId}','inbox')"> Inbox <span class="badge">${emails.length}</span></div>
+            <div class="gmail-compose" onclick="gmailNewCompose('${winId}')">✏️ Compose Email</div>
+            <div class="gmail-nav-item active" data-view="inbox" onclick="gmailSwitchView('${winId}','inbox')">📥 Inbox <span class="badge">${emails.length}</span></div>
             <div class="gmail-nav-item" data-view="starred" onclick="gmailSwitchView('${winId}','starred')">⭐ Starred</div>
-            <div class="gmail-nav-item" data-view="sent" onclick="gmailSwitchView('${winId}','sent')"> Sent</div>
+            <div class="gmail-nav-item" data-view="sent" onclick="gmailSwitchView('${winId}','sent')">📤 Sent</div>
             <div class="gmail-nav-item" data-view="drafts" onclick="gmailSwitchView('${winId}','drafts')"> Drafts</div>
-            <div class="gmail-nav-item" data-view="spam" onclick="gmailSwitchView('${winId}','spam')"> Spam <span class="badge" style="background:#c62828;">${mailTemplates.length}</span></div>
+            <div class="gmail-nav-item" data-view="spam" onclick="gmailSwitchView('${winId}','spam')">🚫 Spam <span class="badge" style="background:#c62828;">${mailTemplates.length}</span></div>
             <div class="gmail-nav-item" data-view="trash" onclick="gmailSwitchView('${winId}','trash')">🗑️ Trash</div>
         </div>
         <div class="gmail-main" id="${winId}-gmail-main">
             <div class="gmail-toolbar">
-                <button onclick="gmailRefresh('${winId}')">?</button>
-                <button onclick="gmailMarkRead('${winId}')"></button>
-                <button onclick="gmailDelete('${winId}')">?</button>
+                <button onclick="gmailRefresh('${winId}')">↻</button>
+                <button onclick="gmailMarkRead('${winId}')">✉</button>
+                <button onclick="gmailDelete('${winId}')">🗑</button>
                 <input class="gmail-search" placeholder="Search email..." onkeyup="gmailSearch('${winId}', this.value)">
             </div>
             <div id="${winId}-gmail-loading" class="gmail-loading-bar" style="width:0;"></div>
@@ -756,7 +756,7 @@ function gmailOpenEmail(winId, emailId) {
                     <p>${email.preview}</p>
                     <p style="margin-top:16px;">Click the link below for further action:</p>
                     <div style="margin:16px 0;">
-                        <span style="display:inline-block;padding:12px 24px;background:#1a73e8;color:#fff;border-radius:4px;cursor:pointer;font-weight:bold;text-decoration:none;" onclick="triggerPhishingMalware('${winId}', '${email.malware}');this.style.background='#888';this.textContent='? Loading...';"> CONFIRM NOW</span>
+                        <span style="display:inline-block;padding:12px 24px;background:#1a73e8;color:#fff;border-radius:4px;cursor:pointer;font-weight:bold;text-decoration:none;" onclick="triggerPhishingMalware('${winId}', '${email.malware}');this.style.background='#888';this.textContent=' Loading...';">🔓 CONFIRM NOW</span>
                     </div>
                     <p style="color:#999;font-size:12px;">Or click this link: <span style="color:#1a73e8;cursor:pointer;" onclick="triggerPhishingMalware('${winId}', '${email.malware}')">verify.link.${Math.random().toString(36).slice(2,6)}.com</span></p>
                 </div>
