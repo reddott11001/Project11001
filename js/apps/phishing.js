@@ -103,7 +103,7 @@ function showVirusPopups(files, label, color, icon, count) {
             const popup = document.createElement('div');
             popup.className = 'virus-popup';
             popup.style.cssText = `position:fixed;top:${Math.random() * 60 + 10}%;left:${Math.random() * 60 + 10}%;background:#1a0000;border:3px solid ${color};border-radius:8px;padding:16px 24px;z-index:99999;box-shadow:0 0 30px ${color}80;animation:popupShake 0.1s infinite;max-width:320px;`;
-            popup.innerHTML = `<div style="font-size:20px;margin-bottom:8px;color:${color};font-weight:bold;display:flex;align-items:center;gap:8px;"><span>${icon}</span><span>${label} DETECTED</span></div><div style="color:${color}aa;font-size:12px;margin-bottom:6px;text-align:left;"> File: ${files[i % files.length].name}<br> Path: ${files[i % files.length].path.join('$ad$ad')}<br> Threat: Critical!</div><button onclick="this.parentElement.remove()" style="padding:6px 16px;background:${color};color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">? Ignore</button>`;
+            popup.innerHTML = `<div style="font-size:20px;margin-bottom:8px;color:${color};font-weight:bold;display:flex;align-items:center;gap:8px;"><span>${icon}</span><span>${label} DETECTED</span></div><div style="color:${color}aa;font-size:12px;margin-bottom:6px;text-align:left;"> File: ${files[i % files.length].name}<br> Path: ${files[i % files.length].path.join('$ad$ad')}<br> Threat: Critical!</div><button onclick="this.parentElement.remove()" style="padding:6px 16px;background:${color};color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕ Ignore</button>`;
             document.body.appendChild(popup);
             setTimeout(() => { if (popup.parentNode) popup.remove(); }, 6000 + i * 500);
         }, i * 400);
@@ -320,7 +320,7 @@ function triggerWiFiRAT() {
         popup.style.cssText = `position:fixed;bottom:${60 + Math.random() * 30}px;right:${10 + Math.random() * 20}px;background:#0a0a0a;border:2px solid #00cc66;border-radius:6px;padding:12px 18px;z-index:99999;font-family:monospace;font-size:11px;color:#00cc66;box-shadow:0 0 20px #00cc6644;max-width:340px;`;
         popup.innerHTML = `
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;border-bottom:1px solid #00cc6633;padding-bottom:6px;">
-                <span style="color:#00cc66;">?</span>
+                <span style="color:#00cc66;"></span>
                 <span style="font-weight:bold;color:#00ff88;">RAT - Reverse Shell</span>
                 <span style="flex:1;"></span>
                 <span style="color:#666;font-size:10px;">PID: ${Math.floor(Math.random()*9000+1000)}</span>
@@ -379,7 +379,7 @@ function triggerAdware2() {
         popup.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:start;">
                 <span style="font-size:32px;"></span>
-                <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#ff6600;font-size:20px;font-weight:bold;">?</span>
+                <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer;color:#ff6600;font-size:20px;font-weight:bold;">✕</span>
             </div>
             <div style="font-size:16px;color:#ffcc00;margin:12px 0;line-height:1.4;">${bigAds[ad2Count % bigAds.length]}</div>
             <div style="font-size:11px;color:#ff880088;margin:8px 0;">sponsored by ad2.network</div>

@@ -1,0 +1,95 @@
+
+js\apps\browser.js:
+  Line 8: standalone_vs - found
+  Line 396: standalone_vs - found
+  Line 409: standalone_vs - found
+  Line 414: standalone_vs - found
+  Line 416: standalone_vs - found
+  Line 584: standalone_vs - found
+  Line 631: standalone_vs - found
+  Line 632: standalone_vs - found
+  Line 645: standalone_vs - found
+  Line 657: standalone_vs - found
+  Line 732: standalone_vs - found
+  Line 741: standalone_vs - found
+  Line 787: standalone_vs - found
+  Line 795: standalone_vs - found
+  Line 855: standalone_vs - found
+  Line 1005: standalone_vs - found
+  Line 1066: standalone_vs - found
+  Line 1236: standalone_vs - found
+  Line 1262: standalone_vs - found
+  Line 1531: standalone_vs - found
+  Line 1538: standalone_vs - found
+  Line 1664: standalone_vs - found
+  Line 1698: standalone_vs - found
+  Line 1731: standalone_vs - found
+  Line 1757: standalone_vs - found
+  Line 1768: standalone_vs - found
+  Line 1779: standalone_vs - found
+  Line 1790: standalone_vs - found
+  Line 1801: standalone_vs - found
+  Line 1812: standalone_vs - found
+  Line 1825: standalone_vs - found
+  Line 1836: standalone_vs - found
+  Line 1849: standalone_vs - found
+  Line 1878: standalone_vs - found
+  Line 1893: standalone_vs - found
+  Line 1926: standalone_vs - found
+  Line 1958: standalone_vs - found
+  Line 1990: standalone_vs - found
+  Line 2023: standalone_vs - found
+  Line 2035: standalone_vs - found
+  Line 2067: standalone_vs - found
+  Line 2100: standalone_vs - found
+  Line 2127: standalone_vs - found
+  Line 2145: standalone_vs - found
+  Line 2521: standalone_vs - found
+  Line 2570: standalone_vs - found
+  Line 2635: standalone_vs - found
+  Line 2692: standalone_vs - found
+
+js\apps\file-explorer.js:
+  Line 265: standalone_vs - found
+  Line 298: standalone_vs - found
+  Line 299: standalone_vs - found
+  Line 416: standalone_vs - found
+
+js\apps\file-viewer.js:
+  Line 80: standalone_vs - found
+
+js\apps\phishing.js:
+  Line 106: html_question - >? 
+  Line 286: standalone_vs - found
+  Line 323: html_question - >?<
+  Line 382: html_question - >?<
+  Line 683: standalone_vs - found
+  Line 1145: standalone_vs - found
+
+js\apps\settings.js:
+  Line 43: standalone_vs - found
+  Line 167: standalone_vs - found
+  Line 358: standalone_vs - found
+  Line 423: standalone_vs - found
+  Line 461: standalone_vs - found
+  Line 820: standalone_vs - found
+  Line 953: standalone_vs - found
+  Line 978: standalone_vs - found
+
+js\apps\taskmgr.js:
+  Line 155: standalone_vs - found
+  Line 193: standalone_vs - found
+  Line 199: standalone_vs - found
+  Line 210: standalone_vs - found
+
+js\apps\terminal.js:
+  Line 693: standalone_vs - found
+  Line 968: standalone_vs - found
+  Line 983: standalone_vs - found
+
+js\desktop.js:
+  Line 745: standalone_vs - found
+  Line 832: standalone_vs - found
+  Line 935: standalone_vs - found
+  Line 938: standalone_vs - found
+  Line 1030: standalone_vs - found
