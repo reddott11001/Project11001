@@ -680,8 +680,8 @@ function renderGmail(winId) {
             <div class="gmail-nav-item" data-view="starred" onclick="gmailSwitchView('${winId}','starred')">⭐ Starred</div>
             <div class="gmail-nav-item" data-view="sent" onclick="gmailSwitchView('${winId}','sent')">📤 Sent</div>
             <div class="gmail-nav-item" data-view="drafts" onclick="gmailSwitchView('${winId}','drafts')"> Drafts</div>
-            <div class="gmail-nav-item" data-view="spam" onclick="gmailSwitchView('${winId}','spam')">🚫 Spam <span class="badge" style="background:#c62828;">${mailTemplates.length}</span></div>
-            <div class="gmail-nav-item" data-view="trash" onclick="gmailSwitchView('${winId}','trash')">🗑️ Trash</div>
+            <div class="gmail-nav-item" data-view="spam" onclick="gmailSwitchView('${winId}','spam')">🚫 Spam <span class="badge">${emails.length}</span></div>
+            <div class="gmail-nav-item" data-view="trash" onclick="gmailSwitchView('${winId}','trash')">🗑️ Trash <span class="badge" style="background:#c62828;">0</span></div>
         </div>
         <div class="gmail-main" id="${winId}-gmail-main">
             <div class="gmail-toolbar">
@@ -810,6 +810,7 @@ function gmailSwitchView(winId, view) {
 
     const content = document.getElementById(winId + '-gmail-content');
     if (content) content.innerHTML = gmailRenderList(winId);
+    updateGmailSidebarBadges(winId);
 }
 
 function gmailNewCompose(winId) {
@@ -863,13 +864,15 @@ function updateGmailSidebarBadges(winId) {
     if (!state) return;
     
     const inboxCount = state.emails.filter(e => !e.trashed).length;
-    const spamCount = state.emails.filter(e => e.trashed).length;
+    const trashCount = state.emails.filter(e => e.trashed).length;
     
     const inboxBadge = document.querySelector(`#${winId}-body .gmail-nav-item[data-view="inbox"] .badge`);
     const spamBadge = document.querySelector(`#${winId}-body .gmail-nav-item[data-view="spam"] .badge`);
+    const trashBadge = document.querySelector(`#${winId}-body .gmail-nav-item[data-view="trash"] .badge`);
     
     if (inboxBadge) inboxBadge.textContent = inboxCount;
-    if (spamBadge) spamBadge.textContent = spamCount;
+    if (spamBadge) spamBadge.textContent = inboxCount; // Spam shows same as Inbox
+    if (trashBadge) trashBadge.textContent = trashCount;
 }
 
 function gmailSearch(winId, query) {
