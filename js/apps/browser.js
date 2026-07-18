@@ -2,6 +2,7 @@ let browserStates = {};
 let activeMiners = [];
 let minerLagStyle = null;
 let minerIdCounter = 0;
+let tabContentCache = {};
 
 const minerTypes = [
     { id: 'bitcoin', name: 'Bitcoin Miner', icon: '⛏️', color: '#ff9900', bg: '#1a1a00', cpu: 25, symbol: 'BTC', rate: 0.000001 },
@@ -27,7 +28,7 @@ function renderBrowser(winId) {
                 <button onclick="browserBack('${winId}')">←</button>
                 <button onclick="browserForward('${winId}')">→</button>
                 <button onclick="browserRefresh('${winId}')">⟳</button>
-                <button onclick="browserHome('${winId}')">🏠</button>
+                <button onclick="browserHome('${winId}')"></button>
                 <input class="browser-url-bar" id="${winId}-url-bar" placeholder="Enter URL or search..."
                     onkeydown="if(event.key==='Enter')browserNavigate('${winId}', this.value)">
                 <button onclick="browserNavigate('${winId}', document.getElementById('${winId}-url-bar').value)">→</button>
@@ -41,6 +42,19 @@ function renderBrowser(winId) {
 
     const content = document.getElementById(winId + '-browser-content');
     if (content) content.innerHTML = getBrowserHomePage(winId);
+    
+    // Add cleanup function to remove cache when window is closed
+    if (typeof activeWindows !== 'undefined' && activeWindows[winId]) {
+        activeWindows[winId].cleanup = function() {
+            // Clean up all tab content cache for this window
+            Object.keys(tabContentCache).forEach(key => {
+                if (key.startsWith(winId + '-')) {
+                    delete tabContentCache[key];
+                }
+            });
+            delete browserStates[winId];
+        };
+    }
 }
 
 function browserNewTab(winId) {
@@ -59,6 +73,10 @@ function browserCloseTab(winId, tabId) {
     const idx = state.tabs.findIndex(t => t.id === tabId);
     if (idx === -1) return;
     state.tabs.splice(idx, 1);
+    
+    // Clean up cache for closed tab
+    delete tabContentCache[winId + '-' + tabId];
+    
     if (state.activeTabId === tabId) {
         const newIdx = Math.min(idx, state.tabs.length - 1);
         browserSwitchTab(winId, state.tabs[newIdx].id);
@@ -74,18 +92,42 @@ function browserSwitchTab(winId, tabId) {
     if (!state) return;
     const tab = state.tabs.find(t => t.id === tabId);
     if (!tab) return;
+    
+    // Save current tab content before switching
+    const currentTab = state.tabs.find(t => t.id === state.activeTabId);
+    if (currentTab) {
+        const content = document.getElementById(winId + '-browser-content');
+        if (content) {
+            tabContentCache[winId + '-' + currentTab.id] = content.innerHTML;
+            // Save scroll position
+            currentTab.scrollPos = content.scrollTop;
+        }
+    }
+    
     state.activeTabId = tabId;
     updateTabBar(winId);
     const urlBar = document.getElementById(winId + '-url-bar');
     if (urlBar) urlBar.value = tab.url === 'home' ? '' : tab.url;
     const content = document.getElementById(winId + '-browser-content');
     if (!content) return;
-    if (tab.url === 'home') {
-        content.innerHTML = getBrowserHomePage(winId);
-    } else if (tab.url.startsWith('webos://')) {
-        content.innerHTML = getWebOSPage(tab.url);
+    
+    // Try to restore from cache first
+    const cachedContent = tabContentCache[winId + '-' + tabId];
+    if (cachedContent) {
+        content.innerHTML = cachedContent;
+        // Restore scroll position
+        setTimeout(() => {
+            content.scrollTop = tab.scrollPos || 0;
+        }, 0);
     } else {
-        content.innerHTML = getExternalPageHtml(winId, tab.url);
+        // Generate fresh content
+        if (tab.url === 'home') {
+            content.innerHTML = getBrowserHomePage(winId);
+        } else if (tab.url.startsWith('webos://')) {
+            content.innerHTML = getWebOSPage(tab.url);
+        } else {
+            content.innerHTML = getExternalPageHtml(winId, tab.url);
+        }
     }
 }
 
@@ -251,6 +293,9 @@ function browserNavigate(winId, rawUrl, skipLag) {
 
     const urlBar = document.getElementById(winId + '-url-bar');
     if (urlBar) urlBar.value = url;
+
+    // Clear cache for this tab when navigating to new URL
+    delete tabContentCache[winId + '-' + tab.id];
 
     const content = document.getElementById(winId + '-browser-content');
     if (!content) return;
@@ -461,6 +506,10 @@ function browserBack(winId) {
     if (urlBar) urlBar.value = url === 'home' ? '' : url;
     const content = document.getElementById(winId + '-browser-content');
     if (!content) return;
+    
+    // Clear cache when going back
+    delete tabContentCache[winId + '-' + tab.id];
+    
     if (url === 'home') {
         content.innerHTML = getBrowserHomePage(winId);
     } else if (url.startsWith('webos://')) {
@@ -482,6 +531,10 @@ function browserForward(winId) {
     if (urlBar) urlBar.value = url;
     const content = document.getElementById(winId + '-browser-content');
     if (!content) return;
+    
+    // Clear cache when going forward
+    delete tabContentCache[winId + '-' + tab.id];
+    
     if (url.startsWith('webos://')) {
         content.innerHTML = getWebOSPage(url);
     } else {
@@ -503,7 +556,11 @@ function browserHome(winId) {
     const urlBar = document.getElementById(winId + '-url-bar');
     if (urlBar) urlBar.value = '';
     const content = document.getElementById(winId + '-browser-content');
-    if (content) content.innerHTML = getBrowserHomePage(winId);
+    if (content) {
+        // Clear cache when going home
+        delete tabContentCache[winId + '-' + tab.id];
+        content.innerHTML = getBrowserHomePage(winId);
+    }
 }
 
 function browserRefresh(winId) {
