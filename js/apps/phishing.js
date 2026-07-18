@@ -862,11 +862,11 @@ function updateGmailSidebarBadges(winId) {
     const state = gmailState[winId];
     if (!state) return;
     
-    const inboxCount = state.emails.filter(e => !e.trashed && !e.starred && state.currentView !== 'spam').length;
-    const spamCount = state.emails.filter(e => e.from.includes('spam') || e.from.includes('noreply')).length;
+    const inboxCount = state.emails.filter(e => !e.trashed).length;
+    const spamCount = state.emails.filter(e => e.trashed).length;
     
-    const inboxBadge = document.querySelector(`#${winId}-gmail-main .gmail-nav-item[data-view="inbox"] .badge`);
-    const spamBadge = document.querySelector(`#${winId}-gmail-main .gmail-nav-item[data-view="spam"] .badge`);
+    const inboxBadge = document.querySelector(`#${winId}-body .gmail-nav-item[data-view="inbox"] .badge`);
+    const spamBadge = document.querySelector(`#${winId}-body .gmail-nav-item[data-view="spam"] .badge`);
     
     if (inboxBadge) inboxBadge.textContent = inboxCount;
     if (spamBadge) spamBadge.textContent = spamCount;
