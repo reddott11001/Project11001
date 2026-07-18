@@ -703,6 +703,9 @@ function renderGmail(winId) {
     </div>`;
 
     body.innerHTML = html;
+    
+    // Update badges after render to reflect saved state
+    setTimeout(() => updateGmailSidebarBadges(winId), 0);
 }
 
 function gmailRenderList(winId) {
