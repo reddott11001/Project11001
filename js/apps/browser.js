@@ -160,7 +160,7 @@ function getBrowserHomePage(winId) {
                     <span>News</span>
                 </div>
                 <div class="browser-shortcut" onclick="browserNavigate('${winId}', 'webos://malware-guide')" style="border-color:#ff6600;background:#1a0a00;">
-                    <div class="browser-shortcut-icon">️</div>
+                    <div class="browser-shortcut-icon">🛡️</div>
                     <span style="color:#ff8800;">Malware Guide</span>
                 </div>
                 <div class="browser-shortcut" onclick="browserNavigate('${winId}', 'webos://nomoreransom')" style="border-color:#1a3a8a;background:#f0f4ff;">

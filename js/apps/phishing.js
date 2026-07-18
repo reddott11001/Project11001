@@ -677,11 +677,11 @@ function renderGmail(winId) {
         <div class="gmail-sidebar">
             <div class="gmail-compose" onclick="gmailNewCompose('${winId}')"> Compose Email</div>
             <div class="gmail-nav-item active" data-view="inbox" onclick="gmailSwitchView('${winId}','inbox')"> Inbox <span class="badge">${emails.length}</span></div>
-            <div class="gmail-nav-item" data-view="starred" onclick="gmailSwitchView('${winId}','starred')">? Starred</div>
+            <div class="gmail-nav-item" data-view="starred" onclick="gmailSwitchView('${winId}','starred')">⭐ Starred</div>
             <div class="gmail-nav-item" data-view="sent" onclick="gmailSwitchView('${winId}','sent')"> Sent</div>
             <div class="gmail-nav-item" data-view="drafts" onclick="gmailSwitchView('${winId}','drafts')"> Drafts</div>
             <div class="gmail-nav-item" data-view="spam" onclick="gmailSwitchView('${winId}','spam')"> Spam <span class="badge" style="background:#c62828;">${mailTemplates.length}</span></div>
-            <div class="gmail-nav-item" data-view="trash" onclick="gmailSwitchView('${winId}','trash')">? Trash</div>
+            <div class="gmail-nav-item" data-view="trash" onclick="gmailSwitchView('${winId}','trash')">🗑️ Trash</div>
         </div>
         <div class="gmail-main" id="${winId}-gmail-main">
             <div class="gmail-toolbar">
@@ -745,7 +745,7 @@ function gmailOpenEmail(winId, emailId) {
 
         content.innerHTML = `
             <div style="flex:1;overflow-y:auto;padding:20px 24px;">
-                <button class="gmail-back-btn" style="display:inline-block;margin-bottom:12px;" onclick="gmailRenderListView('${winId}')">? Back</button>
+                <button class="gmail-back-btn" style="display:inline-block;margin-bottom:12px;" onclick="gmailRenderListView('${winId}')">← Back</button>
                 <div class="gmail-email-detail-header">
                     <div class="gmail-email-detail-subject">${email.subject}</div>
                     <div class="gmail-email-detail-from"><strong>From:</strong> ${email.from}</div>
@@ -781,7 +781,7 @@ function gmailOpenEmail(winId, emailId) {
 
     content.innerHTML = `
         <div style="flex:1;overflow-y:auto;padding:20px 24px;">
-            <button class="gmail-back-btn" style="display:inline-block;margin-bottom:12px;" onclick="gmailRenderListView('${winId}')">? Back</button>
+            <button class="gmail-back-btn" style="display:inline-block;margin-bottom:12px;" onclick="gmailRenderListView('${winId}')">← Back</button>
             <div class="gmail-email-detail-header">
                 <div class="gmail-email-detail-subject">${email.subject}</div>
                 <div class="gmail-email-detail-from"><strong>From:</strong> ${email.from}</div>
